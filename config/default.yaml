@@ -1,0 +1,70 @@
+# ---------------------------------------------------------------------------
+# App Reflexes — crypto trading research configuration
+# Everything the pipeline needs is here. No parameters are hard-coded in modules.
+# ---------------------------------------------------------------------------
+
+data:
+  source: coinbase                # only 'coinbase' implemented (free, no key, has volume)
+  vs_currency: USD
+  universe: [BTC, ETH, SOL]       # base assets; products become BTC-USD, ETH-USD, SOL-USD
+  start: "2021-06-01"             # SOL-USD history on Coinbase begins mid-2021
+  end: null                       # null => today (UTC)
+  cache_dir: data_cache           # Parquet cache location
+  max_forward_fill: 2             # max consecutive missing daily bars to forward-fill; longer gaps stay NaN
+  # survivorship: the universe is fixed and explicit above. We do NOT reconstruct a
+  # historically-accurate tradable set. See HONEST_ASSESSMENT.md — this is a known bias.
+
+features:
+  return_horizons: [1, 5, 21, 63]     # trading-day horizons for returns
+  momentum_lookback: 252              # 12-month lookback (~252 trading days)
+  momentum_skip: 21                   # skip most-recent month -> classic 12-1 momentum
+  ma_windows: [10, 20, 50, 100, 200]  # moving-average windows
+  vol_window: 21                      # realized-volatility window (days)
+  atr_window: 14                      # ATR window
+  volume_baseline_window: 63          # volume baseline (median) window
+  zscore_window: 252                  # rolling window for cross-sectional-free z-scoring
+
+news:
+  enabled: false                      # OFF by default; quarantined module (see news.py)
+  rss_feeds: []                       # e.g. ["https://cointelegraph.com/rss"]
+  lookback_days: 3                    # only headlines strictly before decision date T are used
+
+decision:
+  combiner: rules                     # 'rules' | 'llm'
+  # rules-combiner weights (applied to normalized signals in [-1, 1])
+  rules:
+    weights:
+      momentum: 1.0
+      trend: 1.0        # MA relationship
+      meanrev: -0.5     # short-horizon reversal (negative -> fade recent moves)
+      volume: 0.5       # volume confirmation
+      news: 0.0         # neutral unless news module is enabled and validated
+    long_threshold: 0.15
+    short_threshold: -0.15
+    allow_short: true
+  llm:
+    model: claude-opus-4-8
+    max_tokens: 2048
+    temperature: 0.0
+    # If ANTHROPIC_API_KEY is unset the LLM combiner returns FLAT + a "not configured"
+    # flag rather than fabricating positions.
+
+portfolio:
+  gross_leverage: 1.0        # target gross exposure (sum |w|)
+  max_position: 0.5          # per-asset absolute weight cap (concentration limit)
+  vol_target_annual: 0.40    # annualized portfolio vol target; scales gross exposure
+  vol_target_window: 21      # window used to estimate realized portfolio vol for scaling
+  max_gross: 1.5             # hard cap on gross after vol scaling
+
+backtest:
+  execution: next_open       # 'next_open' | 'next_close' — decide on T close, fill at T+1
+  cost_bps: 10.0             # round-trip-agnostic: charged per unit turnover (bps)
+  slippage_bps: 5.0          # additional per-turnover slippage (bps)
+  initial_capital: 1_000_000
+  # Walk-forward: the OOS holdout is never used to choose any parameter above.
+  oos_start: "2024-01-01"    # everything >= this date is out-of-sample holdout
+  rebalance: daily
+
+null_test:
+  n_shuffles: 50             # random-signal repetitions for the noise baseline
+  seed: 7
