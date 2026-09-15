@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ojalá — the ticket you lose, you keep</title>
+<meta name="description" content="Savings with a monthly draw: every €10 saved is one entry. If you don't win, your money is still yours.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/ojala.css">
+</head>
+<body>
+
+<div class="tape" id="ecbTape" role="region" aria-label="ECB rates and what they do to the next draw" data-paused="false">
+  <div class="tape-viewport">
+    <div class="tape-track">
+      <ul class="tape-run">
+        <li class="lead"><span class="k">ECB · Deposit facility</span><b>2.50%</b><span class="down">▼ 25 bp</span><span>since 16 Sept</span></li>
+        <li><span class="k">October pot</span><span class="pot">≈ €33,000</span><span class="down">€3,300 less than at 2.75%</span></li>
+        <li><span>Every 25 bp from the ECB moves ≈ €3,300 of pot: ≈ 165 pedrea prizes</span></li>
+        <li class="lead">Rates move. Your savings don't.</li>
+      </ul>
+    </div>
+  </div>
+  <button class="tape-pause" type="button" aria-pressed="false" aria-label="Pause"><svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" fill="currentColor"><rect x="1.5" y="1" width="3" height="10" rx="1"/><rect x="7.5" y="1" width="3" height="10" rx="1"/></svg><span class="tape-pause-word">Pause</span></button>
+</div>
+
+<div class="wrap">
+<nav>
+  <a class="logo" href="#top"><span class="dot"></span>Ojalá</a>
+  <ul>
+    <li><a href="#como">How it works</a></li>
+    <li><a href="#dinero">Where it comes from</a></li>
+    <li><a href="#simula">Simulate</a></li>
+    <li><a href="#sorteo">The draw</a></li>
+    <li><a href="#pena">Syndicates</a></li>
+    <li><a href="#uk">United Kingdom</a></li>
+    <li><a href="#seguro">Safety</a></li>
+  </ul>
+  <a class="lang" href="index.html" hreflang="es">ES</a>
+  <a class="btn btn-hope btn-sm" href="#unete">Join the list</a>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-copy">
+    <span class="eyebrow">Savings with a monthly draw · Free to enter</span>
+    <h1>The ticket you <span class="strike">lose</span> <em>you keep.</em></h1>
+    <p class="lede">Every €10 you save is one entry in each month's draw. If you win, you get paid. If you don't, your money is still yours, all of it, and you can take it out whenever you like.</p>
+    <div class="hero-actions">
+      <a class="btn btn-hope" href="#unete">I want my first entry</a>
+      <a class="btn btn-ghost" href="#simula">See how many I'd have</a>
+    </div>
+    <p class="hero-note">No fees. No lock-in. Money held at a Spanish bank, covered up to €100,000 by the Deposit Guarantee Fund.</p>
+    <div class="stats">
+      <div><b data-ojala="topPrize">€10,000</b><span><span data-ojala="drawMonth">October</span>'s top prize</span></div>
+      <div><b data-ojala="prizes">911</b><span>prizes this month</span></div>
+      <div><b>€0</b><span>what you can lose</span></div>
+    </div>
+  </div>
+  <div class="stage" aria-hidden="true">
+    <canvas id="bombo" width="440" height="440"></canvas>
+    <div class="ticket">
+      <div class="row"><span class="lbl">Entry</span><span class="lbl"><span data-ojala="drawMonth">October</span> 2026</span></div>
+      <div class="num" id="serial">047183</div>
+      <div class="dash"></div>
+      <div class="row"><span class="lbl">Saved</span><span class="mono">€1,240.00</span></div>
+      <div class="row"><span class="lbl">Entries</span><span class="mono">124</span></div>
+      <div class="keep"><i></i>Stays with you, whatever happens</div>
+    </div>
+  </div>
+</header>
+
+<section id="como">
+  <div class="sec-head">
+    <span class="eyebrow">How it works</span>
+    <h2>You play, and you always save.</h2>
+    <p class="lede">Three steps and you're in. The only thing that changes compared with a normal savings account is that on the first Monday of every month, something might come your way.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <span class="n">STEP 1</span>
+      <h3>Choose how much to set aside each week</h3>
+      <p>€10, 20, 30, 40, 50 or more. It moves automatically from your usual account. And whenever you want, it comes back.</p>
+    </div>
+    <div class="step">
+      <span class="n">STEP 2</span>
+      <h3>Every €10 saved is one entry</h3>
+      <p>We count your average balance over the month. The more you save and the longer you leave it, the more entries you build up.</p>
+    </div>
+    <div class="step">
+      <span class="n">STEP 3</span>
+      <h3>First Monday of the month, the draw</h3>
+      <p><span data-ojala="prizes">911</span> prizes: one of <span data-ojala="topPrize">€10,000</span>, <span data-ojala="syndicateN">10</span> of <span data-ojala="syndicatePrize">€500</span> and <span data-ojala="pedrea">900</span> of <span data-ojala="pedreaPrize">€20</span>. If you win, you'll see it in the app before 10 in the morning.</p>
+    </div>
+  </div>
+</section>
+
+<section id="dinero">
+  <div class="sec-head">
+    <span class="eyebrow">Where does the money come from?</span>
+    <h2>The interest pays the prizes. Not your pocket.</h2>
+    <p class="lede">Your savings are never gambled. They are deposited at a bank, which invests them in Treasury bills and government bonds. What that money earns each year, added up across everyone, is the pot. So, for every €100 you save:</p>
+  </div>
+  <div class="flow" aria-label="Journey of €100 saved">
+    <div>
+      <span class="fk">Your savings</span>
+      <span class="fv">€100</span>
+      <p>Goes into an account in your name at our partner bank. Withdrawable whenever you like.</p>
+    </div>
+    <div>
+      <span class="fk">The bank invests it</span>
+      <span class="fv">Government debt</span>
+      <p>Short-term Treasury bills and government bonds: the most boring and safest thing there is.</p>
+    </div>
+    <div>
+      <span class="fk">It earns per year</span>
+      <span class="fv">≈ <span data-ojala="yield100">€2.50</span></span>
+      <p>The <span data-ojala="rateDeposit">2.50%</span> the ECB is paying today. With €1,000 saved: about <span data-ojala="yield1000">€25</span>.</p>
+    </div>
+    <div>
+      <span class="fk">It's split</span>
+      <span class="fv" data-ojala="split">€2.00 · €0.25 · €0.25</span>
+      <p><span data-ojala="per100Pot">€2.00</span> to the prize pot, <span data-ojala="per100Half">€0.25</span> for the bank, <span data-ojala="per100Half">€0.25</span> for Ojalá. That's all we charge.</p>
+    </div>
+    <div>
+      <span class="fk">Everyone's pot</span>
+      <span class="fv"><span data-ojala="pot">€33,000</span>/month</span>
+      <p>With €<span data-ojala="poolM">20</span>M saved between everyone, there are <span data-ojala="prizes">911</span> prizes this month. And your €100 is still there.</p>
+    </div>
+  </div>
+
+  <div class="compare">
+    <article class="cmp">
+      <header><span class="eyebrow">Christmas Lottery</span><span class="mono">per €100</span></header>
+      <div class="bar" aria-label="Where €100 goes in the lottery">
+        <span class="prize" style="flex:70">€70 in prizes</span>
+        <span class="gone" style="flex:30">€30</span>
+      </div>
+      <div class="legend"><span><i style="background:var(--gold)"></i>Comes back as prizes, shared among everyone</span><span><i style="background:var(--coral)"></i>Lost along the way (State and costs)</span></div>
+      <dl>
+        <dt>What you keep if you don't win</dt><dd class="neg">€0</dd>
+        <dt>Average result per €100</dt><dd class="neg">−€30</dd>
+        <dt>Playing €100 a year for 10 years</dt><dd class="neg">−€300 on average, €0 saved</dd>
+        <dt>Odds of hitting El Gordo</dt><dd>1 in 100,000</dd>
+      </dl>
+      <p class="fine">Public figures: 70 % of takings go to prizes. It's not a scam, the rules are out in the open. It's simply a product where, on average, you lose 30 % of what you put in.</p>
+    </article>
+    <article class="cmp win">
+      <header><span class="eyebrow">Ojalá</span><span class="mono">per €100</span></header>
+      <div class="bar" aria-label="Where €100 goes in Ojalá">
+        <span class="keep" style="flex:100">€100 stays yours</span>
+        <span class="prize" style="flex:2;min-width:6px"></span>
+        <span class="thin" style="flex:.5;min-width:4px"></span>
+      </div>
+      <div class="legend"><span><i style="background:var(--hope)"></i>Your savings, untouched</span><span><i style="background:var(--gold)"></i><span data-ojala="per100Pot">€2.00</span> of interest to the pot</span><span><i style="background:var(--ink-3)"></i><span data-ojala="per100Rest">€0.50</span> bank and Ojalá</span></div>
+      <dl>
+        <dt>What you keep if you don't win</dt><dd class="pos">€100</dd>
+        <dt>Average result per €100</dt><dd class="pos">+<span data-ojala="per100Net">€1.62</span> in prizes (after 19 % tax)</dd>
+        <dt>Saving €100 a year for 10 years</dt><dd class="pos">€1,000 of yours + the draws</dd>
+        <dt>What you give up versus a <span data-ojala="rateDeposit">2.50%</span> deposit</dt><dd data-ojala="per100Giveup">€0.88</dd>
+      </dl>
+      <p class="fine">The only "price" of Ojalá is the interest you hand to the pot: a couple of euros a year for every €100 saved. In return, every month you're in with a chance of <span data-ojala="topPrize">€10,000</span>.</p>
+    </article>
+  </div>
+  <div class="verdict">
+    <h3>And if you don't win with Ojalá, you can always buy a Christmas Lottery ticket.</h3>
+    <p>We love 22 December. We just think the excitement shouldn't cost 30 %. Here the thrill is paid for by everyone's interest, and everyone's money stays where it was. You lose nothing.</p>
+  </div>
+</section>
+
+<section id="simula">
+  <div class="sec-head">
+    <span class="eyebrow">Simulator</span>
+    <h2>How much would you have in a year?</h2>
+    <p class="lede">Move the slider. You'll see what you save, how many entries you build up and your real chances in the draw. We publish the odds because we think you should see them.</p>
+  </div>
+  <div class="sim">
+    <div class="panel">
+      <div class="field">
+        <label for="weekly">Weekly savings <output id="weeklyOut">€20</output></label>
+        <input type="range" id="weekly" min="10" max="50" step="10" value="20">
+        <div class="chips" role="group" aria-label="Months saving">
+          <button class="chip" type="button" data-months="3" aria-pressed="false">3 months</button>
+          <button class="chip" type="button" data-months="6" aria-pressed="false">6 months</button>
+          <button class="chip" type="button" data-months="12" aria-pressed="true">12 months</button>
+          <button class="chip" type="button" data-months="24" aria-pressed="false">24 months</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="initial">I start with <output id="initialOut">€0</output></label>
+        <input type="range" id="initial" min="0" max="5000" step="100" value="0">
+      </div>
+      <p class="fine">Example with €<span data-ojala="poolM">20</span>M saved across all participants (<span data-ojala="entriesM">2</span> million entries per month). Indicative demo figures.</p>
+    </div>
+    <div class="result">
+      <div class="big">
+        <b id="saved">€1,040</b>
+        <span>saved and still yours, whatever happens</span>
+      </div>
+      <dl class="kv">
+        <dt>Entries in the latest draw</dt><dd id="entries">104</dd>
+        <dt>Chance of winning something that month</dt><dd id="odds">1 in 56</dd>
+        <dt>Chance of winning something in the year</dt><dd id="oddsYear">1 in 9</dd>
+        <div class="sep"></div>
+        <dt>Top prize you're in for</dt><dd data-ojala="topPrize">€10,000</dd>
+        <dt>What you can lose</dt><dd>€0</dd>
+      </dl>
+      <p class="fine">Prizes are funded by the pot's yield and by our banking partner. With the ECB at <span data-ojala="rateDeposit">2.50%</span>, the prize fund equals about <span data-ojala="potRate">2.00%</span> a year of what's saved. Prizes carry a 19 % withholding tax.</p>
+    </div>
+  </div>
+</section>
+
+<section id="sorteo">
+  <div class="sec-head">
+    <span class="eyebrow">The draw</span>
+    <h2>First Monday of every month, at 9:00.</h2>
+    <p class="lede">A live draw, notarised and notified to the Spanish gambling regulator (DGOJ). Here's how <span data-ojala="drawMonth">October</span>'s pot is shared out at today's rates.</p>
+  </div>
+  <div class="prizes">
+    <div>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Prize</th><th>Category</th><th class="r">Winners</th><th class="r">Total</th></tr></thead>
+        <tbody>
+          <tr><td class="amt" data-ojala="topPrize">€10,000</td><td>The Ojalá Gordo</td><td class="n">1</td><td class="n" data-ojala="topPrize">€10,000</td></tr>
+          <tr><td class="amt" data-ojala="syndicatePrize">€500</td><td>The syndicate ones</td><td class="n" data-ojala="syndicateN">10</td><td class="n" data-ojala="syndicateTotal">€5,000</td></tr>
+          <tr><td class="amt" data-ojala="pedreaPrize">€20</td><td>The pedrea</td><td class="n" data-ojala="pedrea">900</td><td class="n" data-ojala="pedreaTotal">€18,000</td></tr>
+        </tbody>
+        <tfoot><tr><th></th><th><span data-ojala="drawMonth">October</span> pot</th><th class="r" data-ojala="prizes">911</th><th class="r" data-ojala="pot">€33,000</th></tr></tfoot>
+      </table>
+      </div>
+      <p class="fine" style="margin-top:14px">The pedrea is <span data-ojala="pedrea">900</span> small prizes because we want winning something to be frequent, not impossible. With 100 entries, you win a prize every <span data-ojala="yearsAny">1.9</span> years on average; the Gordo, once every <span data-ojala="yearsGordo">1,667</span> years. We say it plainly. The size of the pedrea rises and falls with ECB rates: it's the only thing that moves.</p>
+    </div>
+    <div class="next">
+      <span class="eyebrow">Next draw</span>
+      <div class="countdown" id="countdown">
+        <div><b id="cd-d">21</b><span>days</span></div>
+        <div><b id="cd-h">08</b><span>hours</span></div>
+        <div><b id="cd-m">14</b><span>min</span></div>
+      </div>
+      <p style="opacity:.85;font-size:15px" id="nextDate">Monday 5 October 2026 · 9:00</p>
+      <button class="btn btn-hope btn-sm" type="button" id="demoDraw">Simulate the draw now</button>
+      <div class="draw-log" id="drawLog">
+        <div><span>September · Gordo</span><span class="mono">María R., Seville · €10,000</span></div>
+        <div><span>September · Syndicate</span><span class="mono">"Los del martes" syndicate, Bilbao · €500</span></div>
+        <div><span>September · Pedrea</span><span class="mono">1,100 winners · €20</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pena">
+  <div class="pena">
+    <div class="sec-head" style="margin-bottom:0">
+      <span class="eyebrow">Syndicates</span>
+      <h2>Like the office lottery ticket, without the drama of the 22nd.</h2>
+      <p class="lede">Create a syndicate with your people. Everyone saves their own money in their own account; the entries are pooled for the draw and any prize is shared in proportion. Nobody has to trust whoever's keeping the slip of paper.</p>
+      <div class="hero-actions"><a class="btn btn-ghost" href="#unete">Create a syndicate</a></div>
+    </div>
+    <div class="group" aria-label="Example syndicate">
+      <div class="row" style="display:flex;justify-content:space-between;align-items:baseline">
+        <h3>"Los del martes" syndicate</h3><span class="eyebrow">6 members</span>
+      </div>
+      <div class="member"><div class="avatar" style="background:#0F9D58">A</div><div>Aitor<small>saves €20/week</small></div><span class="m">96 entries</span></div>
+      <div class="member"><div class="avatar" style="background:#F0603E">L</div><div>Leire<small>saves €50/week</small></div><span class="m">240 entries</span></div>
+      <div class="member"><div class="avatar" style="background:#3A6EE8">J</div><div>Jon<small>saves €10/week</small></div><span class="m">48 entries</span></div>
+      <div class="member"><div class="avatar" style="background:#E8B83A">N</div><div>Nerea<small>saves €30/week</small></div><span class="m">144 entries</span></div>
+      <div class="member"><div class="avatar" style="background:#8A4FD8">M</div><div>Mikel<small>saves €20/week</small></div><span class="m">96 entries</span></div>
+      <div class="member"><div class="avatar" style="background:#1E8EA8">I</div><div>Irati<small>saves €40/week</small></div><span class="m">192 entries</span></div>
+      <div class="total"><span>Syndicate entries</span><b class="mono">816</b></div>
+      <p class="fine">September prize: €500 shared out. Leire got €147; Jon, €29. And everyone still has their savings intact.</p>
+    </div>
+  </div>
+</section>
+
+<section id="uk">
+  <div class="sec-head">
+    <span class="eyebrow">This already works somewhere else</span>
+    <h2>The UK has been doing this for 70 years.</h2>
+    <p class="lede">They're called Premium Bonds, they're issued by the UK Treasury through NS&amp;I, and they're the country's best-loved savings product. The idea is exactly Ojalá's: your money stays with you and the interest turns into prizes. It has been running there since 1956, and it runs very well.</p>
+  </div>
+  <div class="uk-grid">
+    <div class="uk-facts">
+      <div><b>1956</b><span>Born in November 1956. Since 1957 the numbers have been picked by ERNIE, a machine now on its fifth version that uses quantum technology. It takes 12 minutes to generate the month's draw.</span></div>
+      <div><b>23 million</b><span>Britons hold Premium Bonds. Roughly one in three adults in the country. It's as normal as having a current account.</span></div>
+      <div><b>£135bn</b><span>saved in Premium Bonds. More than £135 billion that still belongs to its owners, who can withdraw it whenever they like.</span></div>
+      <div><b>4.35 %</b><span>is the prize fund rate from September 2026. It moves with rates too: NS&amp;I revisits it whenever the Bank of England changes its own. And the prizes are tax-free.</span></div>
+      <div><b>6.5 million</b><span>prizes every month, worth over £497 million. Two of them are £1 million each. Every month, two people become millionaires by saving.</span></div>
+      <div><b>£1 to £50,000</b><span>Every pound is a bond, and every bond is an entry. Maximum £50,000 per person. Each bond has a 1 in 21,000 chance of winning something each month.</span></div>
+    </div>
+    <div class="uk-note">
+      <span class="flag" aria-hidden="true">🇬🇧</span>
+      <h3>So why do people love it so much?</h3>
+      <p>Because nobody loses. Britons talk about it as something very much their own: the grandmother who gifts Premium Bonds when a grandchild is born, the family checking the results together on the first of the month, the little thrill of "maybe this month". And the money, meanwhile, is still there.</p>
+      <p>Ojalá is that same thing, but designed for Spain: with our culture of the décimo, the peña and the pedrea, and with your savings at a Spanish bank covered by the Deposit Guarantee Fund.</p>
+      <p class="fine">Figures from NS&amp;I (press release of 18 August 2026) and MoneyWeek (March 2026). Rounded figures; Ojalá has no connection with NS&amp;I.</p>
+    </div>
+  </div>
+</section>
+
+<section id="seguro">
+  <div class="sec-head">
+    <span class="eyebrow">Safety</span>
+    <h2>Your money isn't at Ojalá. It's at a bank.</h2>
+    <p class="lede">We provide the app and the draw. The deposits are held by our partner bank, licensed by the Bank of Spain, in an account in your name.</p>
+  </div>
+  <div class="trust">
+    <div>
+      <svg viewBox="0 0 32 32" fill="none" stroke="var(--hope)" stroke-width="2"><path d="M16 3 4 8v8c0 7 5 11 12 13 7-2 12-6 12-13V8z"/><path d="m11 16 3 3 7-7"/></svg>
+      <h3>Covered up to €100,000</h3>
+      <p>By the Deposit Guarantee Fund, just like any Spanish current account. With a Spanish IBAN.</p>
+    </div>
+    <div>
+      <svg viewBox="0 0 32 32" fill="none" stroke="var(--hope)" stroke-width="2"><rect x="4" y="10" width="24" height="18" rx="3"/><path d="M10 10V7a6 6 0 0 1 12 0v3"/><circle cx="16" cy="19" r="2"/></svg>
+      <h3>Take it out whenever you like</h3>
+      <p>Withdrawals with no notice period and no penalty. Your balance goes down, your entries go down, and that's it. No small print.</p>
+    </div>
+    <div>
+      <svg viewBox="0 0 32 32" fill="none" stroke="var(--hope)" stroke-width="2"><circle cx="16" cy="16" r="12"/><path d="M16 9v7l4 3"/></svg>
+      <h3>Entering is free</h3>
+      <p>It's not a lottery or a game of chance with a stake: you never pay to enter. It's a promotional draw notified to the DGOJ.</p>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="sec-head">
+    <span class="eyebrow">Questions</span>
+    <h2>What everyone asks us.</h2>
+  </div>
+  <details open>
+    <summary>What if I never win?</summary>
+    <p>Then you'll have saved. It's the only "lottery" where the worst case is having more money than before. With €20 a week for a year you have €1,040 in the account, win or no win.</p>
+  </details>
+  <details open>
+    <summary>What happens to the pot if the ECB cuts rates?</summary>
+    <p>The pot comes down with them, and we say so in the strip at the top the same day. Today, with the deposit facility at <span data-ojala="rateDeposit">2.50%</span>, this month's pot is <span data-ojala="pot">€33,000</span>: every <span data-ojala="stepBp">25</span> basis points move about <span data-ojala="stepPot">€3,300</span> and, with them, about <span data-ojala="stepPrizes">165</span> pedrea prizes. The <span data-ojala="topPrize">€10,000</span> Gordo and the syndicate prizes don't move; what adjusts is how many people get paid something. And your savings never move at all, whichever way rates go.</p>
+  </details>
+  <details open>
+    <summary>Can you only win <span data-ojala="topPrize">€10,000</span>?</summary>
+    <p>Our aim is for you to be able to win much more. With a bigger pool, more collective savings mean bigger Ojalá Gordos. If there are 100,000 people with €300 saved each, that's €10,000 every month. If there are 1,000,000 people with €600 saved each, it'll be €200,000 every month. Around 28 million Spaniards play the Christmas Lottery each year. The numbers are transparent.</p>
+  </details>
+  <details>
+    <summary>Why don't you pay me interest instead of running draws?</summary>
+    <p>Because €1,000 at a Spanish bank earns about <span data-ojala="yield1000">€25</span> a year, and that changes nobody's life. Pooling everyone's yield, someone collects <span data-ojala="topPrize">€10,000</span>. We'd rather there was a real chance every month than a small certainty for everyone.</p>
+  </details>
+  <details>
+    <summary>Where does the prize money come from?</summary>
+    <p>From the yield everyone's savings generate at the partner bank and from the bank's own contribution: for them, we're a way to attract savings without paying for campaigns. Ojalá keeps a small share of that yield. Never your money.</p>
+  </details>
+  <details>
+    <summary>How are prizes taxed?</summary>
+    <p>Prizes carry a 19 % withholding tax that we apply before paying it into your account. What you see in the app is what you get.</p>
+  </details>
+  <details>
+    <summary>Can I enter without saving?</summary>
+    <p>Yes. The law requires a promotional draw to be free, and it is: the terms include a no-deposit route to enter. But the whole point is that the savings stay with you.</p>
+  </details>
+</section>
+
+<section id="unete" style="border-top:0;padding-top:0">
+  <div class="cta">
+    <span class="eyebrow" style="color:rgba(255,255,255,.85)">Waiting list · Launching December 2026</span>
+    <h2>This 22 December, even if you don't win, you keep it.</h2>
+    <p class="lede">Sign up to hear the latest news.</p>
+    <form id="waitlist">
+      <label class="sr-only" for="email">Your email</label>
+      <input type="email" id="email" placeholder="you@email.com" required autocomplete="email">
+      <button class="btn btn-dark" type="submit">Sign me up</button>
+    </form>
+    <p class="ok" id="waitOk" hidden>You're in. We'll let you know the day we open, and you're already in the welcome draw.</p>
+  </div>
+</section>
+
+<footer>
+  <div><b style="color:var(--ink)">Ojalá</b> · Savings with a draw · Madrid</div>
+  <p class="legal">Product demo. Ojalá is not a credit institution: deposits would be held by a partner bank licensed by the Bank of Spain and a member of the Deposit Guarantee Fund (coverage up to €100,000 per holder). Draws would be structured as random combinations for promotional purposes under Law 13/2011, free to enter, notified to the DGOJ and subject to the applicable tax. The ECB rates shown in the strip above, and the pot and prize counts derived from them, are demonstration figures: they are neither an offer nor a forecast. The odds, amounts and winners' names shown are illustrative. Prizes are subject to a 19 % withholding tax (IRPF). Ojalá is not affiliated with Loterías y Apuestas del Estado or ONCE.</p>
+</footer>
+</div>
+<div class="demo-tag">Demo</div>
+
+<script src="assets/ecb-data.js"></script>
+<script src="assets/ojala.js"></script>
+</body>
+</html>
