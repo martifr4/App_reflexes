@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ojalá — el décimo que pierdes, te lo quedas</title>
+<meta name="description" content="Ahorro con sorteo mensual: cada 10 € ahorrados es una participación. Si no toca, tu dinero sigue siendo tuyo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/ojala.css">
+</head>
+<body>
+
+<div class="tape" id="ecbTape" role="region" aria-label="Tipos del BCE y su efecto en el próximo sorteo" data-paused="false">
+  <div class="tape-viewport">
+    <div class="tape-track">
+      <ul class="tape-run">
+        <li class="lead"><span class="k">BCE · Facilidad de depósito</span><b>2,50 %</b><span class="down">▼ 25 pb</span><span>desde el 16 sept</span></li>
+        <li><span class="k">Bote de octubre</span><span class="pot">≈ 33.000 €</span><span class="down">3.300 € menos que con el 2,75 %</span></li>
+        <li><span>Cada 25 pb del BCE mueve ≈ 3.300 € del bote: ≈ 165 premios de la pedrea</span></li>
+        <li class="lead">Los tipos se mueven. Tu ahorro, no.</li>
+      </ul>
+    </div>
+  </div>
+  <button class="tape-pause" type="button" aria-pressed="false" aria-label="Pausar"><svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" fill="currentColor"><rect x="1.5" y="1" width="3" height="10" rx="1"/><rect x="7.5" y="1" width="3" height="10" rx="1"/></svg><span class="tape-pause-word">Pausar</span></button>
+</div>
+
+<div class="wrap">
+<nav>
+  <a class="logo" href="#top"><span class="dot"></span>Ojalá</a>
+  <ul>
+    <li><a href="#como">Cómo funciona</a></li>
+    <li><a href="#dinero">De dónde sale</a></li>
+    <li><a href="#simula">Simula</a></li>
+    <li><a href="#sorteo">Sorteo</a></li>
+    <li><a href="#pena">Peñas</a></li>
+    <li><a href="#uk">Reino Unido</a></li>
+    <li><a href="#seguro">Seguridad</a></li>
+  </ul>
+  <a class="lang" href="en.html" hreflang="en">EN</a>
+  <a class="btn btn-hope btn-sm" href="#unete">Únete a la lista</a>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-copy">
+    <span class="eyebrow">Ahorro con sorteo mensual · Participación gratuita</span>
+    <h1>El décimo que <span class="strike">pierdes</span> <em>te quedas.</em></h1>
+    <p class="lede">Cada 10 € que ahorras es una participación en el sorteo de cada mes. Si toca, cobras. Si no toca, tu dinero sigue siendo tuyo, entero, y lo sacas cuando quieras.</p>
+    <div class="hero-actions">
+      <a class="btn btn-hope" href="#unete">Quiero mi primera participación</a>
+      <a class="btn btn-ghost" href="#simula">Ver cuántas tendría</a>
+    </div>
+    <p class="hero-note">Sin cuotas. Sin permanencia. Dinero depositado en un banco español, cubierto hasta 100.000 € por el Fondo de Garantía de Depósitos.</p>
+    <div class="stats">
+      <div><b data-ojala="topPrize">10.000 €</b><span>premio mayor de <span data-ojala="drawMonth">octubre</span></span></div>
+      <div><b data-ojala="prizes">911</b><span>premios este mes</span></div>
+      <div><b>0 €</b><span>lo que puedes perder</span></div>
+    </div>
+  </div>
+  <div class="stage" aria-hidden="true">
+    <canvas id="bombo" width="440" height="440"></canvas>
+    <div class="ticket">
+      <div class="row"><span class="lbl">Participación</span><span class="lbl"><span data-ojala="drawMonth">Octubre</span> 2026</span></div>
+      <div class="num" id="serial">047183</div>
+      <div class="dash"></div>
+      <div class="row"><span class="lbl">Ahorrado</span><span class="mono">1.240,00 €</span></div>
+      <div class="row"><span class="lbl">Participaciones</span><span class="mono">124</span></div>
+      <div class="keep"><i></i>Se queda contigo, pase lo que pase</div>
+    </div>
+  </div>
+</header>
+
+<section id="como">
+  <div class="sec-head">
+    <span class="eyebrow">Cómo funciona</span>
+    <h2>Juegas, y además siempre ahorras.</h2>
+    <p class="lede">Tres pasos y ya estás dentro. Lo único que cambia respecto a una cuenta de ahorro normal es que el primer lunes de cada mes puede tocarte algo.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <span class="n">PASO 1</span>
+      <h3>Eliges cuánto apartas a la semana</h3>
+      <p>10, 20, 30, 40, 50 € o más. Se transfiere solo desde tu cuenta habitual. Y cuando quieras, lo tienes de vuelta.</p>
+    </div>
+    <div class="step">
+      <span class="n">PASO 2</span>
+      <h3>Cada 10 € ahorrados, una participación</h3>
+      <p>Cuentan los euros que tienes de media en el mes. Cuanto más ahorras y más tiempo lo dejas, más participaciones acumulas.</p>
+    </div>
+    <div class="step">
+      <span class="n">PASO 3</span>
+      <h3>El primer lunes de mes, sorteo</h3>
+      <p><span data-ojala="prizes">911</span> premios: uno de <span data-ojala="topPrize">10.000 €</span>, <span data-ojala="syndicateN">10</span> de <span data-ojala="syndicatePrize">500 €</span> y <span data-ojala="pedrea">900</span> de <span data-ojala="pedreaPrize">20 €</span>. Si te toca, lo ves en la app antes de las 10 de la mañana.</p>
+    </div>
+  </div>
+</section>
+
+<section id="dinero">
+  <div class="sec-head">
+    <span class="eyebrow">¿De dónde sale el dinero?</span>
+    <h2>Los premios los paga el interés. No tu bolsillo.</h2>
+    <p class="lede">Tu ahorro no se juega. Se deposita en un banco, que lo invierte en Letras del Tesoro y bonos del Estado. Lo que rinde ese dinero cada año, sumado entre todos, es el bote. Así, por cada 100 € que ahorras:</p>
+  </div>
+  <div class="flow" aria-label="Recorrido de 100 € ahorrados">
+    <div>
+      <span class="fk">Tu ahorro</span>
+      <span class="fv">100 €</span>
+      <p>Entra en una cuenta a tu nombre en el banco asociado. Retirable cuando quieras.</p>
+    </div>
+    <div>
+      <span class="fk">El banco lo invierte</span>
+      <span class="fv">Deuda pública</span>
+      <p>Letras del Tesoro y bonos del Estado a corto plazo: lo más aburrido y seguro que existe.</p>
+    </div>
+    <div>
+      <span class="fk">Rinde al año</span>
+      <span class="fv">≈ <span data-ojala="yield100">2,50 €</span></span>
+      <p>El <span data-ojala="rateDeposit">2,50 %</span> que marca hoy el BCE. Con 1.000 € ahorrados: unos <span data-ojala="yield1000">25 €</span>.</p>
+    </div>
+    <div>
+      <span class="fk">Se reparte</span>
+      <span class="fv" data-ojala="split">2,00 · 0,25 · 0,25</span>
+      <p><span data-ojala="per100Pot">2,00 €</span> al bote de premios, <span data-ojala="per100Half">0,25 €</span> para el banco y <span data-ojala="per100Half">0,25 €</span> para Ojalá. Es todo lo que cobramos.</p>
+    </div>
+    <div>
+      <span class="fk">El bote de todos</span>
+      <span class="fv"><span data-ojala="pot">33.000 €</span>/mes</span>
+      <p>Con <span data-ojala="poolM">20</span> M€ ahorrados entre todos, este mes hay <span data-ojala="prizes">911</span> premios. Y tus 100 € siguen ahí.</p>
+    </div>
+  </div>
+
+  <div class="compare">
+    <article class="cmp">
+      <header><span class="eyebrow">Lotería de Navidad</span><span class="mono">por cada 100 €</span></header>
+      <div class="bar" aria-label="Reparto de 100 € en lotería">
+        <span class="prize" style="flex:70">70 € en premios</span>
+        <span class="gone" style="flex:30">30 €</span>
+      </div>
+      <div class="legend"><span><i style="background:var(--gold)"></i>Vuelve en premios, repartido entre todos</span><span><i style="background:var(--coral)"></i>Se queda por el camino (Estado y gastos)</span></div>
+      <dl>
+        <dt>Lo que conservas si no toca</dt><dd class="neg">0 €</dd>
+        <dt>Resultado medio por cada 100 €</dt><dd class="neg">−30 €</dd>
+        <dt>Jugando 100 € al año, 10 años</dt><dd class="neg">−300 € de media, 0 € ahorrados</dd>
+        <dt>Opciones de que toque el Gordo</dt><dd>1 entre 100.000</dd>
+      </dl>
+      <p class="fine">Cifras públicas: el 70 % de la recaudación se destina a premios. No es un engaño, las reglas están a la vista. Es simplemente un producto en el que, de media, se pierde el 30 % de lo que se pone.</p>
+    </article>
+    <article class="cmp win">
+      <header><span class="eyebrow">Ojalá</span><span class="mono">por cada 100 €</span></header>
+      <div class="bar" aria-label="Reparto de 100 € en Ojalá">
+        <span class="keep" style="flex:100">100 € siguen siendo tuyos</span>
+        <span class="prize" style="flex:2;min-width:6px"></span>
+        <span class="thin" style="flex:.5;min-width:4px"></span>
+      </div>
+      <div class="legend"><span><i style="background:var(--hope)"></i>Tu ahorro, intacto</span><span><i style="background:var(--gold)"></i><span data-ojala="per100Pot">2,00 €</span> de interés al bote</span><span><i style="background:var(--ink-3)"></i><span data-ojala="per100Rest">0,50 €</span> banco y Ojalá</span></div>
+      <dl>
+        <dt>Lo que conservas si no toca</dt><dd class="pos">100 €</dd>
+        <dt>Resultado medio por cada 100 €</dt><dd class="pos">+<span data-ojala="per100Net">1,62 €</span> en premios (tras el 19 %)</dd>
+        <dt>Ahorrando 100 € al año, 10 años</dt><dd class="pos">1.000 € tuyos + los sorteos</dd>
+        <dt>Lo que dejas de ganar frente a un depósito al <span data-ojala="rateDeposit">2,50 %</span></dt><dd data-ojala="per100Giveup">0,88 €</dd>
+      </dl>
+      <p class="fine">El único "precio" de Ojalá es el interés que cedes al bote: un par de euros al año por cada 100 € ahorrados. A cambio, cada mes optas a <span data-ojala="topPrize">10.000 €</span>.</p>
+    </article>
+  </div>
+  <div class="verdict">
+    <h3>Y si no te toca con Ojalá, siempre podrás comprar lotería de Navidad.</h3>
+    <p>Nos encanta el 22 de diciembre. Solo pensamos que la ilusión no debería costar el 30 %. Aquí la emoción la paga el interés de todos, y el dinero de cada uno se queda donde estaba. No pierdes nada.</p>
+  </div>
+</section>
+
+<section id="simula">
+  <div class="sec-head">
+    <span class="eyebrow">Simulador</span>
+    <h2>¿Cuánto tendrías en un año?</h2>
+    <p class="lede">Mueve la barra. Verás lo que ahorras, cuántas participaciones acumulas y tus opciones reales en el sorteo. Publicamos las probabilidades porque creemos que hay que verlas.</p>
+  </div>
+  <div class="sim">
+    <div class="panel">
+      <div class="field">
+        <label for="weekly">Ahorro semanal <output id="weeklyOut">20 €</output></label>
+        <input type="range" id="weekly" min="10" max="50" step="10" value="20">
+        <div class="chips" role="group" aria-label="Meses ahorrando">
+          <button class="chip" type="button" data-months="3" aria-pressed="false">3 meses</button>
+          <button class="chip" type="button" data-months="6" aria-pressed="false">6 meses</button>
+          <button class="chip" type="button" data-months="12" aria-pressed="true">12 meses</button>
+          <button class="chip" type="button" data-months="24" aria-pressed="false">24 meses</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="initial">Empiezo con <output id="initialOut">0 €</output></label>
+        <input type="range" id="initial" min="0" max="5000" step="100" value="0">
+      </div>
+      <p class="fine">Ejemplo con <span data-ojala="poolM">20</span> M€ ahorrados entre todos los participantes (<span data-ojala="entriesM">2</span> millones de participaciones al mes). Cifras orientativas de la demo.</p>
+    </div>
+    <div class="result">
+      <div class="big">
+        <b id="saved">1.040 €</b>
+        <span>ahorrados y siguen siendo tuyos, pase lo que pase</span>
+      </div>
+      <dl class="kv">
+        <dt>Participaciones en el último sorteo</dt><dd id="entries">104</dd>
+        <dt>Opciones de ganar algo ese mes</dt><dd id="odds">1 de 56</dd>
+        <dt>Opciones de ganar algo en el año</dt><dd id="oddsYear">1 de 9</dd>
+        <div class="sep"></div>
+        <dt>Premio mayor al que optas</dt><dd data-ojala="topPrize">10.000 €</dd>
+        <dt>Lo que puedes perder</dt><dd>0 €</dd>
+      </dl>
+      <p class="fine">Los premios se financian con el rendimiento del bote y con nuestro socio bancario. Con el BCE al <span data-ojala="rateDeposit">2,50 %</span>, el fondo de premios equivale a un <span data-ojala="potRate">2,00 %</span> anual sobre lo ahorrado. Los premios tributan con una retención del 19 %.</p>
+    </div>
+  </div>
+</section>
+
+<section id="sorteo">
+  <div class="sec-head">
+    <span class="eyebrow">El sorteo</span>
+    <h2>Primer lunes de cada mes, a las 9:00.</h2>
+    <p class="lede">Un sorteo en directo, con acta notarial y comunicado a la Dirección General de Ordenación del Juego. Aquí tienes cómo se reparte el bote de <span data-ojala="drawMonth">octubre</span>, con los tipos que hay ahora mismo.</p>
+  </div>
+  <div class="prizes">
+    <div>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Premio</th><th>Categoría</th><th class="r">Ganadores</th><th class="r">Total</th></tr></thead>
+        <tbody>
+          <tr><td class="amt" data-ojala="topPrize">10.000 €</td><td>El Gordo de Ojalá</td><td class="n">1</td><td class="n" data-ojala="topPrize">10.000 €</td></tr>
+          <tr><td class="amt" data-ojala="syndicatePrize">500 €</td><td>Los de la peña</td><td class="n" data-ojala="syndicateN">10</td><td class="n" data-ojala="syndicateTotal">5.000 €</td></tr>
+          <tr><td class="amt" data-ojala="pedreaPrize">20 €</td><td>La pedrea</td><td class="n" data-ojala="pedrea">900</td><td class="n" data-ojala="pedreaTotal">18.000 €</td></tr>
+        </tbody>
+        <tfoot><tr><th></th><th>Bote de <span data-ojala="drawMonth">octubre</span></th><th class="r" data-ojala="prizes">911</th><th class="r" data-ojala="pot">33.000 €</th></tr></tfoot>
+      </table>
+      </div>
+      <p class="fine" style="margin-top:14px">La pedrea son <span data-ojala="pedrea">900</span> premios pequeños porque queremos que ganar algo sea frecuente, no imposible. Con 100 participaciones, te toca un premio cada <span data-ojala="yearsAny">1,9</span> años de media; el Gordo, una vez cada <span data-ojala="yearsGordo">1.667</span> años. Lo decimos claro. El tamaño de la pedrea sube y baja con los tipos del BCE: es lo único que se mueve.</p>
+    </div>
+    <div class="next">
+      <span class="eyebrow">Próximo sorteo</span>
+      <div class="countdown" id="countdown">
+        <div><b id="cd-d">21</b><span>días</span></div>
+        <div><b id="cd-h">08</b><span>horas</span></div>
+        <div><b id="cd-m">14</b><span>min</span></div>
+      </div>
+      <p style="opacity:.85;font-size:15px" id="nextDate">Lunes 5 de octubre de 2026 · 9:00</p>
+      <button class="btn btn-hope btn-sm" type="button" id="demoDraw">Simular el sorteo ahora</button>
+      <div class="draw-log" id="drawLog">
+        <div><span>Septiembre · Gordo</span><span class="mono">María R., Sevilla · 10.000 €</span></div>
+        <div><span>Septiembre · Peña</span><span class="mono">Peña "Los del martes", Bilbao · 500 €</span></div>
+        <div><span>Septiembre · Pedrea</span><span class="mono">1.100 ganadores · 20 €</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pena">
+  <div class="pena">
+    <div class="sec-head" style="margin-bottom:0">
+      <span class="eyebrow">Peñas</span>
+      <h2>Como el décimo del trabajo, pero sin el drama del 22.</h2>
+      <p class="lede">Crea una peña con tu gente. Cada uno ahorra lo suyo en su cuenta; las participaciones se suman para el sorteo y el premio se reparte en proporción. Nadie tiene que fiarse del que guarda el papelito.</p>
+      <div class="hero-actions"><a class="btn btn-ghost" href="#unete">Crear una peña</a></div>
+    </div>
+    <div class="group" aria-label="Ejemplo de peña">
+      <div class="row" style="display:flex;justify-content:space-between;align-items:baseline">
+        <h3>Peña "Los del martes"</h3><span class="eyebrow">6 miembros</span>
+      </div>
+      <div class="member"><div class="avatar" style="background:#0F9D58">A</div><div>Aitor<small>ahorra 20 €/semana</small></div><span class="m">96 part.</span></div>
+      <div class="member"><div class="avatar" style="background:#F0603E">L</div><div>Leire<small>ahorra 50 €/semana</small></div><span class="m">240 part.</span></div>
+      <div class="member"><div class="avatar" style="background:#3A6EE8">J</div><div>Jon<small>ahorra 10 €/semana</small></div><span class="m">48 part.</span></div>
+      <div class="member"><div class="avatar" style="background:#E8B83A">N</div><div>Nerea<small>ahorra 30 €/semana</small></div><span class="m">144 part.</span></div>
+      <div class="member"><div class="avatar" style="background:#8A4FD8">M</div><div>Mikel<small>ahorra 20 €/semana</small></div><span class="m">96 part.</span></div>
+      <div class="member"><div class="avatar" style="background:#1E8EA8">I</div><div>Irati<small>ahorra 40 €/semana</small></div><span class="m">192 part.</span></div>
+      <div class="total"><span>Participaciones de la peña</span><b class="mono">816</b></div>
+      <p class="fine">Premio de septiembre: 500 € repartidos. A Leire le tocaron 147 €; a Jon, 29 €. Y todos siguen con su ahorro intacto.</p>
+    </div>
+  </div>
+</section>
+
+<section id="uk">
+  <div class="sec-head">
+    <span class="eyebrow">Esto ya funciona en otro sitio</span>
+    <h2>En el Reino Unido llevan 70 años haciéndolo.</h2>
+    <p class="lede">Se llaman Premium Bonds, los emite el Tesoro británico a través de NS&amp;I y son el producto de ahorro más querido del país. La idea es exactamente la de Ojalá: tu dinero se queda contigo y el interés se convierte en premios. Allí funciona desde 1956, y funciona muy bien.</p>
+  </div>
+  <div class="uk-grid">
+    <div class="uk-facts">
+      <div><b>1956</b><span>Nacieron en noviembre de 1956. Desde 1957 los números los saca ERNIE, una máquina que va ya por su quinta versión y hoy usa tecnología cuántica. Tarda 12 minutos en generar el sorteo del mes.</span></div>
+      <div><b>23 millones</b><span>de británicos tienen Premium Bonds. Más o menos uno de cada tres adultos del país. Es tan normal como tener una cuenta corriente.</span></div>
+      <div><b>£135.000 M</b><span>ahorrados en Premium Bonds. Más de 135.000 millones de libras que siguen siendo de sus dueños, y que pueden retirar cuando quieran.</span></div>
+      <div><b>4,35 %</b><span>es la tasa del fondo de premios desde septiembre de 2026. También se mueve con los tipos: NS&amp;I la revisa cuando el Banco de Inglaterra cambia el suyo. Y los premios están libres de impuestos.</span></div>
+      <div><b>6,5 millones</b><span>de premios cada mes, por más de 497 millones de libras. Dos de ellos son de un millón de libras. Cada mes, dos personas se hacen millonarias ahorrando.</span></div>
+      <div><b>£1 a £50.000</b><span>Cada libra es un bono, y cada bono una participación. Máximo 50.000 £ por persona. Cada bono tiene una opción entre 21.000 de ganar algo cada mes.</span></div>
+    </div>
+    <div class="uk-note">
+      <span class="flag" aria-hidden="true">🇬🇧</span>
+      <h3>¿Y por qué gusta tanto?</h3>
+      <p>Porque nadie pierde. Los británicos lo cuentan como una cosa muy suya: la abuela que regala Premium Bonds al nieto cuando nace, la familia que revisa juntos los resultados el primer día del mes, la ilusión de "a ver si este mes toca". Y el dinero, mientras tanto, sigue ahí.</p>
+      <p>Ojalá es eso mismo, pero pensado para España: con nuestra cultura del décimo, de la peña y de la pedrea, y con tu ahorro en un banco español cubierto por el Fondo de Garantía de Depósitos.</p>
+      <p class="fine">Datos de NS&amp;I (nota de prensa del 18 de agosto de 2026) y MoneyWeek (marzo de 2026). Cifras redondeadas; Ojalá no tiene relación con NS&amp;I.</p>
+    </div>
+  </div>
+</section>
+
+<section id="seguro">
+  <div class="sec-head">
+    <span class="eyebrow">Seguridad</span>
+    <h2>Tu dinero no está en Ojalá. Está en un banco.</h2>
+    <p class="lede">Nosotros ponemos la app y el sorteo. Los depósitos los custodia nuestro banco asociado, con licencia del Banco de España, en una cuenta a tu nombre.</p>
+  </div>
+  <div class="trust">
+    <div>
+      <svg viewBox="0 0 32 32" fill="none" stroke="var(--hope)" stroke-width="2"><path d="M16 3 4 8v8c0 7 5 11 12 13 7-2 12-6 12-13V8z"/><path d="m11 16 3 3 7-7"/></svg>
+      <h3>Cubierto hasta 100.000 €</h3>
+      <p>Por el Fondo de Garantía de Depósitos, igual que cualquier cuenta corriente española. Con IBAN español.</p>
+    </div>
+    <div>
+      <svg viewBox="0 0 32 32" fill="none" stroke="var(--hope)" stroke-width="2"><rect x="4" y="10" width="24" height="18" rx="3"/><path d="M10 10V7a6 6 0 0 1 12 0v3"/><circle cx="16" cy="19" r="2"/></svg>
+      <h3>Lo sacas cuando quieras</h3>
+      <p>Retiradas sin plazo ni penalización. Tu saldo baja, tus participaciones bajan, y ya. Sin letra pequeña.</p>
+    </div>
+    <div>
+      <svg viewBox="0 0 32 32" fill="none" stroke="var(--hope)" stroke-width="2"><circle cx="16" cy="16" r="12"/><path d="M16 9v7l4 3"/></svg>
+      <h3>Participar es gratis</h3>
+      <p>No es una lotería ni un juego de azar con apuesta: nunca pagas por participar. Es un sorteo promocional comunicado a la DGOJ.</p>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="sec-head">
+    <span class="eyebrow">Preguntas</span>
+    <h2>Lo que nos pregunta todo el mundo.</h2>
+  </div>
+  <details open>
+    <summary>¿Y si no me toca nunca?</summary>
+    <p>Entonces habrás ahorrado. Es la única "lotería" en la que el peor escenario es tener más dinero que antes. Con 20 € a la semana durante un año tienes 1.040 € en la cuenta, toque o no toque.</p>
+  </details>
+  <details open>
+    <summary>¿Qué pasa con el bote si el BCE baja los tipos?</summary>
+    <p>Que el bote baja con ellos, y lo decimos en la franja de arriba el mismo día. Hoy, con la facilidad de depósito en el <span data-ojala="rateDeposit">2,50 %</span>, el bote del mes es de <span data-ojala="pot">33.000 €</span>: cada <span data-ojala="stepBp">25</span> puntos básicos mueven unos <span data-ojala="stepPot">3.300 €</span> y, con ellos, unos <span data-ojala="stepPrizes">165</span> premios de la pedrea. El Gordo de <span data-ojala="topPrize">10.000 €</span> y los de la peña no se tocan; lo que se ajusta es cuánta gente cobra algo. Y tu ahorro no se mueve nunca, suban o bajen los tipos.</p>
+  </details>
+  <details open>
+    <summary>¿Solo se pueden ganar <span data-ojala="topPrize">10.000 €</span>?</summary>
+    <p>Nuestro objetivo es que puedas ganar mucho más. Consiguiendo una pool más amplia, más ahorro colectivo implica Gordos de Ojalá más elevados. Si hay 100.000 personas con 300 € de ahorro cada una, cada mes son 10.000 €. Si hay 1.000.000 de personas con 600 € de ahorro cada una, cada mes serán 200.000 €. A la Lotería de Navidad juegan unos 28 millones de españoles al año. Los números son transparentes.</p>
+  </details>
+  <details>
+    <summary>¿Por qué no me pagáis intereses en vez de sorteos?</summary>
+    <p>Porque el rendimiento de 1.000 € en un banco español es de unos <span data-ojala="yield1000">25 €</span> al año, y eso no le cambia la vida a nadie. Juntando el rendimiento de todos, alguien cobra <span data-ojala="topPrize">10.000 €</span>. Preferimos que cada mes haya una posibilidad real a que todos tengamos una certeza pequeña.</p>
+  </details>
+  <details>
+    <summary>¿De dónde sale el dinero de los premios?</summary>
+    <p>Del rendimiento que genera el ahorro de todos en el banco asociado y de la aportación del propio banco, para quien somos una forma de captar ahorro sin pagar campañas. Ojalá se queda con una pequeña parte de ese rendimiento. Nunca con tu dinero.</p>
+  </details>
+  <details>
+    <summary>¿Cuánto tributa un premio?</summary>
+    <p>Los premios llevan una retención del 19 % que aplicamos nosotros antes de ingresártelo. Lo que ves en la app es lo que cobras.</p>
+  </details>
+  <details>
+    <summary>¿Puedo participar sin ahorrar?</summary>
+    <p>Sí. La ley exige que un sorteo promocional sea gratuito, y lo es: en las bases encontrarás una vía de participación sin depósito. Pero la gracia está en que el ahorro se quede contigo.</p>
+  </details>
+</section>
+
+<section id="unete" style="border-top:0;padding-top:0">
+  <div class="cta">
+    <span class="eyebrow" style="color:rgba(255,255,255,.85)">Lista de espera · Lanzamiento diciembre 2026</span>
+    <h2>Este 22 de diciembre, aunque no toque, te lo quedas.</h2>
+    <p class="lede">Apúntate para saber las últimas novedades.</p>
+    <form id="waitlist">
+      <label class="sr-only" for="email">Tu correo</label>
+      <input type="email" id="email" placeholder="tu@correo.es" required autocomplete="email">
+      <button class="btn btn-dark" type="submit">Apuntarme</button>
+    </form>
+    <p class="ok" id="waitOk" hidden>Apuntado. Te avisamos el día que abrimos, y ya estás en el sorteo de bienvenida.</p>
+  </div>
+</section>
+
+<footer>
+  <div><b style="color:var(--ink)">Ojalá</b> · Ahorro con sorteo · Madrid</div>
+  <p class="legal">Demo de producto. Ojalá no es una entidad de crédito: los depósitos serían custodiados por una entidad bancaria asociada con licencia del Banco de España y adherida al Fondo de Garantía de Depósitos (cobertura hasta 100.000 € por titular). Los sorteos se estructurarían como combinaciones aleatorias con fines promocionales conforme a la Ley 13/2011, de participación gratuita, comunicadas a la DGOJ y sujetas al tributo correspondiente. Los tipos del BCE que aparecen en la franja superior, así como el bote y el número de premios que se calculan a partir de ellos, son cifras de demostración: no constituyen una oferta ni una previsión. Las probabilidades, importes y nombres de ganadores mostrados son ilustrativos. Los premios están sujetos a una retención del 19 % (IRPF). Ojalá no está vinculada a Loterías y Apuestas del Estado ni a la ONCE.</p>
+</footer>
+</div>
+<div class="demo-tag">Demo</div>
+
+<script src="assets/ecb-data.js"></script>
+<script src="assets/ojala.js"></script>
+</body>
+</html>
