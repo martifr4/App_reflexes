@@ -279,6 +279,7 @@ th.r{text-align:right}
 details{border-top:1px solid var(--line);padding:18px 0}
 details:last-of-type{border-bottom:1px solid var(--line)}
 summary{cursor:pointer;font-weight:600;font-size:18px;list-style:none;display:flex;justify-content:space-between;gap:16px;font-family:"Bricolage Grotesque",sans-serif}
+summary .q{min-width:0}   /* the question is one flex item; the + is the other */
 summary::-webkit-details-marker{display:none}
 summary::after{content:"+";font-weight:400;color:var(--hope-deep);font-size:24px;line-height:1}
 details[open] summary::after{content:"–"}

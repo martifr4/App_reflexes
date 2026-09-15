@@ -12,6 +12,7 @@ Two pages, one shared engine:
 | `assets/ecb-data.js` | **The rates. The only file you edit when the ECB moves.** |
 | `assets/ojala.js` | Shared behaviour: the moving tape, the simulator, the countdown, the drum |
 | `assets/ojala.css` | Shared styles |
+| `build.mjs` | Freezes each page into a standalone single file (`node build.mjs`) |
 
 No build step and no dependencies. Open `index.html` in a browser, or serve the
 folder (`python3 -m http.server` from `ojala/`) and visit `/` or `/en.html`.
@@ -37,6 +38,35 @@ It scrolls at a fixed ~55 px/s whatever the content length, pauses on the button
 (it is the only moving thing on the page, so it needs one), and under
 `prefers-reduced-motion` it stops moving and becomes a plain scrollable strip.
 The day counts refresh every minute while the page is open.
+
+## Freezing a copy to send
+
+To hand the demo to someone who just wants to open it, freeze each page into a
+single self-contained file:
+
+```
+node build.mjs
+```
+
+That writes `dist/ojala-demo-es.html` and `dist/ojala-demo-en.html` (~65 KB
+each), with the stylesheet and both scripts inlined. Send either one on its own
+— no folder, no server, no build step at the other end. `dist/` is gitignored.
+
+By default the ES/EN switch is removed from each file, since the other page is
+not travelling with it. If you are sending both, keep the switch working
+between them:
+
+```
+node build.mjs --linked
+```
+
+The one thing not inlined is the Google Fonts stylesheet: online the file looks
+as designed, offline it falls back to system fonts. Embedding the three
+families would add megabytes for a case that rarely comes up.
+
+The build refuses to write a broken file. If an asset gets renamed or the way
+it is linked changes, it says which page and what it was looking for, and exits
+non-zero — so a stale build can't be mailed out by accident.
 
 ## Updating after an ECB decision
 
