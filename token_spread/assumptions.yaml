@@ -115,7 +115,7 @@ rental_base_series: silicondata_index_faq
 # to cover the GPU's rent at base utilization — and (2) price comparison with the
 # open-weight models above. Price basis: OpenRouter's model-level list price
 # (the lab's standard tier). Endpoint tiers (regional, priority, flex) are kept
-# in data/api_prices_closed.csv as a range. ':batch' variants are excluded.
+# in data/api_prices_price_only.csv as a range. ':batch' variants are excluded.
 closed_models:
   - {key: claude-fable-5.1,  openrouter_id: anthropic/claude-fable-5.1,  lab: Anthropic, tier: frontier}
   - {key: claude-opus-5.5,   openrouter_id: anthropic/claude-opus-5.5,   lab: Anthropic, tier: large}
