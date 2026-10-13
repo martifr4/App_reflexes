@@ -202,6 +202,81 @@ def chart_breakeven(be: pd.DataFrame, path: Path, cfg):
     plt.close(fig)
 
 
+def chart_power_chain(chain: pd.DataFrame, path: Path, cfg, region_label: str):
+    """Electricity -> owner cost -> rent -> token revenue, per GPU (log scale).
+    Token revenue: median over base cases, whisker = min..max model."""
+    steps = [("power_cost", "Electricity"), ("owner_tco", "Owner cost (TCO)"),
+             ("rent", "Rent"), ("revenue", "Token revenue")]
+    base = chain[chain.case == "base"]
+    fig, ax = plt.subplots(figsize=(9, 4.0))
+    gpus = [g for g in ("h100", "b200") if (base.gpu == g).any()]
+    h = 0.36
+    for gi, g in enumerate(gpus):
+        d = base[base.gpu == g]
+        color, name = SERIES[(g, "base")]
+        y = np.arange(len(steps)) + (gi - (len(gpus) - 1) / 2) * h
+        vals = [d[k].median() for k, _ in steps]
+        ax.barh(y, vals, height=h - 0.05, color=color, label=name, zorder=2)
+        lo, hi = d.revenue.min(), d.revenue.max()
+        ax.errorbar([vals[-1]], [y[-1]], xerr=[[vals[-1] - lo], [hi - vals[-1]]], fmt="none",
+                    ecolor=INK2, elinewidth=1, capsize=2.5, zorder=3)
+        ends = vals[:-1] + [hi]
+        for yy, v, e in zip(y, vals, ends):
+            ax.text(e * 1.06, yy, f"${v:.2f}", va="center", fontsize=8, color=INK2)
+    ax.set_xscale("log")
+    ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"${v:g}"))
+    ax.set_yticks(range(len(steps)), [s for _, s in steps])
+    ax.invert_yaxis()
+    ax.grid(axis="y", visible=False)
+    ax.set_xlabel("US dollars per GPU-hour (log scale)")
+    p = cfg["power"]
+    ax.set_xlim(right=ax.get_xlim()[1] * 1.8)
+    ax.set_title(f"From electricity to tokens · {region_label} at ${chain.price_usd_per_kwh.iloc[0]:.3f}/kWh, "
+                 f"PUE {p['pue_base']}", loc="left")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=2, fontsize=8)
+    fig.text(0.01, 0.01, "Token revenue: median model (bar) and range across models (whisker).",
+             fontsize=8, color=MUTED)
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+
+
+COST_PARTS = [("depreciation", "Hardware depreciation", "#52514e"), ("financing", "Financing", "#898781"),
+              ("hosting", "Data-centre space", "#aeb8bf"), ("power", "Electricity", "#eda100"),
+              ("ops", "Operations", "#c3c2b7")]
+
+
+def chart_firm(econ: pd.DataFrame, path: Path):
+    """Per GPU: stacked cost per GPU-hour vs revenue (rent x occupancy)."""
+    b = econ[econ.base].set_index("gpu")
+    gpus = list(b.index)
+    fig, ax = plt.subplots(figsize=(9, 2.9))
+    for i, g in enumerate(gpus):
+        left = 0
+        for k, lab, col in COST_PARTS:
+            v = b.loc[g, k]
+            ax.barh(i + 0.18, v, left=left, height=0.32, color=col, edgecolor=SURFACE, linewidth=1.5,
+                    label=lab if i == 0 else None, zorder=2)
+            left += v
+        ax.text(left + 0.06, i + 0.18, f"cost \\${left:.2f}", va="center", fontsize=8, color=INK2)
+        color = SERIES[(g, "base")][0]
+        ax.barh(i - 0.18, b.loc[g, "revenue"], height=0.32, color=color, zorder=2)
+        ax.text(b.loc[g, "revenue"] + 0.06, i - 0.18,
+                f"revenue \\${b.loc[g, 'revenue']:.2f}  →  profit \\${b.loc[g, 'profit']:.2f} ({b.loc[g, 'net_margin']:.0%})",
+                va="center", fontsize=8, color=INK2)
+    ax.set_yticks(range(len(gpus)), [g.upper() for g in gpus])
+    ax.invert_yaxis()
+    ax.set_xlim(0, b.revenue.max() * 1.75)
+    ax.grid(axis="y", visible=False)
+    ax.set_xlabel("US dollars per GPU-hour (calendar hour, rented or idle)")
+    occ = b.occupancy.iloc[0]
+    ax.set_title(f"GPU rental firm: cost of owning a GPU vs rent collected ({occ:.0%} of hours rented)", loc="left")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.32), ncol=5, fontsize=8)
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+
+
 def chart_timeseries(ts: pd.DataFrame, path: Path) -> bool:
     if ts.date.nunique() < 2:
         return False
@@ -238,7 +313,7 @@ def md_table(df: pd.DataFrame) -> str:
 
 
 def money(v, d=2):
-    return "" if pd.isna(v) else f"${v:,.{d}f}"
+    return "" if pd.isna(v) else ("−$" if v < 0 else "$") + f"{abs(v):,.{d}f}"
 
 
 def build():
@@ -311,6 +386,143 @@ the same breakeven, and spread ratio = measured ÷ needed.
 benchmarked open-weight = median provider):
 
 {md_table(pc_t)}
+
+"""
+
+    power_md = ""
+    pc_path, ch_path = OUT / "power_costs.csv", OUT / "power_chain.csv"
+    if pc_path.exists() and ch_path.exists():
+        pcosts, chain = pd.read_csv(pc_path), pd.read_csv(ch_path)
+        chart_power_chain(chain, CHARTS / "power_chain.png", cfg,
+                          pcosts[pcosts.region == cfg["power"]["base_region"]].label.iloc[0])
+        pw = cfg["power"]
+        pr = pcosts.pivot_table(index=["region", "label", "price_usd_per_kwh", "period"], columns="gpu",
+                                values=["power_cost_per_gpu_hour", "power_share_of_rent"]).reset_index()
+        pr = pr.sort_values("price_usd_per_kwh")
+        region_t = pd.DataFrame({
+            "region": pr["label"], "$/kWh": pr["price_usd_per_kwh"].map(lambda v: f"${v:.3f}"),
+            "period": pr["period"],
+            "H100 power $/h": pr[("power_cost_per_gpu_hour", "h100")].map(money),
+            "B200 power $/h": pr[("power_cost_per_gpu_hour", "b200")].map(money),
+            "share of H100 rent": pr[("power_share_of_rent", "h100")].map(lambda v: f"{v:.1%}"),
+            "share of B200 rent": pr[("power_share_of_rent", "b200")].map(lambda v: f"{v:.1%}")})
+        cb = chain[chain.case == "base"]
+        chain_t = pd.DataFrame({
+            "model": cb.model, "GPU": cb.gpu.str.upper() + " " + cb.precision,
+            "power $/h": cb.power_cost.map(money), "owner TCO $/h": cb.owner_tco.map(money),
+            "rent $/h": cb.rent.map(money), "revenue $/h": cb.revenue.map(money),
+            "tokens per kWh": cb.tokens_per_kwh.map(lambda v: f"{v / 1e6:.2f}M"),
+            "revenue per kWh": cb.revenue_per_kwh.map(money),
+            "revenue ÷ power": cb.revenue_over_power.map(lambda v: f"{v:.0f}×"),
+            "measured GPU W (% TDP)": [f"{w:.0f} ({p:.0%})" if pd.notna(w) else "–"
+                                        for w, p in zip(cb.measured_gpu_w, cb.measured_pct_of_tdp)]})
+        bpc = pcosts[pcosts.region == pw["base_region"]].set_index("gpu")
+        power_md = f"""## 7. From electricity to tokens
+
+A GPU-hour's cost starts with electricity. Each GPU draws its **all-in** power (chip plus its
+share of host CPU, memory and network; SemiAnalysis: H100 {bpc.loc['h100', 'allin_kw']} kW,
+B200 {bpc.loc['b200', 'allin_kw']} kW), and the facility adds cooling and conversion losses
+(PUE {pw['pue_base']}). `power cost per GPU-hour = all-in kW × load factor ({pw['load_factor']}) × PUE × $/kWh`.
+
+At the base region ({bpc.label.iloc[0]}, ${bpc.price_usd_per_kwh.iloc[0]:.3f}/kWh):
+
+- Electricity costs **{money(bpc.loc['h100', 'power_cost_per_gpu_hour'])} per H100-hour** and
+  **{money(bpc.loc['b200', 'power_cost_per_gpu_hour'])} per B200-hour**: {bpc.loc['h100', 'power_share_of_rent']:.1%}
+  and {bpc.loc['b200', 'power_share_of_rent']:.1%} of the rent, and about
+  {bpc.loc['h100', 'power_share_of_owner_tco']:.0%} / {bpc.loc['b200', 'power_share_of_owner_tco']:.0%} of the owner's full cost (SemiAnalysis TCO).
+- Across regions ({money(pcosts.price_usd_per_kwh.min(), 3)}–{money(pcosts.price_usd_per_kwh.max(), 3)}/kWh),
+  power is {pcosts.power_share_of_rent.min():.1%}–{pcosts.power_share_of_rent.max():.1%} of rent.
+- Turned into tokens and sold at market prices, one kWh earns
+  {money(cb.revenue_per_kwh.min())}–{money(cb.revenue_per_kwh.max())}: **{cb.revenue_over_power.min():.0f}–{cb.revenue_over_power.max():.0f}×**
+  what the electricity cost.
+- Measured GPU draw (newer InferenceX runs only) is {cb.measured_pct_of_tdp.min():.0%}–{cb.measured_pct_of_tdp.max():.0%} of
+  TDP at the chosen operating points, so the full-load assumption is conservative.
+
+![power chain](charts/power_chain.png)
+
+{md_table(chain_t)}
+
+**Electricity cost per GPU-hour by region** (EIA: latest month, by sector; Eurostat:
+{pw['eurostat_band']} kWh/yr band, excl. VAT, converted at the ECB rate):
+
+{md_table(region_t)}
+
+"""
+
+    firm_md = ""
+    fe_path, vs_path, src_path = OUT / "firm_economics.csv", OUT / "value_split.csv", DATA / "rental_firm_sources.csv"
+    if fe_path.exists() and vs_path.exists():
+        econ, split, fsrc = pd.read_csv(fe_path), pd.read_csv(vs_path), pd.read_csv(src_path)
+        chart_firm(econ, CHARTS / "firm_economics.png")
+        b = econ[econ.base].set_index("gpu")
+        f = cfg["rental_firm"]
+        firm_t = pd.DataFrame({
+            "per GPU-hour": ["Hardware depreciation", "Financing", "Data-centre space", "Electricity", "Operations",
+                             "**Full cost**", f"Revenue (rent × {f['occupancy_base']:.0%})", "**Profit**",
+                             "Margin before depreciation & interest (EBITDA)", "Operating margin", "Net margin",
+                             "Occupancy needed to break even", "Payback on hardware (years)",
+                             "SemiAnalysis owner cost (cross-check)"],
+            **{g.upper(): [money(b.loc[g, "depreciation"]), money(b.loc[g, "financing"]), money(b.loc[g, "hosting"]),
+                           money(b.loc[g, "power"]), money(b.loc[g, "ops"]), money(b.loc[g, "full_cost"]),
+                           money(b.loc[g, "revenue"]), money(b.loc[g, "profit"]),
+                           f"{b.loc[g, 'ebitda_margin']:.0%}", f"{b.loc[g, 'operating_margin']:.0%}",
+                           f"{b.loc[g, 'net_margin']:.0%}", f"{b.loc[g, 'breakeven_occupancy']:.0%}",
+                           f"{b.loc[g, 'payback_years']:.1f}", money(b.loc[g, "semianalysis_owner_tco"])]
+               for g in b.index}})
+        occ_t = econ[econ.depreciation_years == f["depreciation_years"]].pivot_table(
+            index="occupancy", columns="gpu", values="profit").reset_index()
+        occ_t = pd.DataFrame({"occupancy": occ_t.occupancy.map(lambda v: f"{v:.0%}"),
+                              **{f"{g.upper()} profit $/h": occ_t[g].map(money) for g in b.index}})
+        vs = split.assign(GPU=split.gpu.str.upper())
+        split_t = pd.DataFrame({
+            "model": vs.model, "GPU": vs.GPU,
+            "landlord costs $/h": (vs.power_cost + vs.hosting_cost + vs.ops_cost + vs.depreciation_cost + vs.financing_cost).map(money),
+            "landlord profit $/h": vs.landlord_profit.map(money), "rent $/h": vs.rent.map(money),
+            "token revenue $/h": vs.token_revenue.map(money), "inference provider profit $/h": vs.provider_profit.map(money),
+            "own-and-serve profit $/h": vs.integrated_profit.map(money),
+            "full cost per M tokens": vs.full_cost_per_mtok.map(lambda v: f"${v:.3f}"),
+            "price per M tokens": vs.price_per_mtok.map(lambda v: f"${v:.3f}")})
+        cw = fsrc.set_index("item")["value"]
+        src_t = fsrc[fsrc.used_in_model].assign(source=lambda d: d.source_url.map(lambda u: f"[link]({u})"))[
+            ["item", "gpu", "value", "unit", "low", "high", "estimate", "source"]]
+        hw_share = {g: (b.loc[g, "depreciation"] + b.loc[g, "financing"]) / b.loc[g, "full_cost"] for g in b.index}
+        firm_md = f"""## 8. Who makes the money: the GPU rental firm
+
+Electricity is not most of a GPU rental firm's cost. Owning a GPU for one hour costs:
+`hardware (depreciation + financing) + data-centre space + electricity + operations`.
+Hardware and its financing are {min(hw_share.values()):.0%}–{max(hw_share.values()):.0%} of the total.
+The firm collects rent only for the share of hours a customer is using the GPU (occupancy,
+{f['occupancy_base']:.0%} here).
+
+![firm economics](charts/firm_economics.png)
+
+{md_table(firm_t)}
+
+Assumptions (`assumptions.yaml` → `rental_firm`): capex per GPU = 8-GPU server ÷ 8, straight-line
+over {f['depreciation_years']} years, financed at {f['cost_of_capital']:.0%} (annuity), colocation
+${f['colocation_usd_per_kw_month']}/kW-month on all-in kW, operations ${f['ops_usd_per_gpu_hour']:.2f}/GPU-hour.
+
+**Profit by occupancy** ({f['depreciation_years']}-year depreciation):
+
+{md_table(occ_t)}
+
+**Reality check: CoreWeave, Q2 2026.** Revenue ${cw['coreweave_q2_2026_revenue']:,.0f}M; adjusted EBITDA
+margin {cw['coreweave_q2_2026_adj_ebitda_margin']:.0%}; depreciation {cw['coreweave_q2_2026_depreciation'] / cw['coreweave_q2_2026_revenue']:.0%}
+and interest {cw['coreweave_q2_2026_interest'] / cw['coreweave_q2_2026_revenue']:.0%} of revenue; operating margin
+{cw['coreweave_q2_2026_operating_margin']:.0%}. The model's EBITDA margins are in the same range, but its
+operating margins are far higher. A fast-growing firm pays depreciation and interest on capacity
+before it earns revenue, sells mostly on multi-year contracts below on-demand prices, and carries
+overheads (sales, R&D, stock compensation) that this per-GPU model leaves out.
+
+**Where one rented GPU-hour of token revenue goes** (base cases): the GPU landlord's costs and
+profit add up to the rent; the inference provider keeps token revenue minus rent (the token
+spread). An operator that owns its GPUs and sells tokens keeps token revenue minus full cost.
+
+{md_table(split_t)}
+
+**Sources used in the firm model:**
+
+{md_table(src_t)}
 
 """
 
@@ -417,7 +629,7 @@ OpenRouter provider, rental = `{cfg['rental_base_series']}`.
 `tok/s/GPU` = total (input+output) tokens/s per GPU at the base in:out ratio, interactivity-floor
 point; `(max)` = highest throughput with no latency floor. Breakeven util = utilization at
 which revenue = rental. Rows with `estimate=True` in `outputs/spread_summary.csv` use
-interpolated throughput (see section 8).
+interpolated throughput (see section 10).
 
 ![spread by model and GPU](charts/spread_by_model_gpu.png)
 
@@ -444,8 +656,8 @@ Full table: `outputs/provider_spread.csv`.
 
 {md_table(rt)}
 
-{closed_md}{"## 7. Over time\n\n![time series](charts/timeseries.png)\n" if has_ts else "## 7. Over time\n\nOnly one snapshot so far; the time-series chart appears after the second daily run.\n"}
-## 8. Data gaps and caveats
+{closed_md}{power_md}{firm_md}{"## 9. Over time\n\n![time series](charts/timeseries.png)\n" if has_ts else "## 9. Over time\n\nOnly one snapshot so far; the time-series chart appears after the second daily run.\n"}
+## 10. Data gaps and caveats
 
 **Gaps found this run**
 
@@ -473,6 +685,12 @@ Full table: `outputs/provider_spread.csv`.
   InferenceX's owner-TCO figures (H100 {money(rd.loc['h100'].get('inferencex_owner_tco'))},
   B200 {money(rd.loc['b200'].get('inferencex_owner_tco'))}) are a floor for what serving
   costs an owner-operator.
+- **Electricity is modelled, not metered.** Power cost uses SemiAnalysis all-in kW per GPU at
+  full load, an assumed PUE and average published tariffs. Large operators buy power through
+  contracts (PPAs) whose prices are not public, and pay demand charges not captured here.
+- **The rental-firm model is generic.** Server prices are vendor estimates (NVIDIA publishes no
+  list price), depreciation life and financing cost vary by firm, and real fleets mix contract
+  and on-demand prices. It leaves out sales, R&D and corporate overheads.
 - **Revenue ≠ margin.** The spread excludes networking, storage, CPU hosts, engineering,
   idle capacity reserved for peaks, and OpenRouter's fee.
 """

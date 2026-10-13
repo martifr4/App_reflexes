@@ -50,6 +50,16 @@ def build() -> dict:
     closed_path, be_path = DATA / "api_prices_price_only.csv", OUT / "breakeven_throughput.csv"
     closed = pd.read_csv(closed_path) if closed_path.exists() else pd.DataFrame()
     be = pd.read_csv(be_path) if be_path.exists() else pd.DataFrame()
+    elec_path, gp_path, ch_path = DATA / "electricity_prices.csv", DATA / "gpu_power.csv", OUT / "power_chain.csv"
+    elec = pd.read_csv(elec_path) if elec_path.exists() else pd.DataFrame()
+    gpw = pd.read_csv(gp_path) if gp_path.exists() else pd.DataFrame()
+    chain = pd.read_csv(ch_path) if ch_path.exists() else pd.DataFrame()
+    fsrc_path, fe_path, vs_path = DATA / "rental_firm_sources.csv", OUT / "firm_economics.csv", OUT / "value_split.csv"
+    fsrc = pd.read_csv(fsrc_path) if fsrc_path.exists() else pd.DataFrame()
+    fe = pd.read_csv(fe_path) if fe_path.exists() else pd.DataFrame()
+    vs = pd.read_csv(vs_path) if vs_path.exists() else pd.DataFrame()
+    if "avg_power_w" not in tput:
+        tput["avg_power_w"] = None
 
     b = branch()
     return {
@@ -75,7 +85,7 @@ def build() -> dict:
             "spec_method": "spec", "disagg": "disagg", "is_multinode": "multi", "isl": "isl",
             "osl": "osl", "conc": "conc", "num_gpus": "ngpu", "decode_tp": "tp",
             "decode_ep": "ep", "image": "image", "tput_per_gpu": "tput",
-            "input_tput_per_gpu": "tin", "output_tput_per_gpu": "tout",
+            "input_tput_per_gpu": "tin", "output_tput_per_gpu": "tout", "avg_power_w": "pw",
             "median_intvty": "intv", "median_ttft": "ttft", "bench_date": "date",
             "source_url": "url"}),
         "rental": records(rental, {
@@ -93,6 +103,26 @@ def build() -> dict:
             "list_source_url": "list_url", "retrieved_date": "date"}) if len(closed) else [],
         "python_breakeven": records(be, {
             "model": "m", "gpu": "gpu", "breakeven_tput_per_gpu": "be"}) if len(be) else [],
+        "electricity": records(elec, {
+            "region": "region", "label": "label", "country": "country", "sector": "sector",
+            "price_usd_per_kwh": "price", "price_local": "local", "currency": "cur", "period": "period",
+            "fx_usd_per_eur": "fx", "source_url": "url", "retrieved_date": "date", "notes": "notes"}) if len(elec) else [],
+        "gpu_power": records(gpw, {
+            "gpu": "gpu", "tdp_w": "tdp", "allin_kw": "kw", "owner_tco_per_hour": "tco",
+            "retail_per_hour": "retail", "source_url": "url", "retrieved_date": "date",
+            "notes": "notes"}) if len(gpw) else [],
+        "python_power": records(chain, {
+            "model": "m", "gpu": "gpu", "precision": "prec", "power_cost": "power",
+            "revenue_per_kwh": "rpk", "measured_gpu_w": "mw"}) if len(chain) else [],
+        "firm_sources": records(fsrc, {
+            "item": "item", "gpu": "gpu", "value": "value", "unit": "unit", "low": "low", "high": "high",
+            "used_in_model": "used", "source_url": "url", "retrieved_date": "date", "estimate": "estimate",
+            "notes": "notes"}) if len(fsrc) else [],
+        "python_firm": records(fe[fe.base], {
+            "gpu": "gpu", "full_cost": "full", "profit": "profit", "ebitda_margin": "ebitda"}) if len(fe) else [],
+        "python_split": records(vs, {
+            "model": "m", "gpu": "gpu", "precision": "prec", "landlord_profit": "landlord",
+            "integrated_profit": "integrated"}) if len(vs) else [],
         "timeseries": json.loads(ts.to_json(orient="records")) if len(ts) else [],
         "python_summary": records(summary, {
             "model": "m", "gpu": "gpu", "precision": "prec", "case": "case",

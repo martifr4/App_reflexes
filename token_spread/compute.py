@@ -10,6 +10,11 @@ Outputs (outputs/):
                        benchmarks) and benchmarked open-weight models (with their
                        measured throughput for comparison)
   price_comparison.csv list/blended prices of every model, open and closed
+  power_costs.csv      electricity cost per GPU-hour for each region and GPU
+  power_chain.csv      electricity -> owner cost -> rent -> token revenue, per model and GPU
+  firm_economics.csv   GPU rental firm P&L per GPU-hour: cost stack, revenue, profit, margins
+  value_split.csv      how one rented GPU-hour of token revenue splits between power, hosting,
+                       ops, depreciation, financing, the GPU landlord and the inference provider
 and a dated copy in snapshots/ (see snapshot()).
 
 Formula (per model, GPU, precision, provider):
@@ -79,6 +84,7 @@ def operating_points(tput: pd.DataFrame, cfg: dict) -> pd.DataFrame:
                 "conc": best.conc, "num_gpus": best.num_gpus,
                 "bench_date": best.bench_date, "source_url": best.source_url,
                 "sweep_edge": edge,
+                "avg_power_w": best.get("avg_power_w", np.nan),  # measured GPU power, newer runs
             })
     return pd.DataFrame(rows)
 
@@ -272,6 +278,135 @@ def closed_analysis(cfg, closed: pd.DataFrame, summary: pd.DataFrame, rental: pd
     return pd.DataFrame(be_rows), pc
 
 
+# --- electricity: power price -> GPU-hour cost -> rent -> tokens ---------------
+
+def measured_power_at_ratio(ops: pd.DataFrame, ratio: float) -> float:
+    """Measured GPU watts at the chosen points, interpolated like throughput.
+    NaN unless every point used has a measurement."""
+    pts = ops.sort_values("measured_ratio")
+    if pts.empty or "avg_power_w" not in pts:
+        return np.nan
+    xs, ys, x = np.log(pts.measured_ratio.values), pts.avg_power_w.values.astype(float), math.log(ratio)
+    for r, y in zip(xs, ys):
+        if abs(r - x) < 1e-9:
+            return y
+    if x <= xs[0] or x >= xs[-1]:
+        return ys[0] if x <= xs[0] else ys[-1]
+    j = int(np.searchsorted(xs, x))
+    if np.isnan(ys[j - 1]) or np.isnan(ys[j]):
+        return np.nan
+    return float(np.interp(x, xs[j - 1:j + 1], ys[j - 1:j + 1]))
+
+
+def power_analysis(cfg, summary: pd.DataFrame, ops: pd.DataFrame, rental: pd.DataFrame):
+    pw = cfg["power"]
+    elec = pd.read_csv(DATA / "electricity_prices.csv")
+    gpus = pd.read_csv(DATA / "gpu_power.csv").set_index("gpu")
+    rent = rental_lookup(rental, cfg)
+    pue, lf = pw["pue_base"], pw["load_factor"]
+    kwh = {g: gpus.loc[g, "allin_kw"] * lf * pue for g in gpus.index}
+    cost_rows = []
+    for _, e in elec.iterrows():
+        for g in gpus.index:
+            pc = kwh[g] * e.price_usd_per_kwh
+            R = rent.get(g, {})
+            cost_rows.append({
+                "region": e.region, "label": e.label, "gpu": g, "price_usd_per_kwh": e.price_usd_per_kwh,
+                "period": e.period, "allin_kw": gpus.loc[g, "allin_kw"], "pue": pue, "load_factor": lf,
+                "kwh_per_gpu_hour": kwh[g], "power_cost_per_gpu_hour": pc,
+                "owner_tco_per_gpu_hour": R.get("owner_tco"), "rent_per_gpu_hour": R.get("rental_base"),
+                "power_share_of_owner_tco": pc / R.get("owner_tco", np.nan),
+                "power_share_of_rent": pc / R.get("rental_base", np.nan)})
+    costs = pd.DataFrame(cost_rows)
+    base = elec.set_index("region").loc[pw["base_region"]]
+    floor_ops = ops[ops.op_point == "floor"]
+    chain = []
+    for _, r in summary.iterrows():
+        g = r.gpu
+        pc = kwh[g] * base.price_usd_per_kwh
+        o = floor_ops[(floor_ops.model_key == r.model) & (floor_ops.gpu == g) & (floor_ops.precision == r.precision)]
+        mw = measured_power_at_ratio(o, r.io_ratio)
+        chain.append({
+            "model": r.model, "gpu": g, "precision": r.precision, "case": r.case,
+            "region": pw["base_region"], "price_usd_per_kwh": base.price_usd_per_kwh,
+            "kwh_per_gpu_hour": kwh[g], "power_cost": pc, "owner_tco": r.owner_tco, "rent": r.rental,
+            "revenue": r.revenue, "tokens_per_gpu_hour": r.tokens_per_gpu_hour,
+            "tokens_per_kwh": r.tokens_per_gpu_hour / kwh[g],
+            "revenue_per_kwh": r.revenue / kwh[g],
+            "revenue_over_power": r.revenue / pc, "rent_over_power": r.rental / pc,
+            "power_share_of_revenue": pc / r.revenue,
+            "measured_gpu_w": mw, "measured_pct_of_tdp": mw / gpus.loc[g, "tdp_w"]})
+    return costs, pd.DataFrame(chain)
+
+
+# --- GPU rental firm economics -----------------------------------------------------
+
+HOURS_PER_YEAR = 8760
+
+
+def firm_costs(gpu: str, cfg: dict, gpus: pd.DataFrame, elec_price: float,
+               years: float | None = None) -> dict:
+    """Cost of owning one GPU for one calendar hour, rented or not."""
+    f, pw = cfg["rental_firm"], cfg["power"]
+    n = years or f["depreciation_years"]
+    r = f["cost_of_capital"]
+    capex = f["capex_usd_per_gpu"][gpu]
+    annuity = capex * r / (1 - (1 + r) ** -n) if r else capex / n
+    dep = capex / n / HOURS_PER_YEAR
+    capital = annuity / HOURS_PER_YEAR
+    kw = gpus.loc[gpu, "allin_kw"]
+    return {"capex": capex, "depreciation": dep, "financing": capital - dep,
+            "hosting": kw * f["colocation_usd_per_kw_month"] * 12 / HOURS_PER_YEAR,
+            "power": kw * pw["load_factor"] * pw["pue_base"] * elec_price,
+            "ops": f["ops_usd_per_gpu_hour"]}
+
+
+def firm_pnl(c: dict, rent: float, occ: float) -> dict:
+    cash = c["hosting"] + c["power"] + c["ops"]
+    full = cash + c["depreciation"] + c["financing"]
+    rev = rent * occ
+    return {"revenue": rev, "cash_costs": cash, "full_cost": full,
+            "ebitda": rev - cash, "operating_profit": rev - cash - c["depreciation"],
+            "profit": rev - full, "ebitda_margin": (rev - cash) / rev,
+            "operating_margin": (rev - cash - c["depreciation"]) / rev, "net_margin": (rev - full) / rev,
+            "breakeven_occupancy": full / rent,
+            "payback_years": c["capex"] / ((rev - cash) * HOURS_PER_YEAR) if rev > cash else np.nan}
+
+
+def firm_analysis(cfg, summary: pd.DataFrame, rental: pd.DataFrame):
+    f = cfg["rental_firm"]
+    gpus = pd.read_csv(DATA / "gpu_power.csv").set_index("gpu")
+    price = pd.read_csv(DATA / "electricity_prices.csv").set_index("region").loc[
+        cfg["power"]["base_region"], "price_usd_per_kwh"]
+    rent = rental_lookup(rental, cfg)
+    occ0 = f["occupancy_base"]
+    econ = []
+    for g in gpus.index:
+        R = rent[g]["rental_base"]
+        for years in f["depreciation_sensitivity"]:
+            c = firm_costs(g, cfg, gpus, price, years)
+            for occ in sorted(set(f["occupancy_sensitivity"]) | {occ0}):
+                econ.append({"gpu": g, "depreciation_years": years, "occupancy": occ, "rent": R,
+                             "base": years == f["depreciation_years"] and occ == occ0,
+                             **{k: v for k, v in c.items()}, **firm_pnl(c, R, occ),
+                             "semianalysis_owner_tco": rent[g]["owner_tco"]})
+    split = []
+    for _, r in summary[summary.case == "base"].iterrows():
+        c = firm_costs(r.gpu, cfg, gpus, price)
+        per_rented = {k: c[k] / occ0 for k in ("power", "hosting", "ops", "depreciation", "financing")}
+        landlord = r.rental - sum(per_rented.values())
+        split.append({"model": r.model, "gpu": r.gpu, "precision": r.precision, "occupancy": occ0,
+                      **{f"{k}_cost": v for k, v in per_rented.items()},
+                      "landlord_profit": landlord, "rent": r.rental, "token_revenue": r.revenue,
+                      "provider_profit": r.revenue - r.rental,
+                      "integrated_profit": r.revenue - sum(c[k] for k in per_rented),
+                      "tokens_per_gpu_hour": r.tokens_per_gpu_hour,
+                      "full_cost_per_mtok": sum(c[k] for k in per_rented) / (r.tokens_per_gpu_hour / 1e6),
+                      "power_cost_per_mtok": c["power"] / (r.tokens_per_gpu_hour / 1e6),
+                      "price_per_mtok": r.price_median})
+    return pd.DataFrame(econ), pd.DataFrame(split)
+
+
 # --- snapshots ---------------------------------------------------------------
 
 def _digest(p: Path) -> str:
@@ -293,10 +428,12 @@ def snapshot(summary: pd.DataFrame, date: str):
     day = SNAP / date
     day.mkdir(exist_ok=True)
     files = [DATA / f for f in ("api_prices.csv", "api_prices_price_only.csv", "throughput.csv",
-                                "gpu_rental.csv")] + \
+                                "gpu_rental.csv", "electricity_prices.csv", "gpu_power.csv",
+                                "rental_firm_sources.csv")] + \
             [OUT / f for f in ("spread_summary.csv", "sensitivity.csv", "provider_spread.csv",
                                "operating_points.csv", "breakeven_throughput.csv",
-                               "price_comparison.csv")]
+                               "price_comparison.csv", "power_costs.csv", "power_chain.csv",
+                               "firm_economics.csv", "value_split.csv")]
     files = [f for f in files if f.exists()]
     written = []
     for f in files:
@@ -311,6 +448,7 @@ def snapshot(summary: pd.DataFrame, date: str):
     cols = ["model", "gpu", "precision", "case", "io_ratio", "utilization", "price_median",
             "tput_per_gpu", "revenue", "rental", "spread", "spread_ratio",
             "breakeven_utilization", "bench_dates"]
+    cols += [c for c in ("price_usd_per_kwh", "power_cost") if c in summary]
     ts_path = SNAP / "timeseries.csv"
     row = summary[cols].assign(date=date)
     if ts_path.exists():
@@ -335,6 +473,16 @@ def main():
         be, pc = closed_analysis(cfg, pd.read_csv(closed_path), summary, rental)
         be.to_csv(OUT / "breakeven_throughput.csv", index=False)
         pc.to_csv(OUT / "price_comparison.csv", index=False)
+    if (DATA / "electricity_prices.csv").exists() and (DATA / "gpu_power.csv").exists():
+        costs, chain = power_analysis(cfg, summary, ops, rental)
+        costs.to_csv(OUT / "power_costs.csv", index=False)
+        chain.to_csv(OUT / "power_chain.csv", index=False)
+        if "rental_firm" in cfg:
+            econ, split = firm_analysis(cfg, summary, rental)
+            econ.to_csv(OUT / "firm_economics.csv", index=False)
+            split.to_csv(OUT / "value_split.csv", index=False)
+        summary = summary.merge(chain[["model", "gpu", "precision", "price_usd_per_kwh", "power_cost"]],
+                                on=["model", "gpu", "precision"], how="left")
     date = str(pd.read_csv(DATA / "api_prices.csv").retrieved_date.max()) or dt.date.today().isoformat()
     snapshot(summary, date)
     with pd.option_context("display.width", 200, "display.max_columns", 20):

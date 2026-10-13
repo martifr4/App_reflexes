@@ -7,11 +7,12 @@ import traceback
 
 import fetch_inferencex
 import fetch_openrouter
+import fetch_power
 import fetch_silicondata
 
 # order matters: silicondata merges the GPU costs written by inferencex
 STEPS = [("openrouter", fetch_openrouter), ("inferencex", fetch_inferencex),
-         ("silicondata", fetch_silicondata)]
+         ("silicondata", fetch_silicondata), ("power", fetch_power)]
 
 
 def main() -> int:

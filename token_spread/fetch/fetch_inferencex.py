@@ -23,7 +23,8 @@ BASE = "https://inferencex.semianalysis.com/api/v1"
 CONFIG_KEYS = ["hardware", "framework", "precision", "spec_method", "disagg",
                "is_multinode", "isl", "osl"]
 METRICS = ["tput_per_gpu", "input_tput_per_gpu", "output_tput_per_gpu",
-           "median_intvty", "median_ttft", "median_tpot"]
+           "median_intvty", "median_ttft", "median_tpot",
+           "avg_power_w", "joules_per_total_token"]  # measured GPU power: newer runs only
 
 
 def fetch_throughput(cfg) -> pd.DataFrame:
