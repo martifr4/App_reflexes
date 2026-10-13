@@ -120,6 +120,21 @@ section:first-child { border-top: 0; }
 .board .v { font-family: var(--font-mono); font-size: 1rem; font-weight: 500; font-variant-numeric: tabular-nums; }
 .board .d { font-size: 0.75rem; color: var(--muted); }
 
+/* ---------- start here ---------- */
+.intro { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 2.5rem; align-items: start; }
+@media (max-width: 860px) { .intro { grid-template-columns: 1fr; gap: 1.75rem; } }
+.primer { display: grid; gap: 0; border-top: 2px solid var(--ink); }
+.primer div { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 1rem; padding-block: 0.85rem; border-bottom: 1px solid var(--rule); }
+.primer dt { font-family: var(--font-display); font-weight: 700; font-stretch: 112%; font-size: 1.05rem; line-height: 1.3; }
+.primer dd { margin: 0; color: var(--ink-2); font-size: 0.92rem; }
+.primer-title { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-bottom: 0.5rem; }
+.guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15.5rem), 1fr)); gap: 0 1.5rem; margin: 0; padding: 0; list-style: none; }
+.guide li { padding-block: 0.9rem; border-top: 1px solid var(--rule); display: grid; gap: 0.3rem; align-content: start; }
+.guide a { font-weight: 600; text-decoration: none; display: inline-flex; gap: 0.35rem; align-items: baseline; }
+.guide a:hover { text-decoration: underline; }
+.guide a span { color: var(--muted); font-weight: 400; }
+.guide p { font-size: 0.88rem; color: var(--ink-2); }
+
 /* ---------- findings ---------- */
 .findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1rem; }
 .finding { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 1.1rem 1.2rem 1.2rem; display: grid; gap: 0.6rem; align-content: start; }
@@ -258,6 +273,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
   <div class="nav-inner">
     <a class="brand" href="#top">Token Spread</a>
     <div class="nav-links">
+      <a href="#start">Start here</a>
       <a href="#findings">Findings</a>
       <a href="#dashboard">Dashboard</a>
       <a href="#explore">Model explorer</a>
@@ -279,6 +295,51 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       The gap between those two numbers is the <strong>token spread</strong>.</p>
     <div class="verdict" id="verdict"></div>
     <div class="board" id="board" aria-label="Current inputs"></div>
+  </section>
+
+  <section id="start">
+    <div class="section-head">
+      <div class="eyebrow">Start here</div>
+      <h2>What this page is for</h2>
+      <p class="lede">AI models are sold by the token. The chips that run them are rented by the hour.
+        This page connects the two prices.</p>
+    </div>
+    <div class="intro">
+      <div class="prose">
+        <p>Two markets have grown up side by side. AI companies and hosting providers publish what they charge for every
+          million tokens a model reads or writes. Separately, cloud companies rent out the chips those models run on, and
+          since October 2026 the rental price of NVIDIA's main AI chips even trades as a futures contract on CME.</p>
+        <p>Nobody publishes how the two fit together. <strong>If you rent a chip for an hour and use it to run a popular AI
+          model, how much would you earn selling its output?</strong> Is that more or less than the rent?</p>
+        <p>The answer says things a rental price alone can't: whether a newer chip is cheap or expensive for the work it does,
+          which models are priced close to their running cost, and how much room the companies selling AI have to cut prices
+          or make a profit.</p>
+        <p>Everything here comes from public data, is refreshed every day, and links back to its source, so you can check any
+          number yourself.</p>
+      </div>
+      <div>
+        <div class="primer-title">Three ideas you need</div>
+        <dl class="primer">
+          <div><dt>Token</dt><dd>A small chunk of text, about ¾ of a word. AI services charge per million tokens:
+            <span id="primer-tok"></span>, depending on the model.</dd></div>
+          <div><dt>GPU-hour</dt><dd>One hour of one AI chip, here NVIDIA's H100 or its newer B200, rented from a cloud
+            provider. Today that costs <span id="primer-gpu"></span>.</dd></div>
+          <div><dt>Throughput</dt><dd>How many tokens one chip can produce per second. It links the two prices: tokens per
+            hour × price per token = what a GPU-hour earns. The <strong>token spread</strong> is that amount minus the rent.</dd></div>
+        </dl>
+      </div>
+    </div>
+    <div class="section-head"><h3>What you'll find on this page</h3></div>
+    <ul class="guide">
+      <li><a href="#findings">Findings <span>→</span></a><p>The main conclusions in plain sentences, rewritten automatically when the data changes. Start here if you have a minute.</p></li>
+      <li><a href="#dashboard">Dashboard <span>→</span></a><p>The results for every model and chip. Move the sliders to try your own assumptions, and click any result to see the full calculation.</p></li>
+      <li><a href="#explore">Model explorer <span>→</span></a><p>One model at a time: the test data behind it, how much the answer depends on the assumptions, and how each seller's price changes it.</p></li>
+      <li><a href="#closed">Closed models <span>→</span></a><p>Claude, GPT and Grok don't reveal their hardware, so we show how efficient they would need to be to pay for the chips.</p></li>
+      <li><a href="#method">Method <span>→</span></a><p>How the calculation works, step by step, with a glossary of every term on the page.</p></li>
+      <li><a href="#data">Data <span>→</span></a><p>Every raw number with its source link and date. Search it, copy it, or check it yourself.</p></li>
+      <li><a href="#caveats">Caveats <span>→</span></a><p>What these numbers can't tell you, and what data would make them better.</p></li>
+    </ul>
+    <p class="note">New to the field? Read the findings, then keep the <a href="#method">glossary</a> open for any unfamiliar term.</p>
   </section>
 
   <section id="findings">
@@ -822,6 +883,13 @@ function renderStatic() {
     ["Closed models", String(CLOSED.length), "Claude, GPT, Grok · price only"],
   ];
   $("board").replaceChildren(...cells.map(([k, val, d]) => h("div", {}, h("span", { class: "k", text: k }), h("span", { class: "v", text: val }), h("span", { class: "d", text: d }))));
+
+  // primer: live price ranges
+  const allBlend = [...D.prices.filter(p => p.inp != null && p.out != null).map(p => ENGINE.blend(p, BASE.ratio)),
+    ...CLOSED.map(cm => ENGINE.closedPrice(cm.key, BASE.ratio).list)].filter(isFinite);
+  const fmtP = v => v < 1 ? `${Math.round(v * 100)}¢` : fmtUSD(v, 0);
+  $("primer-tok").textContent = `from about ${fmtP(Math.min(...allBlend))} to ${fmtP(Math.max(...allBlend))}`;
+  $("primer-gpu").textContent = `about ${fmtUSD(rH.base)} for an H100 and ${fmtUSD(rB.base)} for a B200 on the Silicon Data index`;
 
   // findings
   $("findings-lede").textContent = `At base assumptions: ${BASE.ratio}:1 input:output tokens, ${fmtPct(BASE.util)} utilization, at least ${BASE.floor} tokens/s per user, the ${BASE.price} provider price, and the Silicon Data rental index.`;
