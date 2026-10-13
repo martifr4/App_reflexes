@@ -26,8 +26,12 @@ jobs:
       run:
         working-directory: token_spread
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      # Always start from the branch's newest commit. A "Re-run" would otherwise replay
+      # the original commit and its push would be rejected once the branch has moved on.
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -55,7 +59,9 @@ jobs:
             echo "No changes"
           else
             git commit -m "token-spread snapshot $(date -u +%F)"
-            git push
+            # Pick up anything merged while this run was working, then push.
+            git pull --rebase origin "${{ github.ref_name }}"
+            git push origin "HEAD:${{ github.ref_name }}"
           fi
       - name: Upload site for Pages
         if: vars.ENABLE_PAGES == 'true'
