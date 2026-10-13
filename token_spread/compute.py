@@ -407,6 +407,50 @@ def firm_analysis(cfg, summary: pd.DataFrame, rental: pd.DataFrame):
     return pd.DataFrame(econ), pd.DataFrame(split)
 
 
+# --- profit ranking: open models (measured) and closed models (estimated) ------
+
+def closed_proxy(cfg: dict, m: dict) -> tuple[str, str]:
+    """(gpu, proxy open model) assumed for a closed model."""
+    infra = cfg["closed_infrastructure"][m["lab"]]
+    return infra["gpu"], m.get("proxy") or cfg["closed_proxy_by_tier"][m["tier"]]
+
+
+def ranking_analysis(cfg, summary: pd.DataFrame, closed: pd.DataFrame):
+    """Profit per GPU-hour if the GPU's owner serves the tokens itself:
+    token revenue - full cost of owning the GPU (firm_costs, base assumptions)."""
+    gpus = pd.read_csv(DATA / "gpu_power.csv").set_index("gpu")
+    price = pd.read_csv(DATA / "electricity_prices.csv").set_index("region").loc[
+        cfg["power"]["base_region"], "price_usd_per_kwh"]
+    r0, u0 = cfg["io_ratio_base"], cfg["utilization_base"]
+    base = summary[summary.case == "base"]
+    full = {g: sum(v for k, v in firm_costs(g, cfg, gpus, price).items() if k != "capex") for g in gpus.index}
+    rows = []
+    g0 = cfg["profit_ranking_open_gpu"]
+    for _, r in base[base.gpu == g0].iterrows():
+        rows.append({"model": r.model, "weights": "open", "lab": "open-weight", "gpu": r.gpu,
+                     "precision": r.precision, "hardware": "measured (InferenceX)", "proxy": None,
+                     "tput_per_gpu": r.tput_per_gpu, "tokens_per_gpu_hour": r.tokens_per_gpu_hour,
+                     "price": r.price_median, "revenue": r.revenue, "full_cost": full[r.gpu],
+                     "profit": r.revenue - full[r.gpu], "estimate": False})
+    for m in cfg.get("closed_models", []):
+        g = closed[closed.model_key == m["key"]]
+        if g.empty or m["lab"] not in cfg.get("closed_infrastructure", {}):
+            continue
+        gpu, proxy = closed_proxy(cfg, m)
+        pr = base[(base.model == proxy) & (base.gpu == gpu)]
+        if pr.empty:
+            continue
+        pr, f = pr.iloc[0], g.iloc[0]
+        lp = (r0 * f.list_input_price_per_Mtok + f.list_output_price_per_Mtok) / (r0 + 1)
+        tok_h = pr.tput_per_gpu * 3600 * u0
+        rows.append({"model": m["key"], "weights": "closed", "lab": m["lab"], "gpu": gpu,
+                     "precision": pr.precision, "hardware": cfg["closed_infrastructure"][m["lab"]]["hardware"],
+                     "proxy": proxy, "tput_per_gpu": pr.tput_per_gpu, "tokens_per_gpu_hour": tok_h,
+                     "price": lp, "revenue": tok_h / 1e6 * lp, "full_cost": full[gpu],
+                     "profit": tok_h / 1e6 * lp - full[gpu], "estimate": True})
+    return pd.DataFrame(rows).sort_values("profit", ascending=False)
+
+
 # --- snapshots ---------------------------------------------------------------
 
 def _digest(p: Path) -> str:
@@ -433,7 +477,7 @@ def snapshot(summary: pd.DataFrame, date: str):
             [OUT / f for f in ("spread_summary.csv", "sensitivity.csv", "provider_spread.csv",
                                "operating_points.csv", "breakeven_throughput.csv",
                                "price_comparison.csv", "power_costs.csv", "power_chain.csv",
-                               "firm_economics.csv", "value_split.csv")]
+                               "firm_economics.csv", "value_split.csv", "profit_ranking.csv")]
     files = [f for f in files if f.exists()]
     written = []
     for f in files:
@@ -481,6 +525,9 @@ def main():
             econ, split = firm_analysis(cfg, summary, rental)
             econ.to_csv(OUT / "firm_economics.csv", index=False)
             split.to_csv(OUT / "value_split.csv", index=False)
+            if closed_path.exists() and "closed_infrastructure" in cfg:
+                rank = ranking_analysis(cfg, summary, pd.read_csv(closed_path))
+                rank.to_csv(OUT / "profit_ranking.csv", index=False)
         summary = summary.merge(chain[["model", "gpu", "precision", "price_usd_per_kwh", "power_cost"]],
                                 on=["model", "gpu", "precision"], how="left")
     date = str(pd.read_csv(DATA / "api_prices.csv").retrieved_date.max()) or dt.date.today().isoformat()

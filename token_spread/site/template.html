@@ -109,6 +109,8 @@ section:first-child { border-top: 0; }
 .verdict .vs { font-family: var(--font-mono); color: var(--muted); padding-bottom: 1.4rem; }
 .verdict .tokens .big { color: var(--s-b200); }
 @media (max-width: 640px) { .verdict { grid-template-columns: 1fr; gap: 1rem; } .verdict .vs { padding: 0; } }
+.rank-panel h3 { font-size: var(--step-2); }
+.rank-infra { margin: 0; padding-left: 1.1rem; font-size: var(--step--1); color: var(--ink-2); display: grid; gap: 0.15rem; }
 .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
 .board div { padding: 0.7rem 0.9rem; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin: 0 -1px -1px 0; display: grid; gap: 0.15rem; }
 .board .k { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
@@ -133,6 +135,11 @@ section:first-child { border-top: 0; }
 /* ---------- money flow ---------- */
 .flow-eq { font-family: var(--font-mono); font-size: 0.85rem; background: var(--surface-2); border-radius: 4px; padding: 0.6rem 0.75rem; overflow-x: auto; white-space: nowrap; color: var(--ink); }
 .flow-eq b { font-weight: 500; }
+#flow-costs td.mono, #flow-costs td:last-child { white-space: normal; }
+#flow-costs td.mono { font-family: var(--font-mono); font-size: 0.78rem; min-width: 36ch; }
+#flow-costs td:last-child { min-width: 26ch; font-size: 0.82rem; color: var(--ink-2); }
+#flow-costs .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 0.45rem; vertical-align: -1px; }
+#flow-costs tr.total td { font-weight: 600; border-top: 1.5px solid var(--ink); }
 .c-dep { fill: var(--c-dep); } .c-fin { fill: var(--c-fin); } .c-host { fill: var(--c-host); } .c-pow { fill: var(--c-pow); } .c-ops { fill: var(--c-ops); }
 .bg-dep { background: var(--c-dep); } .bg-fin { background: var(--c-fin); } .bg-host { background: var(--c-host); } .bg-pow { background: var(--c-pow); } .bg-ops { background: var(--c-ops); }
 .c-good { fill: var(--good); } .c-bad { fill: var(--bad); } .bg-good { background: var(--good); } .bg-bad { background: var(--bad); }
@@ -299,11 +306,23 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
 
 <main>
   <section class="hero" id="top">
-    <div class="eyebrow" id="hero-eyebrow">Open-weight LLM inference · H100 and B200</div>
+    <div class="eyebrow" id="hero-eyebrow">LLM inference economics · H100 and B200</div>
     <h1>What is a GPU-hour worth in tokens?</h1>
     <p class="lede">A GPU-hour has a market rental price. It also has a value as a factory for tokens:
       run an open-weight model on it, sell the output at public API prices, and see what it earns.
       The gap between those two numbers is the <strong>token spread</strong>.</p>
+    <div class="panel rank-panel" id="rank-panel">
+      <div class="panel-head">
+        <div>
+          <h3>Which AI models make the most money per GPU-hour?</h3>
+          <div class="panel-sub" id="rank-sub"></div>
+        </div>
+      </div>
+      <div class="legend" id="rank-legend"></div>
+      <div class="chart" id="chart-rank"></div>
+      <div class="note" id="rank-note"></div>
+      <ul class="rank-infra" id="rank-infra"></ul>
+    </div>
     <div class="verdict" id="verdict"></div>
     <div class="board" id="board" aria-label="Current inputs"></div>
   </section>
@@ -349,15 +368,17 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
         <div>
           <h3>How the money flows through one GPU-hour</h3>
           <div class="panel-sub">A power plant burns gas and sells electricity; its profit, the <em>spark spread</em>, is electricity sold minus gas burned.
-            A GPU is a plant that burns electricity (plus hardware, space and staff) and sells tokens. Band widths are dollars per hour.</div>
+            A GPU is a plant that burns electricity (plus hardware, space and staff) and sells tokens. Left: what one GPU-hour costs. Right: what its tokens sell for, split into the part that pays those costs and the profit left over. Band widths are dollars per hour.</div>
         </div>
         <div class="toolbar">
           <div class="seg" id="f-gpu" role="group" aria-label="GPU"></div>
           <select id="f-model" aria-label="Model served"></select>
         </div>
       </div>
+      <div class="legend" id="flow-legend"></div>
       <div class="chart" id="chart-flow"></div>
       <div class="flow-eq" id="flow-eq"></div>
+      <div class="table-wrap"><table id="flow-costs"></table></div>
       <div class="note" id="flow-note"></div>
     </div>
     <div class="section-head"><h3>What you'll find on this page</h3></div>
@@ -921,8 +942,38 @@ const ENGINE = (() => {
              operatingMargin: (rev - cash - c.depreciation) / rev, netMargin: (rev - full) / rev,
              breakevenOcc: full / rent, payback: rev > cash ? c.capex / ((rev - cash) * HOURS) : NaN };
   }
+  const fullCost = c => c.depreciation + c.financing + c.hosting + c.power + c.ops;
+  // closed models: assumed hardware (by lab) and a benchmarked open proxy (by size tier)
+  function closedProxy(cm) {
+    const inf = (CFG.closed_infrastructure || {})[cm.lab];
+    if (!inf) return null;
+    return { gpu: inf.gpu, proxy: cm.proxy || (CFG.closed_proxy_by_tier || {})[cm.tier], hardware: inf.hardware, url: inf.source_url };
+  }
+  function closedEstimate(cm, gpu, st) {
+    const px = closedProxy(cm), m = px && MODELS.find(x => x.key === px.proxy);
+    if (!m || !m.base_precision[gpu] || !(D.closed || []).some(x => x.m === cm.key)) return null;
+    const r = evaluate({ m, gpu, prec: m.base_precision[gpu], kind: "base" }, st);
+    const price = closedPrice(cm.key, st.ratio).list, tokH = r.tf.tput * 3600 * st.util;
+    return { ...px, gpu, prec: r.c.prec, proxyResult: r, tput: r.tf.tput, tokH, price, rev: tokH / 1e6 * price };
+  }
+  // profit per GPU-hour if the owner serves the tokens: token revenue - full cost of owning the GPU
+  function ranking(st, fs, ps) {
+    const out = [], g0 = CFG.profit_ranking_open_gpu;
+    for (const c of cases().filter(c => c.kind === "base" && c.gpu === g0)) {
+      const r = evaluate(c, st), cost = fullCost(firmCosts(c.gpu, fs, ps));
+      out.push({ key: c.m.key, weights: "open", lab: "open-weight", gpu: c.gpu, prec: c.prec, est: false, r,
+                 tput: r.tf.tput, tokH: r.tokH, price: r.price, rev: r.rev, cost, profit: r.rev - cost });
+    }
+    for (const cm of CFG.closed_models || []) {
+      const px = closedProxy(cm), e = px && closedEstimate(cm, px.gpu, st);
+      if (!e) continue;
+      const cost = fullCost(firmCosts(e.gpu, fs, ps));
+      out.push({ key: cm.key, weights: "closed", lab: cm.lab, est: true, ...e, cost, profit: e.rev - cost });
+    }
+    return out.sort((a, b) => b.profit - a.profit);
+  }
   return { cases, evaluate, prices, priceStats, rows, opPoints, tputAt, rental, median, blend, closedPrice, breakeven,
-           gpuPower, kwhPerHour, elecPrice, measuredPower, firmCosts, firmPnl };
+           gpuPower, kwhPerHour, elecPrice, measuredPower, firmCosts, firmPnl, fullCost, closedProxy, closedEstimate, ranking };
 })();
 /* ===================== ENGINE END ===================== */
 
@@ -1051,7 +1102,7 @@ function renderStatic() {
   const dd = D.meta.data_date;
 
   $("nav-date").textContent = "Data " + fmtDate(dd);
-  $("hero-eyebrow").textContent = `Open-weight LLM inference · H100 and B200 · data as of ${fmtDate(dd)}`;
+  $("hero-eyebrow").textContent = `LLM inference economics · H100 and B200 · data as of ${fmtDate(dd)}`;
   const v = $("verdict");
   v.replaceChildren(
     h("div", { class: "fig" }, h("div", { class: "big", text: fmtX(rentRatio) }),
@@ -1229,8 +1280,16 @@ function renderStatic() {
       if (Math.abs(landlord - p.landlord) < 1e-9 && Math.abs((r.rev - pp.full) - p.integrated) < 1e-6) ok++;
     }
   }
+  if (FBASE && D.python_ranking) {
+    const rk = ENGINE.ranking(BASE, FBASE, PBASE);
+    for (const p of D.python_ranking) {
+      n++;
+      const r = rk.find(x => x.key === p.m);
+      if (r && r.gpu === p.gpu && Math.abs(r.profit - p.profit) <= 1e-6 * Math.max(1, Math.abs(p.profit))) ok++;
+    }
+  }
   $("verify").replaceChildren(h("span", { class: "chip " + (ok === n ? "good" : "bad"), text: ok === n ? "✓ verified" : "✗ mismatch" }),
-    ` The in-browser engine reproduces compute.py for ${ok} of ${n} base-case results (spreads, breakeven throughputs, electricity costs and rental-firm economics).`);
+    ` The in-browser engine reproduces compute.py for ${ok} of ${n} base-case results (spreads, breakeven throughputs, electricity costs, rental-firm economics and the profit ranking).`);
   $("footer-meta").textContent = `Prices retrieved ${fmtDate(D.meta.prices_retrieved)} · rental retrieved ${fmtDate(D.meta.rental_retrieved)} · benchmarks retrieved ${fmtDate(D.meta.throughput_retrieved)} (newest run ${fmtDate(D.meta.newest_benchmark)}).`;
   const repo = $("repo-link"); repo.href = D.meta.tree_url;
   return base;
@@ -1781,47 +1840,140 @@ $("p-pue").addEventListener("input", e => { pstate.pue = +e.target.value; render
 $("p-lf").addEventListener("input", e => { pstate.lf = +e.target.value; renderPower(); renderFirm(); renderFlow(); });
 $("p-model").addEventListener("change", e => { pstate.model = e.target.value; renderPower(); });
 
+/* ================= profit ranking (hero, base assumptions) ================= */
+function renderRanking() {
+  if (!FBASE || !CFG.closed_infrastructure) { $("rank-panel").hidden = true; return; }
+  const rows = ENGINE.ranking(BASE, FBASE, PBASE).filter(r => isFinite(r.profit));
+  const g0 = CFG.profit_ranking_open_gpu;
+  $("rank-sub").textContent = `Profit = what the tokens sell for − the full cost of owning the GPU (hardware, financing, data-centre space, electricity, staff). ` +
+    `Open-weight models: measured throughput on ${gpuName(g0)}, median API price. Closed models: list price, with throughput and hardware assumed. ` +
+    `${fmtRatio(BASE.ratio)} input:output, ${fmtPct(BASE.util)} of hours serving.`;
+  const hatch = g => `url(#rk-hatch-${g})`;
+  $("rank-legend").replaceChildren(
+    ...[...new Set(rows.filter(r => !r.est).map(r => r.gpu))].map(g => h("span", {}, h("i", { class: "bg-" + g }), `open-weight, measured on ${gpuName(g)}`)),
+    ...[...new Set(rows.filter(r => r.est).map(r => r.gpu))].map(g => h("span", {}, h("i", { style: `background:repeating-linear-gradient(135deg, var(--s-${g}) 0 2px, transparent 2px 5px);border:1px solid var(--s-${g})` }), `closed, estimated on ${gpuName(g)}-class hardware`)));
+  const el = $("chart-rank"), W = widthOf(el), narrow = W < 560;
+  const L = narrow ? 4 : 200, R = narrow ? 4 : 96, top = 6, rowH = narrow ? 36 : 24, barH = narrow ? 12 : 14;
+  const H = top + rows.length * rowH + 26;
+  const lo = Math.min(0, ...rows.map(r => r.profit)), hi = Math.max(...rows.map(r => r.profit));
+  const ticks = linTicks(lo, hi * 1.02, narrow ? 4 : 6);
+  const d0 = Math.min(lo, ticks[0]), d1 = Math.max(hi, ticks[ticks.length - 1]);
+  const vW = narrow ? 64 : 0;
+  const x = v => L + (v - d0) / (d1 - d0) * (W - L - R - vW);
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Profit per GPU-hour by model, most to least profitable" });
+  const defs = s("defs", {}, svg);
+  for (const g of new Set(rows.filter(r => r.est).map(r => r.gpu))) {
+    const pt = s("pattern", { id: `rk-hatch-${g}`, width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+    s("rect", { width: 6, height: 6, class: "f-" + g, style: "opacity:.25" }, pt);
+    s("rect", { width: 2.5, height: 6, class: "f-" + g }, pt);
+  }
+  const ax = s("g", { class: "ax" }, svg);
+  for (const t of ticks) { s("line", { x1: x(t), x2: x(t), y1: top, y2: H - 22, class: t === 0 ? "zero" : null }, ax); st(ax, x(t), H - 8, fmtUSD(t, 0), { "text-anchor": "middle" }); }
+  rows.forEach((r, i) => {
+    const y0 = top + i * rowH, cy = narrow ? y0 + rowH - barH / 2 - 4 : y0 + rowH / 2;
+    const name = st(svg, narrow ? L : L - 10, narrow ? y0 + 12 : cy + 4, `${i + 1}. ${r.key}`, { "text-anchor": narrow ? "start" : "end", class: r.est ? "lab-strong" : "lab-ink" });
+    const tag = s("tspan", { class: "lab", dx: 6 }, name); tag.textContent = r.est ? r.lab : "open";
+    const xa = x(Math.min(0, r.profit)), xb = x(Math.max(0, r.profit));
+    s("rect", { x: xa, y: cy - barH / 2, width: Math.max(1, xb - xa), height: barH, rx: 2,
+      style: r.est ? `fill:${hatch(r.gpu)};stroke:var(--s-${r.gpu});stroke-width:1` : null, class: r.est ? null : "f-" + r.gpu }, svg);
+    st(svg, xb + 6, cy + 4, `${fmtUSD(r.profit)}/h${r.est ? " est." : ""}`, { class: "lab-ink" });
+    const hit = s("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit", tabindex: 0, role: "button", "aria-label": `${r.key}: ${fmtUSD(r.profit)} per GPU-hour` }, svg);
+    bindTip(hit, () => [`${i + 1}. ${r.key}${r.est ? ` (${r.lab}, estimate)` : ""}`, [
+      ["hardware", r.est ? `${r.hardware}` : `${gpuName(r.gpu)}, measured`],
+      ["tokens/s per GPU", `${fmtInt(r.tput)}${r.est ? ` (as ${r.proxy})` : ""}`],
+      ["price per M tokens", fmtUSD(r.price, 3)],
+      ["token revenue / h", fmtUSD(r.rev)], ["full cost / h", fmtUSD(r.cost)], ["profit / h", fmtUSD(r.profit)]],
+      "Click to see its money flow"]);
+    const go = () => { flowState.gpu = r.gpu; flowState.model = r.key; renderFlow(); $("flow-panel").scrollIntoView({ behavior: "smooth", block: "start" }); };
+    hit.addEventListener("click", go);
+    hit.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  });
+  el.replaceChildren(svg);
+  const open = rows.filter(r => !r.est), closed = rows.filter(r => r.est);
+  const topO = open[0], topC = closed[0];
+  const note = [];
+  if (topO) note.push(`Best open-weight model: ${topO.key}, ${fmtUSD(topO.profit)} per ${gpuName(topO.gpu)}-hour (${fmtInt(topO.tput)} tokens/s at ${fmtUSD(topO.price, 2)} per million).`);
+  if (topC && topO) note.push(`${topC.key} would make ${fmtX(topC.profit / topO.profit, 0)} that, because its list price is ${fmtUSD(topC.price, 2)} per million: that assumes it is as fast as ${topC.proxy}. Frontier models are probably larger and slower than their stand-ins, so read the striped bars as upper bounds.`);
+  note.push("Click any bar to see where its money goes.");
+  $("rank-note").textContent = note.join(" ");
+  const labs = [...new Set(closed.map(r => r.lab))];
+  $("rank-infra").replaceChildren(...labs.map(l => { const inf = CFG.closed_infrastructure[l];
+    const ms = closed.filter(r => r.lab === l).map(r => `${r.key} as ${r.proxy}`).join(", ");
+    return h("li", {}, h("strong", { text: `${l}: ` }), `${inf.hardware} (`, link(inf.source_url, "source ↗"), `). Throughput assumed: ${ms}.`); }));
+}
+
 /* ================= money flow (spark-spread style) ================= */
+// What the flow can show for one GPU: open models (measured) and closed models (estimated via a proxy).
+function flowOptions(gpu) {
+  const open = RESULTS.filter(r => r.c.gpu === gpu && r.c.kind === "base" && isFinite(r.rev))
+    .map(r => ({ key: r.c.m.key, est: false, rev: r.rev, tokH: r.tokH, price: r.price }));
+  const closed = CLOSED_ONLY.map(cm => { const e = ENGINE.closedEstimate(cm, gpu, state); return e && isFinite(e.rev) ? { key: cm.key, lab: cm.lab, est: true, ...e } : null; }).filter(Boolean);
+  return { open, closed };
+}
 function renderFlow() {
   if (!fstate || !(D.gpu_power || []).length) { $("flow-panel").hidden = true; return; }
   const gs = GPUS.filter(g => RESULTS.some(r => r.c.gpu === g && r.c.kind === "base"));
   if (!gs.includes(flowState.gpu)) flowState.gpu = gs[gs.length - 1];
   seg($("f-gpu"), gs.map(g => [g, gpuName(g)]), () => flowState.gpu, v => flowState.gpu = v);
-  const opts = RESULTS.filter(r => r.c.gpu === flowState.gpu && r.c.kind === "base" && isFinite(r.rev));
-  if (!opts.some(r => r.c.m.key === flowState.model)) {
-    const sorted = [...opts].sort((a, b) => a.rev - b.rev);
-    flowState.model = sorted[Math.floor(sorted.length / 2)].c.m.key;
+  const fo = flowOptions(flowState.gpu), opts = [...fo.open, ...fo.closed];
+  if (!opts.some(o => o.key === flowState.model)) {
+    const sorted = [...fo.open].sort((a, b) => a.rev - b.rev);
+    flowState.model = sorted[Math.floor(sorted.length / 2)].key;
   }
   const sel = $("f-model");
-  sel.replaceChildren(...opts.map(r => h("option", { value: r.c.m.key, text: `serving ${r.c.m.key}` })));
+  sel.replaceChildren(
+    h("optgroup", { label: "Open-weight (measured)" }, ...fo.open.map(o => h("option", { value: o.key, text: `serving ${o.key}` }))),
+    ...(fo.closed.length ? [h("optgroup", { label: "Closed (estimated)" }, ...fo.closed.map(o => h("option", { value: o.key, text: `serving ${o.key} (est.)` })))] : []));
   sel.value = flowState.model;
-  const r = opts.find(x => x.c.m.key === flowState.model);
-  const c = ENGINE.firmCosts(flowState.gpu, fstate, pstate);
+  const r = opts.find(x => x.key === flowState.model);
+  const c = ENGINE.firmCosts(flowState.gpu, fstate, pstate), gp = ENGINE.gpuPower(flowState.gpu);
   const kwh = ENGINE.kwhPerHour(flowState.gpu, pstate), ep = ENGINE.elecPrice(pstate.region);
   const parts = COSTS.map(([k, lab, cls]) => ({ k, lab, cls, v: c[k] }));
   const cost = parts.reduce((a, p0) => a + p0.v, 0), rev = r.rev, profit = rev - cost;
   const mtok = r.tokH / 1e6;
+  const cap = fmtUSD(c.capex, 0), yrs = fstate.years, kw = nf(2).format(gp.kw);
+  // short "how" lines on the diagram; the table below gives the full formula
   const detail = {
-    depreciation: `$${nf(0).format(c.capex)} over ${fstate.years} years`,
-    financing: `${nf(1).format(fstate.rate * 100)}% on the hardware`,
-    hosting: `${ENGINE.gpuPower(flowState.gpu).kw} kW × $${nf(0).format(fstate.colo)}/kW-month`,
-    power: `${nf(2).format(kwh)} kWh × ${nf(1).format(ep * 100)}¢`,
-    ops: "staff, maintenance, support",
+    depreciation: `${cap} ÷ ${yrs} years ÷ 8,760 h`,
+    financing: `${nf(1).format(fstate.rate * 100)}% cost of capital on ${cap}`,
+    hosting: `${kw} kW × ${fmtUSD(fstate.colo, 0)} per kW-month`,
+    power: `${kw} kW × PUE ${nf(2).format(pstate.pue)} × ${nf(1).format(ep * 100)}¢/kWh`,
+    ops: "staff, repairs, support",
+  };
+  const formula = {
+    depreciation: `${cap} ÷ (${yrs} years × 8,760 h)`,
+    financing: `annual payment on ${cap} at ${nf(1).format(fstate.rate * 100)}% over ${yrs} years ÷ 8,760 h − depreciation`,
+    hosting: `${kw} kW all-in × ${fmtUSD(fstate.colo, 2)} per kW-month × 12 ÷ 8,760 h`,
+    power: `${kw} kW all-in × ${nf(2).format(pstate.lf)} average draw × ${nf(2).format(pstate.pue)} PUE = ${nf(2).format(kwh)} kWh × ${fmtUSD(ep, 3)}/kWh`,
+    ops: `${fmtUSD(fstate.ops, 2)} per GPU-hour (fixed assumption)`,
+  };
+  const basis = {
+    depreciation: "Server price ÷ 8 GPUs; useful life as CoreWeave reports",
+    financing: "Blend of neocloud borrowing costs",
+    hosting: "CBRE colocation rent, charged on the GPU's share of server power",
+    power: `${(D.electricity.find(x => x.region === pstate.region) || {}).label || pstate.region} power price; SemiAnalysis all-in kW`,
+    ops: "Mercatus: about $0.80 per 8-GPU server-hour",
   };
 
   const el = $("chart-flow"), W = widthOf(el), narrow = W < 640;
-  const H = narrow ? 330 : 300, top = 16, bot = 16;
-  const boxW = narrow ? 58 : 120;
-  const avail = H - top - bot - 60;
+  const H = narrow ? 360 : 330, top = 30, bot = 34;
+  const boxW = narrow ? 58 : 110;
+  const avail = H - top - bot - 50;
   const k = avail / Math.max(rev, cost);
   const minT = 2.5;
   const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Money flow through one GPU-hour" });
+  const labX = narrow ? 2 : 8, ribX0 = narrow ? 104 : 230;
+  const boxX = narrow ? ribX0 + 40 : W * 0.40 - boxW / 2;
+  const outX0 = boxX + boxW, outX1 = narrow ? W - 2 : W - 200;
+  const splitX = outX0 + (outX1 - outX0) * (narrow ? 0.45 : 0.4);
+  const short = { depreciation: "Hardware", financing: "Financing", hosting: "Space", power: "Power", ops: "Ops" };
+  // column headings
+  st(svg, labX, 14, "COSTS IN, PER HOUR", { class: "lab", style: "letter-spacing:.06em" });
+  if (!narrow) st(svg, outX0 + 6, 14, "MONEY OUT, PER HOUR", { class: "lab", style: "letter-spacing:.06em" });
   // inputs: labels spaced evenly on the left, ribbons converge on the box
   const inTot = parts.reduce((a, p0) => a + Math.max(minT, p0.v * k), 0);
-  let yBox = (H - inTot) / 2;
-  const labX = narrow ? 2 : 8, ribX0 = narrow ? 104 : 230;
-  const boxX = narrow ? ribX0 + 44 : W * 0.42 - boxW / 2;
-  const short = { depreciation: "Hardware", financing: "Financing", hosting: "Space", power: "Power", ops: "Ops" };
+  const mid = top + (H - top - bot) / 2;
+  let yBox = mid - inTot / 2;
   const spacing = (H - top - bot) / parts.length;
   parts.forEach((p0, i) => {
     const t = Math.max(minT, p0.v * k), yl = top + spacing * (i + 0.5);
@@ -1829,50 +1981,89 @@ function renderFlow() {
     const path = s("path", { d: `M${ribX0},${y0a} C${xm},${y0a} ${xm},${y1a} ${boxX},${y1a} L${boxX},${y1b} C${xm},${y1b} ${xm},${y0b} ${ribX0},${y0b} Z`, class: "c-" + p0.cls, style: "opacity:.9" }, svg);
     st(svg, labX, yl - (narrow ? 2 : 4), `${narrow ? short[p0.k] : p0.lab}  ${fmtUSD(p0.v)}`, { class: "lab-strong" });
     if (!narrow) st(svg, labX, yl + 11, detail[p0.k], { class: "lab" });
-    bindTip(path, () => [p0.lab, [["per GPU-hour", fmtUSD(p0.v)], ["share of cost", fmtPct(p0.v / cost)], ["how", detail[p0.k]]]]);
+    bindTip(path, () => [p0.lab, [["per GPU-hour", fmtUSD(p0.v)], ["share of cost", fmtPct(p0.v / cost)], ["how", formula[p0.k]]]]);
     path.setAttribute("tabindex", "0");
     yBox += t;
   });
+  // total cost line under the inputs
+  const ty = H - bot + 8;
+  s("line", { x1: labX, x2: ribX0 - 8, y1: ty - 4, y2: ty - 4, style: "stroke:var(--ink);stroke-width:1" }, svg);
+  st(svg, labX, ty + 12, `${narrow ? "Total" : "Total cost of inputs"}  ${fmtUSD(cost)}`, { class: "lab-strong" });
   // the GPU box
-  const bTop = (H - inTot) / 2 - 18, bH = inTot + 36;
-  s("rect", { x: boxX, y: Math.max(4, Math.min(bTop, (H - rev * k) / 2 - 18)), width: boxW, height: Math.max(bH, rev * k + 36), rx: 8, style: "fill:var(--surface-2);stroke:var(--ink);stroke-width:1.25" }, svg);
-  const bcy = H / 2;
-  st(svg, boxX + boxW / 2, bcy - 6, gpuName(flowState.gpu), { "text-anchor": "middle", class: "lab-strong", style: "font-size:15px" });
-  st(svg, boxX + boxW / 2, bcy + 10, "one hour", { "text-anchor": "middle", class: "lab" });
-  // output: tokens, split into "pays the costs" and "profit"
-  const outX0 = boxX + boxW, outX1 = narrow ? W - 2 : W - 200;
-  const tRev = Math.max(minT, rev * k), yo = bcy - tRev / 2;
-  const tCost = Math.min(tRev, cost * k);
-  s("rect", { x: outX0, y: yo, width: outX1 - outX0, height: tRev, class: "f-" + flowState.gpu, style: "opacity:.85" }, svg);
-  const splitX = outX0 + (outX1 - outX0) * 0.55;
-  if (profit > 0) {
-    s("rect", { x: splitX, y: yo + tCost, width: outX1 - splitX, height: tRev - tCost, class: "c-good", style: "opacity:.9" }, svg);
-    s("line", { x1: splitX, x2: outX1, y1: yo + tCost, y2: yo + tCost, style: "stroke:var(--surface);stroke-width:2" }, svg);
-  } else {
-    const tLoss = (cost - rev) * k;
-    s("rect", { x: splitX, y: yo + tRev, width: outX1 - splitX, height: Math.max(2, tLoss), style: "fill:none;stroke:var(--bad);stroke-width:2;stroke-dasharray:4 3" }, svg);
+  const tRev = Math.max(minT, rev * k);
+  const bH = Math.max(inTot, tRev) + 44, bTop = Math.max(top - 6, mid - bH / 2);
+  s("rect", { x: boxX, y: bTop, width: boxW, height: Math.min(bH, H - bot - bTop + 4), rx: 8, style: "fill:var(--surface-2);stroke:var(--ink);stroke-width:1.25" }, svg);
+  st(svg, boxX + boxW / 2, mid - 6, gpuName(flowState.gpu), { "text-anchor": "middle", class: "lab-strong", style: "font-size:15px" });
+  st(svg, boxX + boxW / 2, mid + 10, "one hour", { "text-anchor": "middle", class: "lab" });
+  // output: token revenue, then split into what pays the costs and what is left (profit)
+  const yo = mid - tRev / 2;
+  s("rect", { x: outX0, y: yo, width: splitX - outX0, height: tRev, class: "f-" + flowState.gpu, style: "opacity:.9" }, svg);
+  const inside = tRev >= 40 && splitX - outX0 > 90;
+  if (inside) {
+    st(svg, outX0 + 8, mid - 3, "Token revenue", { class: "lab-strong", style: "fill:var(--on-strong)" });
+    st(svg, outX0 + 8, mid + 13, fmtUSD(rev), { class: "lab-strong", style: "fill:var(--on-strong);font-size:14px" });
+  } else st(svg, outX0 + 4, yo - 6, `Token revenue ${fmtUSD(rev)}`, { class: "lab-strong" });
+  const gap = 3;
+  const covered = Math.min(rev, cost), tCov = Math.max(minT, covered * k);
+  // the covered part is stacked in the cost colours: revenue flowing back to each input
+  let yy = yo - gap;
+  const scale = covered / cost;
+  for (const p0 of parts) {
+    const t = p0.v * scale * k;
+    if (t <= 0) continue;
+    s("rect", { x: splitX, y: yy, width: outX1 - splitX, height: Math.max(0.6, t), class: "c-" + p0.cls, style: "opacity:.9" }, svg);
+    yy += t;
   }
-  const outTip = s("rect", { x: outX0, y: yo, width: outX1 - outX0, height: tRev, class: "hit", tabindex: 0 }, svg);
-  bindTip(outTip, () => [`Tokens out of one ${gpuName(flowState.gpu)}-hour`, [["tokens", `${nf(2).format(mtok)} M`], ["price per M tokens", fmtUSD(r.price, 3)], ["revenue", fmtUSD(rev)], ["minus full cost", fmtUSD(cost)], ["profit", fmtUSD(profit)]]]);
-  const lx = narrow ? outX0 + 6 : outX1 + 10;
-  if (narrow) {
-    st(svg, W - 4, yo - 18, `Tokens ${fmtUSD(rev)}`, { "text-anchor": "end", class: "lab-strong" });
-    st(svg, W - 4, yo - 5, `${profit >= 0 ? "profit" : "loss"} ${fmtUSD(profit)}`, { "text-anchor": "end", class: "lab-ink" });
+  const yCovMid = yo - gap + tCov / 2;
+  let yProfMid = null;
+  if (profit > 0) {
+    const yp = yo + tCov + gap, tp = Math.max(minT, profit * k);
+    s("rect", { x: splitX, y: yp, width: outX1 - splitX, height: tp, class: "c-good", style: "opacity:.9" }, svg);
+    yProfMid = yp + tp / 2;
   } else {
-    st(svg, lx, bcy - 22, "Tokens out", { class: "lab-strong" });
-    st(svg, lx, bcy - 7, `${nf(2).format(mtok)} M × ${fmtUSD(r.price, 3)}/M`, { class: "lab-ink" });
-    st(svg, lx, bcy + 8, `= ${fmtUSD(rev)} per hour`, { class: "lab-ink" });
-    st(svg, lx, bcy + 28, profit >= 0 ? `pays the costs ${fmtUSD(cost)}` : `covers ${fmtUSD(rev)} of ${fmtUSD(cost)} costs`, { class: "lab" });
-    st(svg, lx, bcy + 46, `${profit >= 0 ? "Profit" : "Loss"} ${fmtUSD(profit)}`, { class: "lab-strong", style: `fill:var(--${profit >= 0 ? "good" : "bad"})` });
+    const tLoss = Math.max(2, (cost - rev) * k), yl0 = yo - gap + tCov;
+    s("rect", { x: splitX, y: yl0, width: outX1 - splitX, height: tLoss, style: "fill:none;stroke:var(--bad);stroke-width:2;stroke-dasharray:4 3" }, svg);
+    yProfMid = yl0 + tLoss / 2;
+  }
+  const outTip = s("rect", { x: outX0, y: yo - gap, width: outX1 - outX0, height: tRev + 2 * gap, class: "hit", tabindex: 0 }, svg);
+  bindTip(outTip, () => [`Tokens out of one ${gpuName(flowState.gpu)}-hour`, [["tokens", `${nf(2).format(mtok)} M`], ["price per M tokens", fmtUSD(r.price, 3)], ["revenue", fmtUSD(rev)], ["minus total cost of inputs", fmtUSD(cost)], [profit >= 0 ? "profit" : "loss", fmtUSD(profit)]],
+    r.est ? `Estimate: ${r.key} assumed as efficient as ${r.proxy} on ${gpuName(flowState.gpu)}` : null]);
+  if (!narrow) {
+    // right-hand labels, one per band, kept apart so they never overlap
+    const lx = outX1 + 10;
+    let yA = Math.min(yCovMid, yProfMid - 40);
+    yA = Math.max(top + 10, yA);
+    const yB = Math.max(yProfMid, yA + 40);
+    st(svg, lx, yA - 2, profit >= 0 ? "Pays the input costs" : "Covers part of the costs", { class: "lab-strong" });
+    st(svg, lx, yA + 13, `${fmtUSD(covered)} of ${fmtUSD(cost)}`, { class: "lab-ink" });
+    st(svg, lx, yB - 2, profit >= 0 ? "What is left: profit" : "Shortfall: loss", { class: "lab-strong", style: `fill:var(--${profit >= 0 ? "good" : "bad"})` });
+    st(svg, lx, yB + 13, `${fmtUSD(profit)} per hour`, { class: "lab-ink" });
+    st(svg, lx, H - bot + 20, `${nf(2).format(mtok)} M tokens × ${fmtUSD(r.price, 3)}/M`, { class: "lab" });
+  } else {
+    st(svg, W - 4, H - bot + 20, `${profit >= 0 ? "profit" : "loss"} ${fmtUSD(profit)} · costs ${fmtUSD(cost)}`, { "text-anchor": "end", class: "lab-ink" });
   }
   el.replaceChildren(svg);
+  $("flow-legend").replaceChildren(
+    h("span", {}, h("i", { class: "bg-" + flowState.gpu }), "token revenue"),
+    h("span", {}, h("i", { style: "background:linear-gradient(var(--c-dep) 0 50%, var(--c-pow) 50%)" }), "the part that pays each input (same colours as the inputs)"),
+    h("span", {}, h("i", { class: "bg-good" }), "what is left: profit"),
+    ...(profit < 0 ? [h("span", {}, h("i", { style: "border:2px dashed var(--bad);background:none" }), "shortfall (loss)")] : []));
   $("flow-eq").replaceChildren(
     `profit = tokens out × price − (electricity in × power price + hardware + space + operations)`, h("br"),
-    `       = ${nf(2).format(mtok)} M × ${fmtUSD(r.price, 3)} − (${nf(2).format(kwh)} kWh × ${fmtUSD(ep, 3)} + ${fmtUSD(c.depreciation + c.financing)} + ${fmtUSD(c.hosting)} + ${fmtUSD(c.ops)}) = `,
-    h("b", { text: fmtUSD(profit) }), " per GPU-hour");
+    `       = ${nf(2).format(mtok)} M × ${fmtUSD(r.price, 3)} − (${nf(2).format(kwh)} kWh × ${fmtUSD(ep, 3)} + ${fmtUSD(c.depreciation + c.financing)} + ${fmtUSD(c.hosting)} + ${fmtUSD(c.ops)})`, h("br"),
+    `       = ${fmtUSD(rev)} − ${fmtUSD(cost)} = `, h("b", { text: fmtUSD(profit) }), " per GPU-hour");
+  // cost table: every input, its formula with today's numbers, and where the assumption comes from
+  const tb = h("tbody", {}, ...parts.map(p0 => h("tr", {},
+      h("td", {}, h("span", { class: "swatch bg-" + p0.cls }), p0.lab),
+      h("td", { class: "n", text: fmtUSD(p0.v, 3) }), h("td", { class: "n", text: fmtPct(p0.v / cost) }),
+      h("td", { class: "mono", text: formula[p0.k] }), h("td", { text: basis[p0.k] }))),
+    h("tr", { class: "total" }, h("td", { text: "Total cost of inputs" }), h("td", { class: "n", text: fmtUSD(cost, 3) }), h("td", { class: "n", text: "100%" }),
+      h("td", { class: "mono", text: `per ${gpuName(flowState.gpu)}-hour, whether the GPU is busy or idle` }), h("td", {}, h("a", { href: "#firm-sources", text: "sources ↓" }))));
+  $("flow-costs").replaceChildren(h("thead", {}, h("tr", {}, ...["Input", "$/GPU-hour", "Share", "How it is calculated", "Based on"].map((t, i) => h("th", { class: i === 1 || i === 2 ? "n" : null, text: t })))), tb);
   const perM = x => fmtUSD(x / mtok, 3);
-  $("flow-note").textContent = `Per million tokens: sold for ${fmtUSD(r.price, 3)}; electricity ${perM(c.power)} (the "clean spark" view, price minus fuel: ${perM(r.price * mtok - c.power)}); full cost ${perM(cost)}. ` +
-    `Assumes the owner also serves the tokens (at ${fmtPct(state.util)} utilization and the dashboard settings). Renting the GPU out instead earns rent × hours rented; see Who makes the money.`;
+  $("flow-note").textContent = `Per million tokens: sold for ${fmtUSD(r.price, 3)}; electricity ${perM(c.power)} (the "clean spark" view, price minus fuel: ${perM(r.price * mtok - c.power)}); total input cost ${perM(cost)}. ` +
+    `Assumes the owner also serves the tokens (at ${fmtPct(state.util)} utilization and the dashboard settings). Renting the GPU out instead earns rent × hours rented; see Who makes the money.` +
+    (r.est ? ` ${r.key} is closed, so its throughput is an assumption: as many tokens per second as ${r.proxy} on ${gpuName(flowState.gpu)} (the lab's real hardware: ${r.hardware}).` : "");
 }
 $("f-model").addEventListener("change", e => { flowState.model = e.target.value; renderFlow(); });
 
@@ -2216,6 +2407,9 @@ const DATASETS = [
   { id: "rental", label: "GPU rental", file: "data/gpu_rental.csv", rows: () => D.rental,
     desc: "Rental and cost series per GPU. Silicon Data values are scraped from the public index pages; InferenceX values are SemiAnalysis model assumptions (estimate = true).",
     cols: [["gpu", "GPU"], ["series", "series"], ["price", "$/GPU-hour", "n"], ["method", "method"], ["estimate", "estimate"], ["date", "retrieved"], ["notes", "notes"], ["url", "source", "url"]] },
+  { id: "ranking", label: "Profit ranking", file: "outputs/profit_ranking.csv", rows: () => FBASE && CFG.closed_infrastructure ? ENGINE.ranking(BASE, FBASE, PBASE).map(r => ({ model: r.key, weights: r.weights, lab: r.lab, gpu: r.gpu, precision: r.prec, hardware: r.est ? r.hardware : "measured (InferenceX)", proxy: r.proxy || "", tput: r.tput, price: r.price, revenue: r.rev, cost: r.cost, profit: r.profit, estimate: r.est })) : [],
+    desc: "The ranking at the top of the page, at base assumptions. Closed models are estimates: assumed hardware (by lab) and the throughput of a benchmarked open-weight proxy of similar size; see assumptions.yaml.",
+    cols: [["model", "model"], ["weights", "weights"], ["lab", "lab"], ["gpu", "GPU"], ["precision", "precision"], ["hardware", "hardware"], ["proxy", "throughput proxy"], ["tput", "tok/s per GPU", "n0"], ["price", "blended $/M", "n"], ["revenue", "revenue $/h", "n"], ["cost", "full cost $/h", "n"], ["profit", "profit $/h", "n"], ["estimate", "estimate"]] },
   { id: "results", label: "Computed spread (live)", file: "outputs/spread_summary.csv", rows: () => RESULTS.map(r => ({ model: r.c.m.key, gpu: r.c.gpu, precision: r.c.prec, case: r.c.kind, io_ratio: r.ratio, utilization: r.util, floor: state.floor, providers: r.pst.n, price: r.price, price_min: r.pst.min, price_max: r.pst.max, tput_per_gpu: r.tf.tput, tput_basis: r.tf.basis, estimate: r.tf.est, tokens_per_gpu_hour: r.tokH, revenue: r.rev, rental: r.R.base, spread: r.spread, spread_ratio: r.sratio, breakeven_utilization: r.breakeven })),
     desc: "The dashboard's current results, recomputed with your settings. The file link opens the pipeline's base-case output.",
     cols: [["model", "model"], ["gpu", "GPU"], ["precision", "precision"], ["case", "case"], ["io_ratio", "in:out", "n"], ["utilization", "util.", "n"], ["providers", "providers", "n"], ["price", "blended $/M", "n"], ["tput_per_gpu", "tok/s per GPU", "n0"], ["tput_basis", "basis"], ["revenue", "revenue $/h", "n"], ["rental", "rental $/h", "n"], ["spread", "spread $/h", "n"], ["spread_ratio", "ratio", "n"], ["breakeven_utilization", "breakeven", "n"]] },
@@ -2329,6 +2523,7 @@ function renderGaps() {
     const measured = CASES.filter(c => c.kind === "base").filter(c => isFinite(ENGINE.measuredPower(ENGINE.evaluate(c, BASE).tf))).length;
     out.push(["Measured power:", ` ${measured} of ${CASES.filter(c => c.kind === "base").length} base cases have measured GPU power (newer InferenceX runs only). Electricity cost always uses the all-in nameplate figure.`]);
   }
+  if (CFG.closed_infrastructure) out.push(["Closed-model profit:", " the ranking's closed-model rows assume each lab's hardware and borrow the throughput of an open model of similar size. Labs don't publish either, so these are illustrative upper bounds, not measurements."]);
   if (RF) out.push(["Rental-firm model:", " server prices are vendor estimates and the firm model is generic: real fleets mix contract and on-demand prices, and sales, R&D and corporate costs are left out."]);
   if (nPts) out.push(["Sweep edges:", ` ${edge} of ${nPts} chosen benchmark points are the last point of their concurrency sweep and still well above the speed floor. The test stopped early, so throughput there is a lower bound.`]);
   for (const c of CLOSED.filter(c => c.weights === "open")) out.push([`${c.key}`, ` (open-weight): ${c.reason}, so it is shown as price-only.`]);
@@ -2348,7 +2543,7 @@ function update() {
   raf = requestAnimationFrame(() => {
     computeAll();
     renderControls(); renderSpreadChart(); renderResultsTable(); renderAudit(); renderRelChart(); renderTimeseries();
-    renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed();
+    renderRanking(); renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed();
     if (ds.id === "results") renderData();
   });
 }
@@ -2356,7 +2551,7 @@ function boot() {
   renderStatic(); renderMethodTables(); renderGaps();
   computeAll();
   renderControls(); renderSpreadChart(); renderResultsTable(); renderAudit(); renderRelChart(); renderTimeseries();
-  renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed(); renderData();
+  renderRanking(); renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed(); renderData();
   let lastW = 0;
   new ResizeObserver(() => { const w = document.body.clientWidth; if (Math.abs(w - lastW) > 8) { lastW = w; update(); } }).observe(document.body);
 }

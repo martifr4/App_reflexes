@@ -58,6 +58,8 @@ def build() -> dict:
     fsrc = pd.read_csv(fsrc_path) if fsrc_path.exists() else pd.DataFrame()
     fe = pd.read_csv(fe_path) if fe_path.exists() else pd.DataFrame()
     vs = pd.read_csv(vs_path) if vs_path.exists() else pd.DataFrame()
+    rk_path = OUT / "profit_ranking.csv"
+    rk = pd.read_csv(rk_path) if rk_path.exists() else pd.DataFrame()
     if "avg_power_w" not in tput:
         tput["avg_power_w"] = None
 
@@ -123,6 +125,8 @@ def build() -> dict:
         "python_split": records(vs, {
             "model": "m", "gpu": "gpu", "precision": "prec", "landlord_profit": "landlord",
             "integrated_profit": "integrated"}) if len(vs) else [],
+        "python_ranking": records(rk, {
+            "model": "m", "gpu": "gpu", "revenue": "revenue", "profit": "profit"}) if len(rk) else [],
         "timeseries": json.loads(ts.to_json(orient="records")) if len(ts) else [],
         "python_summary": records(summary, {
             "model": "m", "gpu": "gpu", "precision": "prec", "case": "case",

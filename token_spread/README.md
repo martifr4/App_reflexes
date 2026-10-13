@@ -108,6 +108,24 @@ occupancy, payback, across occupancy and depreciation-life sensitivities) and
 space, operations, depreciation, financing, the landlord's profit and the inference provider's
 profit, plus an owner that serves its own tokens).
 
+## Profit ranking (open and closed models)
+
+The website opens with a ranking of every model by profit per GPU-hour, for an owner that
+serves the tokens itself:
+
+```
+profit = tokens/hour × blended price − full cost of owning the GPU (as above)
+```
+
+Open-weight models use measured throughput on `profit_ranking_open_gpu` (B200) and the median
+provider price. Closed models have no public throughput or hardware, so both are assumed
+(`assumptions.yaml` → `closed_infrastructure`, `closed_proxy_by_tier`): each lab's main serving
+hardware, with a source link, is mapped to H100 or B200 (Trainium2 and TPUs count as B200-class),
+and each model is assumed to produce as many tokens/s per GPU as a benchmarked open model of a
+similar size tier. Revenue uses the closed model's list price. These rows are estimates; frontier
+models are probably larger and slower than their proxies, so they read as upper bounds.
+Output: `outputs/profit_ranking.csv`.
+
 ## Data sources
 
 | File | Source | Fetch |
