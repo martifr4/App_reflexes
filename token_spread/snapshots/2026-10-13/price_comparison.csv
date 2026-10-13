@@ -21,4 +21,4 @@ gpt-oss-120b,open,spread,open-weight,MoE 117B (5.1B active),,,0.2312499999999999
 qwen3.8-flash-next,open,price-only,Qwen,open,0.15,0.47,0.22999999999999998,0.22999999999999998,0.22999999999999998,2,OpenRouter list price,https://openrouter.ai/api/v1/models
 claude-haiku-5.5,closed,price-only,Anthropic,small,0.1,0.5,0.2,0.2,0.22000000000000003,10,OpenRouter list price,https://openrouter.ai/api/v1/models
 gpt-6-luna,closed,price-only,OpenAI,small,0.1,0.5,0.2,0.1,0.4,7,OpenRouter list price,https://openrouter.ai/api/v1/models
-deepseek-v4.1-flash,open,price-only,DeepSeek,open,0.0441,0.621,0.188325,0.1125,1.0499999999999998,32,OpenRouter list price,https://openrouter.ai/api/v1/models
+deepseek-v4.1-flash,open,price-only,DeepSeek,open,0.0441,0.63,0.190575,0.1125,1.0499999999999998,32,OpenRouter list price,https://openrouter.ai/api/v1/models

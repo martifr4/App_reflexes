@@ -112,8 +112,8 @@ the same breakeven, and spread ratio = measured ÷ needed.
 
 - **claude-fable-5.1** at $20.00/Mtok needs only **59 tok/s per H100**.
   The slowest open-weight model measured here manages 569.
-- **deepseek-v4.1-flash** at $0.19/Mtok needs **6,220 tok/s per H100**
-  (13,398 per B200). 1 of 6.0 benchmarked models reaches that on H100.
+- **deepseek-v4.1-flash** at $0.19/Mtok needs **6,146 tok/s per H100**
+  (13,240 per B200). 1 of 6.0 benchmarked models reaches that on H100.
 - These are thresholds, not estimates of closed-model throughput or margin. Closed labs may
   run other hardware (TPUs, Trainium, own clusters), bill hidden reasoning tokens as output,
   and discount cached input heavily.
@@ -135,7 +135,7 @@ the same breakeven, and spread ratio = measured ÷ needed.
 | qwen3.8-flash-next | Qwen | open | $0.23 | 5,093 | 10,970 | 1 | 1 |
 | claude-haiku-5.5 | Anthropic | closed | $0.20 | 5,856 | 12,616 | 1 | 1 |
 | gpt-6-luna | OpenAI | closed | $0.20 | 5,856 | 12,616 | 1 | 1 |
-| deepseek-v4.1-flash | DeepSeek | open | $0.19 | 6,220 | 13,398 | 1 | 1 |
+| deepseek-v4.1-flash | DeepSeek | open | $0.19 | 6,146 | 13,240 | 1 | 1 |
 
 **Price comparison** (blended at 3:1; price-only = OpenRouter list price,
 benchmarked open-weight = median provider):
@@ -164,7 +164,7 @@ benchmarked open-weight = median provider):
 | qwen3.8-flash-next | open | price-only | Qwen | $0.230 | $0.230–$0.230 | OpenRouter list price |
 | claude-haiku-5.5 | closed | price-only | Anthropic | $0.200 | $0.200–$0.220 | OpenRouter list price |
 | gpt-6-luna | closed | price-only | OpenAI | $0.200 | $0.100–$0.400 | OpenRouter list price |
-| deepseek-v4.1-flash | open | price-only | DeepSeek | $0.188 | $0.113–$1.050 | OpenRouter list price |
+| deepseek-v4.1-flash | open | price-only | DeepSeek | $0.191 | $0.113–$1.050 | OpenRouter list price |
 
 ## 7. From electricity to tokens
 
