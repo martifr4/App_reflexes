@@ -34,6 +34,10 @@ if (F) {
     check(close(pp.full, p.full) && close(pp.profit, p.profit), `firm ${p.gpu}`); }
   for (const p of D.python_split || []) { const r = ENGINE.evaluate(caseOf(p.m, p.gpu, p.prec), BASE), c = ENGINE.firmCosts(p.gpu, F, P), pp = ENGINE.firmPnl(c, r.R.base, F.occ);
     check(close(r.R.base - pp.full / F.occ, p.landlord) && close(r.rev - pp.full, p.integrated), `split ${p.m} ${p.gpu}`); }
+  if (D.python_ranking) { const rk = ENGINE.ranking(BASE, F, P);
+    check(rk.length === D.python_ranking.length, `ranking length ${rk.length} vs ${D.python_ranking.length}`);
+    for (const p of D.python_ranking) { const r = rk.find(x => x.key === p.m);
+      check(r && r.gpu === p.gpu && close(r.rev, p.revenue) && close(r.profit, p.profit), `ranking ${p.m}`); } }
 }
 console.log(`${n - bad}/${n} checks match compute.py`);
 process.exit(bad ? 1 : 0);
