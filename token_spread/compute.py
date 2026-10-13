@@ -6,8 +6,9 @@ Outputs (outputs/):
   provider_spread.csv  base cases, one row per OpenRouter provider
   operating_points.csv the benchmark point chosen for every model/GPU/precision/sequence
   breakeven_throughput.csv  tokens/s per GPU each model needs for its price to cover rent;
-                       closed models (no public throughput) and open-weight models (with
-                       their measured throughput for comparison)
+                       price-only models (closed, or open-weight without comparable
+                       benchmarks) and benchmarked open-weight models (with their
+                       measured throughput for comparison)
   price_comparison.csv list/blended prices of every model, open and closed
 and a dated copy in snapshots/ (see snapshot()).
 
@@ -64,6 +65,11 @@ def operating_points(tput: pd.DataFrame, cfg: dict) -> pd.DataFrame:
             if sub.empty:
                 continue
             best = sub.loc[sub.tput_per_gpu.idxmax()]
+            # Did the benchmark sweep stop while still well above the speed floor?
+            # Then a higher concurrency would likely have given more throughput.
+            sweep = g[(g.framework == best.framework) & (g.spec_method == best.spec_method)
+                      & (g.disagg == best.disagg) & (g.num_gpus == best.num_gpus)]
+            edge = bool(best.conc >= sweep.conc.max() and best.median_intvty > 1.15 * max(floor, 1))
             rows.append({
                 "model_key": key[0], "gpu": key[1], "precision": key[2],
                 "isl": key[3], "osl": key[4], "measured_ratio": key[3] / key[4],
@@ -72,6 +78,7 @@ def operating_points(tput: pd.DataFrame, cfg: dict) -> pd.DataFrame:
                 "spec_method": best.spec_method, "disagg": best.disagg,
                 "conc": best.conc, "num_gpus": best.num_gpus,
                 "bench_date": best.bench_date, "source_url": best.source_url,
+                "sweep_edge": edge,
             })
     return pd.DataFrame(rows)
 
@@ -127,7 +134,8 @@ def rental_lookup(rental: pd.DataFrame, cfg: dict) -> dict:
 def cases(cfg: dict):
     for m in cfg["models"]:
         for gpu in cfg["gpus"]:
-            yield m, gpu, m["base_precision"][gpu], "base"
+            if gpu in m["base_precision"]:  # some models have no benchmark on every GPU
+                yield m, gpu, m["base_precision"][gpu], "base"
         for v in m.get("variants", []):
             yield m, v["gpu"], v["precision"], "variant"
 
@@ -204,7 +212,8 @@ def compute(cfg, prices, tput, rental):
     return pd.DataFrame(summary), pd.DataFrame(sens), pd.DataFrame(prov), ops
 
 
-# --- closed models: breakeven throughput and price comparison ------------------
+# --- price-only models: breakeven throughput and price comparison --------------
+# "price-only" = closed models plus open-weight models without fixed-length benchmarks.
 
 def breakeven_tput(rental: float, price_per_mtok: float, util: float) -> float:
     """Tokens/s per GPU at which revenue = rent."""
@@ -220,7 +229,8 @@ def closed_analysis(cfg, closed: pd.DataFrame, summary: pd.DataFrame, rental: pd
         f = g.iloc[0]
         lp = (r0 * f.list_input_price_per_Mtok + f.list_output_price_per_Mtok) / (r0 + 1)
         ep = blended(g, r0)
-        price_rows.append({"model": key, "weights": "closed", "lab": f.lab, "tier": f.tier,
+        price_rows.append({"model": key, "weights": f.weights, "analysis": "price-only",
+                           "lab": f.lab, "tier": f.tier,
                            "input_price": f.list_input_price_per_Mtok,
                            "output_price": f.list_output_price_per_Mtok,
                            "blended_price": lp, "endpoint_blended_min": ep.min(),
@@ -231,7 +241,8 @@ def closed_analysis(cfg, closed: pd.DataFrame, summary: pd.DataFrame, rental: pd
             be = breakeven_tput(R, lp, u0)
             op = base[base.gpu == gpu].dropna(subset=["tput_per_gpu"])
             top = op.loc[op.tput_per_gpu.idxmax()] if len(op) else None
-            be_rows.append({"model": key, "weights": "closed", "lab": f.lab, "gpu": gpu,
+            be_rows.append({"model": key, "weights": f.weights, "analysis": "price-only",
+                            "lab": f.lab, "gpu": gpu,
                             "io_ratio": r0, "utilization": u0, "blended_price": lp, "rental": R,
                             "breakeven_tput_per_gpu": be,
                             "breakeven_tput_per_gpu_full_util": breakeven_tput(R, lp, 1.0),
@@ -241,7 +252,8 @@ def closed_analysis(cfg, closed: pd.DataFrame, summary: pd.DataFrame, rental: pd
                             "fastest_open_model": None if top is None else top.model,
                             "fastest_open_tput": None if top is None else top.tput_per_gpu})
     for _, r in base.iterrows():
-        be_rows.append({"model": r.model, "weights": "open", "lab": "open-weight", "gpu": r.gpu,
+        be_rows.append({"model": r.model, "weights": "open", "analysis": "spread",
+                        "lab": "open-weight", "gpu": r.gpu,
                         "io_ratio": r0, "utilization": u0, "blended_price": r.price_median,
                         "rental": r.rental,
                         "breakeven_tput_per_gpu": breakeven_tput(r.rental, r.price_median, u0),
@@ -249,7 +261,8 @@ def closed_analysis(cfg, closed: pd.DataFrame, summary: pd.DataFrame, rental: pd
                         "measured_tput_per_gpu": r.tput_per_gpu})
     for key, d in base.groupby("model", sort=False):
         f = d.iloc[0]
-        price_rows.append({"model": key, "weights": "open", "lab": "open-weight", "tier": f.kind,
+        price_rows.append({"model": key, "weights": "open", "analysis": "spread",
+                           "lab": "open-weight", "tier": f.kind,
                            "input_price": np.nan, "output_price": np.nan,
                            "blended_price": f.price_median, "endpoint_blended_min": f.price_min,
                            "endpoint_blended_max": f.price_max, "n_endpoints": f.n_providers,
@@ -279,7 +292,7 @@ def snapshot(summary: pd.DataFrame, date: str):
     SNAP.mkdir(exist_ok=True)
     day = SNAP / date
     day.mkdir(exist_ok=True)
-    files = [DATA / f for f in ("api_prices.csv", "api_prices_closed.csv", "throughput.csv",
+    files = [DATA / f for f in ("api_prices.csv", "api_prices_price_only.csv", "throughput.csv",
                                 "gpu_rental.csv")] + \
             [OUT / f for f in ("spread_summary.csv", "sensitivity.csv", "provider_spread.csv",
                                "operating_points.csv", "breakeven_throughput.csv",
@@ -317,7 +330,7 @@ def main():
     sens.to_csv(OUT / "sensitivity.csv", index=False)
     prov.to_csv(OUT / "provider_spread.csv", index=False)
     ops.to_csv(OUT / "operating_points.csv", index=False)
-    closed_path = DATA / "api_prices_closed.csv"
+    closed_path = DATA / "api_prices_price_only.csv"
     if closed_path.exists():
         be, pc = closed_analysis(cfg, pd.read_csv(closed_path), summary, rental)
         be.to_csv(OUT / "breakeven_throughput.csv", index=False)

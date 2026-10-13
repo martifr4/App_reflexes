@@ -5,7 +5,8 @@ Each row is one benchmark point: (hardware, framework, precision, ISL/OSL,
 concurrency, parallelism) with per-GPU throughput and latency metrics, plus a
 GitHub Actions run_url that produced it.
 
-We keep fixed-sequence rows (not agentic traces) for the configured GPUs and,
+We keep fixed-sequence rows (not agentic traces) for the configured GPUs (and, when
+`inferencex_key` is set, only that model variant) and,
 for each configuration, only the most recent run date. Older runs remain
 available from InferenceX itself.
 
@@ -32,6 +33,8 @@ def fetch_throughput(cfg) -> pd.DataFrame:
         rows = http_get(url).json()
         for r in rows:
             if r["hardware"] not in cfg["gpus"] or r.get("isl") is None:
+                continue
+            if m.get("inferencex_key") and r["model"] != m["inferencex_key"]:
                 continue
             met = r["metrics"]
             out.append({

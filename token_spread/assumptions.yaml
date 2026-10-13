@@ -41,6 +41,37 @@ models:
     kind: MoE 671B (37B active)
     base_precision: {h100: fp8, b200: fp8}
     variants: [{gpu: b200, precision: fp4}]
+  # --- added 2026-10: every other InferenceX model with fixed-length benchmarks.
+  # Models listed with only b200 in base_precision have no H100 benchmark.
+  # inferencex_key picks one variant when an InferenceX name groups several.
+  - key: minimax-m2.5
+    openrouter_id: minimax/minimax-m2.5
+    inferencex_model: MiniMax-M2.5
+    inferencex_key: minimaxm2.5
+    kind: MoE
+    base_precision: {h100: fp8, b200: fp8}
+    variants: [{gpu: b200, precision: fp4}]
+  - key: deepseek-v4-pro
+    openrouter_id: deepseek/deepseek-v4-pro
+    inferencex_model: DeepSeek-V4-Pro
+    inferencex_key: dsv4
+    kind: MoE
+    base_precision: {b200: fp4}     # only fp4 benchmarked; no H100 data
+    variants: []
+  - key: glm-5
+    openrouter_id: z-ai/glm-5
+    inferencex_model: GLM-5
+    inferencex_key: glm5
+    kind: MoE
+    base_precision: {b200: fp8}     # no H100 data
+    variants: [{gpu: b200, precision: fp4}]
+  - key: kimi-k2.5
+    openrouter_id: moonshotai/kimi-k2.5
+    inferencex_model: Kimi-K2.5
+    inferencex_key: kimik2.5
+    kind: MoE
+    base_precision: {b200: int4}    # released as INT4 weights; no H100 data
+    variants: [{gpu: b200, precision: fp4}]
 
 gpus: [h100, b200]
 
@@ -95,3 +126,14 @@ closed_models:
   - {key: gpt-6-luna,        openrouter_id: openai/gpt-6-luna,           lab: OpenAI,    tier: small}
   - {key: grok-4.7,          openrouter_id: x-ai/grok-4.7,               lab: xAI,       tier: large}
   - {key: grok-build-0.1,    openrouter_id: x-ai/grok-build-0.1,         lab: xAI,       tier: mid}
+
+# Open-weight models InferenceX lists but has not benchmarked at fixed sequence
+# lengths (only agentic traces, ~100:1 input:output with ~90% prefix-cache hits,
+# whose revenue depends on cached-input pricing; or no runs yet). Treated like
+# closed models: breakeven throughput and price comparison only.
+price_only_open_models:
+  - {key: deepseek-v4.1-flash, openrouter_id: deepseek/deepseek-v4.1-flash, lab: DeepSeek, tier: open, reason: agentic benchmarks only}
+  - {key: kimi-k3,             openrouter_id: moonshotai/kimi-k3,           lab: Moonshot, tier: open, reason: agentic benchmarks only}
+  - {key: glm-5.2,             openrouter_id: z-ai/glm-5.2,                 lab: Zhipu,    tier: open, reason: agentic benchmarks only}
+  - {key: qwen3.8-flash-next,  openrouter_id: qwen/qwen3.8-flash,           lab: Qwen,     tier: open, reason: agentic benchmarks only}
+  - {key: qwen3.8-27b,         openrouter_id: qwen/qwen3.8-27b,             lab: Qwen,     tier: open, reason: no benchmark runs yet}

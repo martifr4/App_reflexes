@@ -269,7 +269,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <a href="#findings">Findings</a>
       <a href="#dashboard">Dashboard</a>
       <a href="#explore">Model explorer</a>
-      <a href="#closed">Closed models</a>
+      <a href="#closed">Price-only models</a>
       <a href="#method">Method</a>
       <a href="#data">Data</a>
       <a href="#caveats">Caveats</a>
@@ -326,7 +326,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <li><a href="#findings">Findings <span>→</span></a><p>The main conclusions in plain sentences, rewritten automatically when the data changes. Start here if you have a minute.</p></li>
       <li><a href="#dashboard">Dashboard <span>→</span></a><p>The results for every model and chip. Move the sliders to try your own assumptions, and click any result to see the full calculation.</p></li>
       <li><a href="#explore">Model explorer <span>→</span></a><p>One model at a time: the test data behind it, how much the answer depends on the assumptions, and how each seller's price changes it.</p></li>
-      <li><a href="#closed">Closed models <span>→</span></a><p>Claude, GPT and Grok don't reveal their hardware, so we show how efficient they would need to be to pay for the chips.</p></li>
+      <li><a href="#closed">Price-only models <span>→</span></a><p>Claude, GPT, Grok and the newest open models lack comparable test data, so we show how efficient they would need to be to pay for the chips.</p></li>
       <li><a href="#method">Method <span>→</span></a><p>How the calculation works, step by step, with a glossary of every term on the page.</p></li>
       <li><a href="#data">Data <span>→</span></a><p>Every raw number with its source link and date. Search it, copy it, or check it yourself.</p></li>
       <li><a href="#caveats">Caveats <span>→</span></a><p>What these numbers can't tell you, and what data would make them better.</p></li>
@@ -486,11 +486,12 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
 
   <section id="closed">
     <div class="section-head">
-      <div class="eyebrow">Closed models</div>
-      <h2>Claude, GPT and Grok: what would they need?</h2>
-      <p class="lede">Closed labs publish prices but not the hardware or throughput behind them, so there is no spread to
-        compute. We can still ask how many tokens per second a GPU would have to produce for each model's list price to
-        cover its rent, and compare that with what open-weight models actually achieve.</p>
+      <div class="eyebrow">Price-only models</div>
+      <h2>Claude, GPT, Grok and the newest open models: what would they need?</h2>
+      <p class="lede">Closed labs publish prices but not the hardware or throughput behind them, and some of the newest
+        open-weight models have no comparable benchmark yet. There is no spread to compute for either. We can still ask
+        how many tokens per second a GPU would have to produce for each model's list price to cover its rent, and compare
+        that with what the benchmarked models actually achieve.</p>
     </div>
     <div class="prose" id="closed-summary"></div>
     <div class="toolbar">
@@ -559,6 +560,7 @@ breakeven_utilization        = rental_price ÷ (revenue at 100% utilization)</di
       <div><dt>Owner TCO</dt><dd>What a GPU-hour costs someone who owns the hardware at hyperscaler scale: depreciation, power, hosting. SemiAnalysis estimates this for InferenceX. It is a floor under rental prices.</dd></div>
       <div><dt>Token spread and spread ratio</dt><dd>Spread = implied revenue − rental, in dollars per GPU-hour. Ratio = revenue ÷ rental. A ratio of 2× means a GPU-hour earns twice its rent at list API prices.</dd></div>
       <div><dt>Breakeven throughput</dt><dd>Tokens per second one GPU must produce for a model's price to cover the GPU's rent at a given utilization: rent ÷ (3,600 × utilization × price per token). For open-weight models, measured throughput ÷ breakeven throughput = spread ratio.</dd></div>
+      <div><dt>Price-only model</dt><dd>A model shown without a spread because its throughput isn't measured in a comparable way: closed models, and open-weight models InferenceX has only tested on agentic workloads (long, mostly cached conversations) or not at all.</dd></div>
       <div><dt>Closed vs open-weight</dt><dd>Closed models (Claude, GPT, Grok) are only available through their makers' APIs and cloud partners. Their size, hardware and throughput are not published, so only their prices enter this analysis.</dd></div>
       <div><dt>Breakeven utilization</dt><dd>The utilization at which revenue equals rent. Above 100% means the model cannot pay its rent on that GPU at market prices, however busy it is.</dd></div>
     </dl>
@@ -719,7 +721,7 @@ const ENGINE = (() => {
   function cases() {
     const out = [];
     for (const m of MODELS) {
-      for (const g of GPUS) out.push({ m, gpu: g, prec: m.base_precision[g], kind: "base" });
+      for (const g of GPUS) if (m.base_precision[g]) out.push({ m, gpu: g, prec: m.base_precision[g], kind: "base" });
       for (const v of m.variants || []) out.push({ m, gpu: v.gpu, prec: v.precision, kind: "variant" });
     }
     return out;
@@ -763,7 +765,12 @@ const BASE = {
 };
 const state = { ...BASE, metric: "ratio", sel: null, model: MODELS[0].key, seq: "1024/1024", cgpu: "h100" };
 const CASES = ENGINE.cases();
-const CLOSED = (CFG.closed_models || []).filter(cm => (D.closed || []).some(r => r.m === cm.key));
+const CLOSED = [
+  ...(CFG.closed_models || []).map(c => ({ ...c, weights: "closed", reason: "closed model" })),
+  ...(CFG.price_only_open_models || []).map(c => ({ ...c, weights: "open" })),
+].filter(cm => (D.closed || []).some(r => r.m === cm.key));
+const CLOSED_ONLY = CLOSED.filter(c => c.weights === "closed");
+const poLabel = c => c.weights === "open" ? `${c.lab} · open` : c.lab;
 const caseId = c => `${c.m.key}|${c.gpu}|${c.prec}`;
 state.sel = caseId(CASES[0]);
 
@@ -838,6 +845,19 @@ const pow2Ticks = (lo, hi) => { const out = []; for (let e = Math.ceil(Math.log2
 const fmtTickX = v => v >= 1 ? v + "×" : (v === 0.5 ? "½×" : v === 0.25 ? "¼×" : v === 0.125 ? "⅛×" : v + "×");
 const widthOf = el => Math.max(300, Math.floor(el.clientWidth || el.parentElement.clientWidth || 600));
 
+/* Is any chosen point for this case the last point of its sweep, still well above the floor? */
+function sweepEdges(c, st) {
+  const rs = ENGINE.rows(c.m.key, c.gpu, c.prec, st);
+  let edge = 0, n = 0;
+  for (const p of ENGINE.opPoints(rs, st.floor).floor) {
+    if (p.isl < p.osl) continue;
+    n++;
+    const r = p.row, sweep = rs.filter(x => x.isl === r.isl && x.osl === r.osl && x.fw === r.fw && x.spec === r.spec && x.disagg === r.disagg && x.ngpu === r.ngpu);
+    if (r.conc >= Math.max(...sweep.map(x => x.conc)) && r.intv > 1.15 * Math.max(st.floor, 1)) edge++;
+  }
+  return { edge, n };
+}
+
 /* ================= compute all ================= */
 let RESULTS = [];
 function computeAll() { RESULTS = CASES.map(c => ENGINE.evaluate(c, state)); }
@@ -849,7 +869,7 @@ function renderStatic() {
   const by = (m, g, kind = "base") => base.find(r => r.c.m.key === m && r.c.gpu === g && r.c.kind === kind);
   const rH = ENGINE.rental("h100", BASE.rental), rB = ENGINE.rental("b200", BASE.rental);
   const rentRatio = rB.base / rH.base;
-  const rel = MODELS.map(m => ({ m: m.key, v: by(m.key, "b200").rev / by(m.key, "h100").rev })).filter(x => isFinite(x.v));
+  const rel = MODELS.map(m => { const a = by(m.key, "b200"), b = by(m.key, "h100"); return { m: m.key, v: a && b ? a.rev / b.rev : NaN }; }).filter(x => isFinite(x.v));
   const relMin = Math.min(...rel.map(x => x.v)), relMax = Math.max(...rel.map(x => x.v));
   const dd = D.meta.data_date;
 
@@ -869,10 +889,10 @@ function renderStatic() {
     ["SDB200RT", fmtUSD(rB.base) + "/h", "B200 rental index"],
     ["H100 earns", `${fmtUSD(Math.min(...hRev))}–${fmtUSD(Math.max(...hRev))}`, "per hour, by model"],
     ["B200 earns", `${fmtUSD(Math.min(...bRev))}–${fmtUSD(Math.max(...bRev))}`, "per hour, by model"],
-    ["Models", String(MODELS.length), "open-weight, 70B–671B"],
+    ["Models", String(MODELS.length), "open-weight, benchmarked"],
     ["API quotes", fmtInt(D.prices.length), "OpenRouter endpoints"],
     ["Benchmarks", fmtInt(D.tput.length), `newest ${fmtDate(D.meta.newest_benchmark)}`],
-    ["Closed models", String(CLOSED.length), "Claude, GPT, Grok · price only"],
+    ["Price-only", String(CLOSED.length), "closed + unbenchmarked open"],
   ];
   $("board").replaceChildren(...cells.map(([k, val, d]) => h("div", {}, h("span", { class: "k", text: k }), h("span", { class: "v", text: val }), h("span", { class: "d", text: d }))));
 
@@ -889,7 +909,7 @@ function renderStatic() {
   F.push({
     stat: `${nf(1).format(relMin)}–${nf(1).format(relMax)}× vs ${fmtX(rentRatio)}`,
     title: "The rental market undercharges for B200, relative to its earning power",
-    text: `A B200-hour produces ${nf(1).format(relMin)}–${nf(1).format(relMax)}× the token revenue of an H100-hour across the ${rel.length} models, but rents for only ${fmtX(rentRatio)} as much. ` +
+    text: `A B200-hour produces ${nf(1).format(relMin)}–${nf(1).format(relMax)}× the token revenue of an H100-hour across the ${rel.length} models, but rents for only ${fmtX(rentRatio)} as much (models benchmarked on both chips). ` +
       (relMin > rentRatio ? "On every model, tokens value the B200 premium above what renters pay. Either B200 is cheap or H100 is dear." : "The gap is not uniform: some models are close to the rental ratio."),
     href: "#chart-rel",
   });
@@ -902,13 +922,17 @@ function renderStatic() {
       (near.length ? `${near.map(r => `${r.c.m.key} (${fmtX(r.sratio)})`).join(", ")} barely ${near.length > 1 ? "break" : "breaks"} even.` : ""),
     href: "#dashboard",
   });
-  const bb = MODELS.map(m => by(m.key, "b200")).filter(Boolean);
+  const bb = MODELS.map(m => by(m.key, "b200")).filter(r => r && isFinite(r.sratio));
   const bAbove = bb.filter(r => r.sratio > 1);
   const fp4 = base.filter(r => r.c.kind === "variant");
   F.push({
     stat: `${bAbove.length} of ${bb.length}`,
     title: "On B200, every model clears its rent",
-    text: `At base precision, B200 ratios run from ${fmtX(Math.min(...bb.map(r => r.sratio)))} to ${fmtX(Math.max(...bb.map(r => r.sratio)))}, with breakeven utilization of ${fmtPct(Math.min(...bb.map(r => r.breakeven)))}–${fmtPct(Math.max(...bb.map(r => r.breakeven)))}.` +
+    text: (bAbove.length < bb.length ? (() => {
+      const lo = bb.filter(r => r.sratio <= 1), early = lo.filter(r => sweepEdges(r.c, BASE).edge > 0);
+      return `${lo.map(r => `${r.c.m.key} (${fmtX(r.sratio)})`).join(" and ")} earn less than the rent at the precision providers serve. ` +
+        (early.length ? `The benchmark for ${early.map(r => r.c.m.key).join(" and ")} stopped before reaching the speed floor, so ${early.length > 1 ? "those figures are" : "that figure is"} likely an underestimate. ` : "");
+    })() : "") + `At base precision, B200 ratios run from ${fmtX(Math.min(...bb.map(r => r.sratio)))} to ${fmtX(Math.max(...bb.map(r => r.sratio)))}, with breakeven utilization of ${fmtPct(Math.min(...bb.map(r => r.breakeven)))}–${fmtPct(Math.max(...bb.map(r => r.breakeven)))}.` +
       (fp4.length ? ` Serving at fp4 lifts the range to ${fmtX(Math.min(...fp4.map(r => r.sratio)))}–${fmtX(Math.max(...fp4.map(r => r.sratio)))}.` : ""),
     href: "#dashboard",
   });
@@ -918,7 +942,7 @@ function renderStatic() {
   F.push({
     stat: fmtX(top.sratio),
     title: `${top.c.m.key} has the widest spread`,
-    text: `It sells at ${fmtUSD(top.price)} per million tokens (blended), high for its throughput of ${fmtInt(top.tf.tput)} tokens/s per B200 and ${fmtInt(topH.tf.tput)} per H100. It earns ${fmtUSD(top.rev)} per B200-hour against ${fmtUSD(top.R.base)} rent.`,
+    text: `It sells at ${fmtUSD(top.price)} per million tokens (blended), high for its throughput of ${fmtInt(top.tf.tput)} tokens/s per B200${topH ? ` and ${fmtInt(topH.tf.tput)} per H100` : ""}. It earns ${fmtUSD(top.rev)} per B200-hour against ${fmtUSD(top.R.base)} rent.`,
     href: "#explore",
   });
   let widest = null;
@@ -933,10 +957,10 @@ function renderStatic() {
     text: `For ${widest.r.c.m.key} on ${gpuName(widest.r.c.gpu)}, the spread ratio runs from ${fmtX(widest.r.sMin)} at the cheapest provider (${cheap[0].p.provider}) to ${fmtX(widest.r.sMax)} at the most expensive (${cheap[cheap.length - 1].p.provider}). Providers pricing near or below rental cost probably own their hardware, run cheaper capacity, or subsidise.`,
     href: "#explore",
   });
-  if (CLOSED.length) {
+  if (CLOSED_ONLY.length) {
     const rentH = rH.base;
     const openH = base.filter(r => r.c.gpu === "h100" && r.c.kind === "base" && isFinite(r.tf.tput));
-    const cl = CLOSED.map(cm => { const p = ENGINE.closedPrice(cm.key, BASE.ratio).list; return { key: cm.key, p, need: ENGINE.breakeven(rentH, p, BASE.util) }; });
+    const cl = CLOSED_ONLY.map(cm => { const p = ENGINE.closedPrice(cm.key, BASE.ratio).list; return { key: cm.key, p, need: ENGINE.breakeven(rentH, p, BASE.util) }; });
     const pmax = Math.max(...cl.map(c => c.p)), pmin = Math.min(...cl.map(c => c.p));
     const hiG = cl.filter(c => c.p === pmax), loG = cl.filter(c => c.p === pmin);
     const slowest = openH.reduce((a, b) => (b.tf.tput < a.tf.tput ? b : a));
@@ -1190,7 +1214,8 @@ function renderRelChart() {
     const a = RESULTS.find(r => r.c.m.key === m.key && r.c.gpu === "b200" && r.c.kind === "base");
     const b = RESULTS.find(r => r.c.m.key === m.key && r.c.gpu === "h100");
     return { m: m.key, v: a && b ? a.rev / b.rev : NaN, a, b };
-  });
+  }).filter(r => r.a && r.b);
+  const skipped = MODELS.filter(m => !rows.some(r => r.m === m.key)).map(m => m.key);
   const series = [...new Set(D.rental.map(r => r.series))].filter(s0 => !s0.includes("owner_tco"));
   const rentR = series.map(sr => { const a = D.rental.find(r => r.gpu === "b200" && r.series === sr), b = D.rental.find(r => r.gpu === "h100" && r.series === sr); return { sr, v: a && b ? a.price / b.price : NaN }; }).filter(r => isFinite(r.v));
   const L = 110, R = 30, top = 30, rowH = 34;
@@ -1217,7 +1242,7 @@ function renderRelChart() {
   });
   el.replaceChildren(svg);
   const others = rentR.filter(r => r !== cur).map(r => `${RENTAL_LABEL[r.sr]} ${fmtX(r.v)}`).join(" · ");
-  el.append(h("div", { class: "note", text: `Solid line: rent ratio from the selected rental series. Dashed: ${others}. Dots right of the line mean the B200 earns more than its rental premium.` }));
+  el.append(h("div", { class: "note", text: `Solid line: rent ratio from the selected rental series. Dashed: ${others}. Dots right of the line mean the B200 earns more than its rental premium.${skipped.length ? ` Not shown (no H100 benchmark): ${skipped.join(", ")}.` : ""}` }));
 }
 
 /* ================= time series ================= */
@@ -1332,7 +1357,7 @@ function renderHeatmaps() {
   const box = $("heatmaps");
   const m = MODELS.find(x => x.key === state.model);
   const utils = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
-  box.replaceChildren(...GPUS.map(g => {
+  box.replaceChildren(...GPUS.filter(g => CASES.some(c => c.m.key === m.key && c.gpu === g && c.kind === "base")).map(g => {
     const c = CASES.find(c => c.m.key === m.key && c.gpu === g && c.kind === "base");
     const tbl = h("table", { style: "table-layout:fixed" });
     tbl.append(h("thead", {}, h("tr", {}, h("th", { text: "Util. \\ mix" }), ...RATIOS.map(([, l]) => h("th", { class: "n", text: l })))));
@@ -1359,7 +1384,7 @@ function renderHeatmaps() {
 function renderProviders() {
   const el = $("chart-prov"), W = widthOf(el);
   const m = MODELS.find(x => x.key === state.model);
-  const rs = GPUS.map(g => RESULTS.find(r => r.c.m.key === m.key && r.c.gpu === g && r.c.kind === "base"));
+  const rs = GPUS.map(g => RESULTS.find(r => r.c.m.key === m.key && r.c.gpu === g && r.c.kind === "base")).filter(Boolean);
   const ps = ENGINE.prices(m.key).map(p => ({ p, b: ENGINE.blend(p, state.ratio) })).sort((a, b) => a.b - b.b);
   $("prov-sub").textContent = `${ps.length} OpenRouter endpoints for ${m.key}, sorted by blended price at ${fmtRatio(state.ratio)}. Each dot is that provider's price applied to the benchmark throughput on each GPU.`;
   $("prov-legend").replaceChildren(...rs.map(r => h("span", {}, h("i", { class: "bg-" + seriesCls(r.c) }), caseLabel(r.c))));
@@ -1403,7 +1428,7 @@ function logTicks125(lo, hi, decadesOnly = false) {
 const fmtCompact = v => v >= 1000 ? (v >= 1e4 ? nf(0).format(v / 1000) : nf(v % 1000 ? 1 : 0).format(v / 1000)) + "k" : String(+v.toPrecision(3));
 function closedRows(g) {
   const rent = ENGINE.rental(g, state.rental).base;
-  const rows = CLOSED.map(cm => { const p = ENGINE.closedPrice(cm.key, state.ratio); return { key: cm.key, lab: cm.lab, closed: true, price: p.list, need: ENGINE.breakeven(rent, p.list, state.util), p, rent }; });
+  const rows = CLOSED.map(cm => { const p = ENGINE.closedPrice(cm.key, state.ratio); return { key: cm.key, lab: poLabel(cm), reason: cm.reason, closed: true, price: p.list, need: ENGINE.breakeven(rent, p.list, state.util), p, rent }; });
   for (const r of RESULTS.filter(r => r.c.gpu === g && r.c.kind === "base"))
     rows.push({ key: r.c.m.key, lab: "open-weight", closed: false, price: r.price, need: ENGINE.breakeven(r.R.base, r.price, state.util), meas: r.tf.tput, r, rent: r.R.base });
   return rows;
@@ -1445,7 +1470,7 @@ function renderClosed() {
   rows.forEach((r, i) => {
     const cy = top + i * rowH + rowH / 2;
     const t1 = st(svg, L - 10, cy + 4, r.key, { "text-anchor": "end", class: r.closed ? "lab-strong" : "lab-ink" });
-    if (!narrow) { const ts2 = s("tspan", { class: "lab", dx: 6 }, t1); ts2.textContent = r.closed ? r.lab : "open"; }
+    if (!narrow) { const ts2 = s("tspan", { class: "lab", dx: 6 }, t1); ts2.textContent = r.closed ? r.lab : "measured"; }
     s("line", { x1: L, x2: W - R, y1: cy, y2: cy, style: "stroke:var(--rule);stroke-width:1;opacity:.6" }, svg);
     if (!r.closed && isFinite(r.meas)) {
       s("line", { x1: x(r.need), x2: x(r.meas), y1: cy, y2: cy, style: "stroke:var(--rule-strong);stroke-width:2" }, svg);
@@ -1458,7 +1483,7 @@ function renderClosed() {
       ["needed tokens/s per GPU", fmtInt(r.need)],
       ...(r.closed ? [] : [["measured tokens/s per GPU", fmtInt(r.meas)], ["measured ÷ needed (spread ratio)", fmtX(r.meas / r.need)]]),
       ["blended price, $/M tokens", fmtUSD(r.price, 3)], ["rent per GPU-hour", fmtUSD(r.rent)],
-      ["at 100% utilization", fmtInt(r.need * state.util) + " tok/s"]], r.closed ? `${r.lab} · throughput not public` : "open-weight · measured by InferenceX"]);
+      ["at 100% utilization", fmtInt(r.need * state.util) + " tok/s"]], r.closed ? `${r.lab} · ${r.reason}` : "open-weight · measured by InferenceX"]);
   });
   el.replaceChildren(svg);
 
@@ -1472,7 +1497,7 @@ function renderClosed() {
     const p = ENGINE.closedPrice(cm.key, state.ratio), f = p.row;
     const per = GPUS.map(x => byG[x].find(r => r.key === cm.key));
     const reachN = GPUS.map(x => { const need = byG[x].find(r => r.key === cm.key).need, op = byG[x].filter(r => !r.closed && isFinite(r.meas)); return `${op.filter(r => r.meas >= need).length} of ${op.length}`; });
-    tb.append(h("tr", {}, h("td", { text: cm.key }), h("td", { text: cm.lab }),
+    tb.append(h("tr", {}, h("td", { text: cm.key }), h("td", { text: poLabel(cm) }),
       h("td", { class: "n", text: fmtUSD(f.linp, 2) }), h("td", { class: "n", text: fmtUSD(f.lout, 2) }),
       h("td", { class: "n", text: f.lcache != null ? fmtUSD(f.lcache, 3) : "–" }), h("td", { class: "n", text: fmtUSD(p.list, 3) }),
       ...per.map(r => h("td", { class: "n", text: fmtInt(r.need) })), ...reachN.map(v => h("td", { class: "n", text: v })),
@@ -1484,12 +1509,13 @@ function renderClosed() {
   // price comparison
   const pel = $("chart-pc"), PW = widthOf(pel);
   const items = [
-    ...CLOSED.map(cm => { const p = ENGINE.closedPrice(cm.key, state.ratio); return { key: cm.key, lab: cm.lab, closed: true, v: p.list, lo: p.min, hi: p.max, n: p.n }; }),
-    ...RESULTS.filter(r => r.c.gpu === "h100" && r.c.kind === "base").map(r => ({ key: r.c.m.key, lab: "open-weight", closed: false, v: r.price, lo: r.pst.min, hi: r.pst.max, n: r.pst.n })),
+    ...CLOSED.map(cm => { const p = ENGINE.closedPrice(cm.key, state.ratio); return { key: cm.key, lab: poLabel(cm), closed: cm.weights === "closed", po: true, v: p.list, lo: p.min, hi: p.max, n: p.n }; }),
+    ...RESULTS.filter(r => r.c.gpu === "b200" && r.c.kind === "base").map(r => ({ key: r.c.m.key, lab: "open-weight", closed: false, v: r.price, lo: r.pst.min, hi: r.pst.max, n: r.pst.n })),
   ].sort((a, b) => b.v - a.v);
   $("pc-sub").textContent = `Blended at ${fmtRatio(state.ratio)} input:output, US dollars per million tokens, log scale.`;
   $("pc-legend").replaceChildren(h("span", {}, h("i", { style: "background:var(--ink);border-radius:50%;width:10px;height:10px" }), "closed (list price)"),
-    h("span", {}, h("i", { style: "background:var(--muted);border-radius:50%;width:10px;height:10px" }), `open-weight (${state.price} provider)`));
+    h("span", {}, h("i", { style: "background:var(--surface);border:2px solid var(--muted);border-radius:50%;width:11px;height:11px" }), "open, price-only (list price)"),
+    h("span", {}, h("i", { style: "background:var(--muted);border-radius:50%;width:10px;height:10px" }), `open, benchmarked (${state.price} provider)`));
   const PL = narrow ? 128 : 220, PR = 64, ptop = 8, prow = 24;
   const PH = ptop + items.length * prow + 30;
   const pv = items.flatMap(i => [i.lo, i.hi, i.v]).filter(v => isFinite(v) && v > 0);
@@ -1500,16 +1526,17 @@ function renderClosed() {
   for (const tk of logTicks125(p0, p1, narrow)) { s("line", { x1: px(tk), x2: px(tk), y1: ptop, y2: PH - 24 }, pax); st(pax, px(tk), PH - 9, "$" + (tk < 1 ? tk : fmtCompact(tk)), { "text-anchor": "middle" }); }
   items.forEach((it, i) => {
     const cy = ptop + i * prow + prow / 2, col = it.closed ? "var(--ink)" : "var(--muted)";
+    const dotStyle = it.po && !it.closed ? "fill:var(--surface);stroke:var(--muted);stroke-width:2" : `fill:${col}`;
     const t1 = st(psvg, PL - 10, cy + 4, it.key, { "text-anchor": "end", class: it.closed ? "lab-strong" : "lab-ink" });
-    if (!narrow) { const ts2 = s("tspan", { class: "lab", dx: 6 }, t1); ts2.textContent = it.closed ? it.lab : "open"; }
+    if (!narrow) { const ts2 = s("tspan", { class: "lab", dx: 6 }, t1); ts2.textContent = it.po ? it.lab : "benchmarked"; }
     if (isFinite(it.lo) && isFinite(it.hi) && it.hi > it.lo) {
       s("line", { x1: px(it.lo), x2: px(it.hi), y1: cy, y2: cy, class: "whisk" }, psvg);
       for (const e of [it.lo, it.hi]) s("line", { x1: px(e), x2: px(e), y1: cy - 3.5, y2: cy + 3.5, class: "whisk" }, psvg);
     }
-    s("circle", { cx: px(it.v), cy, r: 5.5, style: `fill:${col}`, class: "surface-ring" }, psvg);
+    s("circle", { cx: px(it.v), cy, r: 5.5, style: dotStyle, class: it.po && !it.closed ? null : "surface-ring" }, psvg);
     st(psvg, px(Math.max(it.v, isFinite(it.hi) ? it.hi : it.v)) + 8, cy + 4, fmtUSD(it.v, it.v < 1 ? 3 : 2), { class: "lab-ink" });
     const hit = s("rect", { x: 0, y: cy - prow / 2, width: PW, height: prow, class: "hit", tabindex: 0 }, psvg);
-    bindTip(hit, () => [it.key, [["blended $/M tokens", fmtUSD(it.v, 3)], ["range across endpoints", `${fmtUSD(it.lo, 3)}–${fmtUSD(it.hi, 3)}`], ["endpoints", String(it.n)]], it.closed ? `${it.lab} · list price` : `open-weight · ${state.price} of providers`]);
+    bindTip(hit, () => [it.key, [["blended $/M tokens", fmtUSD(it.v, 3)], ["range across endpoints", `${fmtUSD(it.lo, 3)}–${fmtUSD(it.hi, 3)}`], ["endpoints", String(it.n)]], it.po ? `${it.lab} · list price` : `open-weight · ${state.price} of providers`]);
   });
   pel.replaceChildren(psvg);
 
@@ -1520,6 +1547,7 @@ function renderClosed() {
     ["Cached input is much cheaper.", cacheRatios.length ? ` These models bill cached input at ${fmtPct(Math.min(...cacheRatios))}–${fmtPct(Math.max(...cacheRatios))} of the input price. Agentic traffic with high cache-hit rates pays far less than the uncached list prices used here.` : " Agentic traffic with high cache-hit rates pays far less than list prices."],
     ["Reasoning tokens bill as output.", " Thinking models generate hidden tokens charged at the output price. That raises revenue per request, not per token, so the threshold is unchanged."],
     ["Batch and flex tiers are about half price,", " and priority tiers cost 2–6× more. Endpoint tiers appear as whiskers; batch variants are excluded."],
+    ["Why some open models are price-only.", " InferenceX has tested them only on agentic workloads, where most input is re-read from cache and the mix is around 100 input tokens per output token. Revenue there depends on cached-input prices, so those runs aren't comparable with the fixed-length tests used for the spread."],
   ];
   $("closed-notes").replaceChildren(...notes.map(([b, t2]) => h("li", {}, h("strong", { text: b }), t2)));
 }
@@ -1534,7 +1562,7 @@ function renderMethodTables() {
     ["Rental price", RENTAL_LABEL[CFG.rental_base_series], "The index CME's GPU futures settle on. The page shows a second reading that sometimes differs; both are kept."],
     ["Speculative decoding", CFG.allow_speculative_decoding ? "allowed" : "excluded", "Widely used in production serving."],
     ["Multi-node serving", CFG.allow_disaggregated_multinode ? "allowed" : "excluded", "Needed for DeepSeek-R1 on H100, which doesn't fit one 8×H100 node at fp8."],
-    ...MODELS.map(m => [`Precision · ${m.key}`, Object.entries(m.base_precision).map(([g, p]) => `${gpuName(g)} ${p}`).join(", ") + ((m.variants || []).length ? `; variant ${(m.variants).map(v => `${gpuName(v.gpu)} ${v.precision}`).join(", ")}` : ""), m.key === "gpt-oss-120b" ? "Released in 4-bit (MXFP4); served that way on both GPUs." : "fp8 is what most providers report serving; fp4 on B200 shown separately."]),
+    ...MODELS.map(m => [`Precision · ${m.key}`, Object.entries(m.base_precision).map(([g, p]) => `${gpuName(g)} ${p}`).join(", ") + ((m.variants || []).length ? `; variant ${(m.variants).map(v => `${gpuName(v.gpu)} ${v.precision}`).join(", ")}` : ""), m.key === "gpt-oss-120b" ? "Released in 4-bit (MXFP4); served that way on both GPUs." : (!m.base_precision.h100 ? "No H100 benchmark on InferenceX; B200 only, at the precision providers serve where benchmarked." : "fp8 is what most providers report serving; fp4 on B200 shown separately.")]),
   ];
   $("assumptions-table").replaceChildren(h("thead", {}, h("tr", {}, ...["Assumption", "Base value", "Why"].map(c => h("th", { text: c })))),
     h("tbody", {}, ...rows.map(r => h("tr", {}, ...r.map((c, i) => h("td", { text: c, style: i === 2 ? "white-space:normal;min-width:18rem" : null }))))));
@@ -1554,9 +1582,9 @@ const DATASETS = [
   { id: "prices", label: "API prices", file: "data/api_prices.csv", rows: () => D.prices,
     desc: "One row per OpenRouter provider endpoint. Prices are USD per million tokens, from GET /api/v1/models/{id}/endpoints.",
     cols: [["m", "model"], ["provider", "provider"], ["tag", "endpoint"], ["q", "quantization"], ["inp", "input $/M", "n"], ["out", "output $/M", "n"], ["cache", "cache read $/M", "n"], ["ctx", "context", "n"], ["date", "retrieved"], ["url", "source", "url"]] },
-  { id: "closed", label: "Closed-model prices", file: "data/api_prices_closed.csv", rows: () => D.closed || [],
-    desc: "One row per OpenRouter endpoint for each closed model, with the model-level list price (the lab's standard tier) on every row. USD per million tokens.",
-    cols: [["m", "model"], ["lab", "lab"], ["linp", "list input $/M", "n"], ["lout", "list output $/M", "n"], ["lcache", "list cached input $/M", "n"], ["provider", "endpoint provider"], ["tag", "endpoint"], ["inp", "endpoint input $/M", "n"], ["out", "endpoint output $/M", "n"], ["ctx", "context", "n"], ["created", "model listed"], ["date", "retrieved"], ["url", "source", "url"]] },
+  { id: "closed", label: "Price-only model prices", file: "data/api_prices_price_only.csv", rows: () => D.closed || [],
+    desc: "One row per OpenRouter endpoint for each price-only model (closed, or open-weight without comparable benchmarks), with the model-level list price on every row. USD per million tokens.",
+    cols: [["m", "model"], ["lab", "lab"], ["weights", "weights"], ["reason", "why price-only"], ["linp", "list input $/M", "n"], ["lout", "list output $/M", "n"], ["lcache", "list cached input $/M", "n"], ["provider", "endpoint provider"], ["tag", "endpoint"], ["inp", "endpoint input $/M", "n"], ["out", "endpoint output $/M", "n"], ["ctx", "context", "n"], ["created", "model listed"], ["date", "retrieved"], ["url", "source", "url"]] },
   { id: "tput", label: "Throughput benchmarks", file: "data/throughput.csv", rows: () => D.tput,
     desc: "One row per InferenceX benchmark point (latest run of each configuration). Throughput is total input+output tokens/s divided by GPUs. Source links open the GitHub Actions run that measured it.",
     cols: [["m", "model"], ["gpu", "GPU"], ["prec", "precision"], ["fw", "framework"], ["spec", "spec. decoding"], ["disagg", "multi-node"], ["isl", "input len", "n"], ["osl", "output len", "n"], ["conc", "concurrency", "n"], ["ngpu", "GPUs", "n"], ["tput", "tok/s per GPU", "n0"], ["intv", "tok/s per user", "n1"], ["ttft", "time to first token (s)", "n"], ["date", "run date"], ["url", "source", "url"]] },
@@ -1659,7 +1687,21 @@ function renderGaps() {
     if (newest && newest < cutoff) out.push([`${c.m.key} on ${gpuName(c.gpu)}:`, ` newest benchmark is ${fmtDate(newest)}, over six months old. Throughput is probably understated.`]);
   }
   out.push(["No 8B-class model:", " InferenceX doesn't benchmark one, so there's no comparable throughput."]);
-  out.push(["Newest open models", " (DeepSeek-V4, Kimi-K3, GLM-5.2) have B200 but no H100 benchmarks, so they're left out for now."]);
+  for (const m of MODELS) {
+    const missing = GPUS.filter(g => !m.base_precision[g]);
+    if (missing.length) out.push([`${m.key}:`, ` no ${missing.map(gpuName).join(" or ")} benchmark on InferenceX, so it appears on ${GPUS.filter(g => m.base_precision[g]).map(gpuName).join(" and ")} only.`]);
+    for (const [g, prec] of Object.entries(m.base_precision)) {
+      const q = D.prices.filter(p => p.m === m.key && p.q !== "unknown").map(p => p.q);
+      const counts = q.reduce((a, x) => (a[x] = (a[x] || 0) + 1, a), {});
+      const mode = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+      if (mode && mode[0] !== prec && (counts[prec] || 0) < q.length / 2)
+        out.push([`${m.key} on ${gpuName(g)}:`, ` benchmarked at ${prec}, but most providers report serving ${mode[0]}.`]);
+    }
+  }
+  let edge = 0, nPts = 0;
+  for (const c of CASES.filter(c => c.kind === "base")) { const e = sweepEdges(c, BASE); edge += e.edge; nPts += e.n; }
+  if (nPts) out.push(["Sweep edges:", ` ${edge} of ${nPts} chosen benchmark points are the last point of their concurrency sweep and still well above the speed floor. The test stopped early, so throughput there is a lower bound.`]);
+  for (const c of CLOSED.filter(c => c.weights === "open")) out.push([`${c.key}`, ` (open-weight): ${c.reason}, so it is shown as price-only.`]);
   const unk = MODELS.map(m => [m.key, D.prices.filter(p => p.m === m.key && p.q === "unknown").length]).filter(x => x[1]);
   if (unk.length) out.push(["Unknown quantization:", ` ${unk.map(([k, n]) => `${k} ${n}`).join(", ")} provider endpoints don't say what precision they serve. They count in the price statistics regardless.`]);
   for (const g of GPUS) {

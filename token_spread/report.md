@@ -37,6 +37,14 @@ OpenRouter provider, rental = `silicondata_index_faq`.
 | deepseek-r1 | H100 fp8 | base | 4 | 0.91–0.96–1.15 | 569 | 1098 | $1.18 | $2.53 | $-1.35 | 0.47× | 129% | 2026-02-08,2026-02-13 |
 | deepseek-r1 | B200 fp8 | base | 4 | 0.91–0.96–1.15 | 4778 | 6046 | $9.91 | $5.45 | $4.46 | 1.82× | 33% | 2026-02-05,2026-03-23 |
 | deepseek-r1 | B200 fp4 | variant | 4 | 0.91–0.96–1.15 | 10974 | 13259 | $22.75 | $5.45 | $17.30 | 4.17× | 14% | 2026-01-29,2026-02-06 |
+| minimax-m2.5 | H100 fp8 | base | 9 | 0.44–0.52–1.05 | 1824 | 2160 | $2.07 | $2.53 | $-0.46 | 0.82× | 73% | 2026-03-28,2026-06-04 |
+| minimax-m2.5 | B200 fp8 | base | 9 | 0.44–0.52–1.05 | 10290 | 11917 | $11.67 | $5.45 | $6.22 | 2.14× | 28% | 2026-03-28,2026-05-31,2026-06-03 |
+| minimax-m2.5 | B200 fp4 | variant | 9 | 0.44–0.52–1.05 | 19251 | 20532 | $21.83 | $5.45 | $16.38 | 4.01× | 15% | 2026-06-03 |
+| deepseek-v4-pro | B200 fp4 | base | 15 | 0.56–1.77–3.41 | 5489 | 8544 | $20.99 | $5.45 | $15.54 | 3.85× | 16% | 2026-06-12,2026-08-12 |
+| glm-5 | B200 fp8 | base | 8 | 0.93–1.45–1.55 | 1161 | 3572 | $3.64 | $5.45 | $-1.81 | 0.67× | 90% | 2026-03-20,2026-05-18,2026-06-12 |
+| glm-5 | B200 fp4 | variant | 8 | 0.93–1.45–1.55 | 2195 | 3486 | $6.88 | $5.45 | $1.43 | 1.26× | 48% | 2026-06-12 |
+| kimi-k2.5 | B200 int4 | base | 5 | 0.99–1.14–1.23 | 1112 | 1484 | $2.74 | $5.45 | $-2.71 | 0.50× | 119% | 2026-03-24,2026-07-05,2026-07-18 |
+| kimi-k2.5 | B200 fp4 | variant | 5 | 0.99–1.14–1.23 | 8572 | 9752 | $21.11 | $5.45 | $15.66 | 3.87× | 15% | 2026-03-27,2026-06-07,2026-07-22 |
 
 `tok/s/GPU` = total (input+output) tokens/s per GPU at the base in:out ratio, interactivity-floor
 point; `(max)` = highest throughput with no latency floor. Breakeven util = utilization at
@@ -64,10 +72,15 @@ lines. Dots to the right mean B200 is cheap relative to H100 for that model (or 
 |---|---|---|---|---|
 | deepseek-r1 | B200 | DeepInfra (fp4) 1.73× | Novita (fp8) 2.18× | 4/4 |
 | deepseek-r1 | H100 | DeepInfra (fp4) 0.44× | Novita (fp8) 0.56× | 0/4 |
+| deepseek-v4-pro | B200 | StreamLake (fp8) 1.21× | Reka (unknown) 7.42× | 15/15 |
+| glm-5 | B200 | GMICloud (fp8) 0.43× | Amazon Bedrock (unknown) 0.71× | 0/8 |
 | gpt-oss-120b | B200 | Venice (int4) 0.97× | Cerebras (fp16) 7.28× | 23/24 |
 | gpt-oss-120b | H100 | Venice (int4) 0.38× | Cerebras (fp16) 2.84× | 14/24 |
+| kimi-k2.5 | B200 | AtlasCloud (int4) 0.44× | Venice (unknown) 0.54× | 0/5 |
 | llama-3.3-70b | B200 | DeepInfra (fp8) 0.43× | Together (unknown) 2.91× | 7/11 |
 | llama-3.3-70b | H100 | DeepInfra (fp8) 0.24× | Together (unknown) 1.64× | 6/11 |
+| minimax-m2.5 | B200 | Venice (unknown) 1.79× | Minimax (fp8) 4.28× | 9/9 |
+| minimax-m2.5 | H100 | Venice (unknown) 0.69× | Minimax (fp8) 1.64× | 1/9 |
 | minimax-m3 | B200 | CoreWeave (fp4) 1.02× | ModelRun (fp4) 3.23× | 13/13 |
 | minimax-m3 | H100 | CoreWeave (fp4) 0.39× | ModelRun (fp4) 1.23× | 1/13 |
 | qwen3.5-397b | B200 | Alibaba (unknown) 2.75× | Venice (unknown) 5.29× | 10/10 |
@@ -88,55 +101,70 @@ Full table: `outputs/provider_spread.csv`.
 | b200 | inferencex_retail | $3.70 | fetched | True | InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote |
 | b200 | inferencex_owner_tco | $1.73 | fetched | True | InferenceX 'owning at hyperscaler volume' $/GPU-hr (all-in TCO, not a rental price); modelled, not a market quote |
 
-## 6. Closed models: breakeven throughput and price comparison
+## 6. Price-only models: breakeven throughput and price comparison
 
-Closed models (Claude, GPT, Grok) publish prices but not their hardware or throughput, so no
-spread is computed. Instead: how many tokens/s per GPU would a model need for its **list
-price** to cover the GPU's rent at 60% utilization?
+Closed models (Claude, GPT, Grok) publish prices but not their hardware or throughput, and some
+open-weight models have no comparable benchmark yet (only agentic traces, or no runs). No
+spread is computed for them. Instead: how many tokens/s per GPU would a model need for its
+**list price** to cover the GPU's rent at 60% utilization?
 `needed = rent ÷ (3600 × utilization × blended price / 1e6)`. For open-weight models this is
 the same breakeven, and spread ratio = measured ÷ needed.
 
 - **claude-fable-5.1** at $20.00/Mtok needs only **59 tok/s per H100**.
   The slowest open-weight model measured here manages 569.
-- **gpt-6-luna** at $0.20/Mtok needs **5,856 tok/s per H100**
-  (12,616 per B200). 1 of 5 open-weight models reaches that on H100.
+- **deepseek-v4.1-flash** at $0.08/Mtok needs **15,281 tok/s per H100**
+  (32,918 per B200). 0 of 6.0 benchmarked models reach that on H100.
 - These are thresholds, not estimates of closed-model throughput or margin. Closed labs may
   run other hardware (TPUs, Trainium, own clusters), bill hidden reasoning tokens as output,
   and discount cached input heavily.
 
 ![breakeven throughput](charts/breakeven_throughput.png)
 
-| model | lab | blended $/Mtok | needed tok/s per H100 | needed tok/s per B200 | open models above (H100, of 5) | open models above (B200, of 5) |
+| model | lab | weights | blended $/Mtok | needed tok/s per H100 | needed tok/s per B200 | benchmarked models above (H100, of 6.0) | benchmarked models above (B200, of 9.0) |
+|---|---|---|---|---|---|---|---|
+| claude-fable-5.1 | Anthropic | closed | $20.00 | 59 | 126 | 6 | 9 |
+| gpt-6-astra | OpenAI | closed | $20.00 | 59 | 126 | 6 | 9 |
+| claude-opus-5.5 | Anthropic | closed | $8.00 | 146 | 315 | 6 | 9 |
+| claude-sonnet-5.5 | Anthropic | closed | $4.00 | 293 | 631 | 6 | 9 |
+| gpt-6.1-sol | OpenAI | closed | $4.00 | 293 | 631 | 6 | 9 |
+| kimi-k3 | Moonshot | open | $3.05 | 384 | 828 | 6 | 9 |
+| grok-4.7 | xAI | closed | $3.00 | 390 | 841 | 6 | 9 |
+| glm-5.2 | Zhipu | open | $1.79 | 653 | 1,406 | 5 | 7 |
+| grok-build-0.1 | xAI | closed | $1.25 | 937 | 2,019 | 5 | 7 |
+| qwen3.8-27b | Qwen | open | $0.60 | 1,936 | 4,170 | 1 | 7 |
+| qwen3.8-flash-next | Qwen | open | $0.23 | 5,093 | 10,970 | 1 | 1 |
+| claude-haiku-5.5 | Anthropic | closed | $0.20 | 5,856 | 12,616 | 1 | 1 |
+| gpt-6-luna | OpenAI | closed | $0.20 | 5,856 | 12,616 | 1 | 1 |
+| deepseek-v4.1-flash | DeepSeek | open | $0.08 | 15,281 | 32,918 | 0 | 1 |
+
+**Price comparison** (blended at 3:1; price-only = OpenRouter list price,
+benchmarked open-weight = median provider):
+
+| model | weights | analysis | lab | blended $/Mtok | endpoint range | basis |
 |---|---|---|---|---|---|---|
-| claude-fable-5.1 | Anthropic | $20.00 | 59 | 126 | 5 | 5 |
-| gpt-6-astra | OpenAI | $20.00 | 59 | 126 | 5 | 5 |
-| claude-opus-5.5 | Anthropic | $8.00 | 146 | 315 | 5 | 5 |
-| claude-sonnet-5.5 | Anthropic | $4.00 | 293 | 631 | 5 | 5 |
-| gpt-6.1-sol | OpenAI | $4.00 | 293 | 631 | 5 | 5 |
-| grok-4.7 | xAI | $3.00 | 390 | 841 | 5 | 5 |
-| grok-build-0.1 | xAI | $1.25 | 937 | 2,019 | 4 | 5 |
-| claude-haiku-5.5 | Anthropic | $0.20 | 5,856 | 12,616 | 1 | 1 |
-| gpt-6-luna | OpenAI | $0.20 | 5,856 | 12,616 | 1 | 1 |
-
-**Price comparison** (blended at 3:1; closed = OpenRouter list price,
-open = median provider):
-
-| model | weights | lab | blended $/Mtok | endpoint range | basis |
-|---|---|---|---|---|---|
-| claude-fable-5.1 | closed | Anthropic | $20.000 | $20.000–$20.000 | OpenRouter list price |
-| gpt-6-astra | closed | OpenAI | $20.000 | $10.000–$120.000 | OpenRouter list price |
-| claude-opus-5.5 | closed | Anthropic | $8.000 | $8.000–$16.000 | OpenRouter list price |
-| claude-sonnet-5.5 | closed | Anthropic | $4.000 | $4.000–$4.400 | OpenRouter list price |
-| gpt-6.1-sol | closed | OpenAI | $4.000 | $2.000–$24.000 | OpenRouter list price |
-| grok-4.7 | closed | xAI | $3.000 | $3.000–$6.000 | OpenRouter list price |
-| qwen3.5-397b | open | open-weight | $1.288 | $0.877–$1.688 | median OpenRouter provider |
-| grok-build-0.1 | closed | xAI | $1.250 | $1.250–$2.500 | OpenRouter list price |
-| deepseek-r1 | open | open-weight | $0.960 | $0.912–$1.150 | median OpenRouter provider |
-| llama-3.3-70b | open | open-weight | $0.640 | $0.155–$1.040 | median OpenRouter provider |
-| minimax-m3 | open | open-weight | $0.525 | $0.412–$1.312 | median OpenRouter provider |
-| gpt-oss-120b | open | open-weight | $0.231 | $0.060–$0.450 | median OpenRouter provider |
-| claude-haiku-5.5 | closed | Anthropic | $0.200 | $0.200–$0.220 | OpenRouter list price |
-| gpt-6-luna | closed | OpenAI | $0.200 | $0.100–$0.400 | OpenRouter list price |
+| claude-fable-5.1 | closed | price-only | Anthropic | $20.000 | $20.000–$20.000 | OpenRouter list price |
+| gpt-6-astra | closed | price-only | OpenAI | $20.000 | $10.000–$120.000 | OpenRouter list price |
+| claude-opus-5.5 | closed | price-only | Anthropic | $8.000 | $8.000–$16.000 | OpenRouter list price |
+| claude-sonnet-5.5 | closed | price-only | Anthropic | $4.000 | $4.000–$4.400 | OpenRouter list price |
+| gpt-6.1-sol | closed | price-only | OpenAI | $4.000 | $2.000–$24.000 | OpenRouter list price |
+| kimi-k3 | open | price-only | Moonshot | $3.047 | $3.047–$9.000 | OpenRouter list price |
+| grok-4.7 | closed | price-only | xAI | $3.000 | $3.000–$6.000 | OpenRouter list price |
+| glm-5.2 | open | price-only | Zhipu | $1.795 | $0.625–$4.125 | OpenRouter list price |
+| deepseek-v4-pro | open | spread | open-weight | $1.770 | $0.558–$3.413 | median OpenRouter provider |
+| glm-5 | open | spread | open-weight | $1.450 | $0.930–$1.550 | median OpenRouter provider |
+| qwen3.5-397b | open | spread | open-weight | $1.288 | $0.877–$1.688 | median OpenRouter provider |
+| grok-build-0.1 | closed | price-only | xAI | $1.250 | $1.250–$2.500 | OpenRouter list price |
+| kimi-k2.5 | open | spread | open-weight | $1.140 | $0.993–$1.230 | median OpenRouter provider |
+| deepseek-r1 | open | spread | open-weight | $0.960 | $0.912–$1.150 | median OpenRouter provider |
+| llama-3.3-70b | open | spread | open-weight | $0.640 | $0.155–$1.040 | median OpenRouter provider |
+| qwen3.8-27b | open | price-only | Qwen | $0.605 | $0.140–$1.138 | OpenRouter list price |
+| minimax-m3 | open | spread | open-weight | $0.525 | $0.412–$1.312 | median OpenRouter provider |
+| minimax-m2.5 | open | spread | open-weight | $0.525 | $0.440–$1.050 | median OpenRouter provider |
+| gpt-oss-120b | open | spread | open-weight | $0.231 | $0.060–$0.450 | median OpenRouter provider |
+| qwen3.8-flash-next | open | price-only | Qwen | $0.230 | $0.230–$0.230 | OpenRouter list price |
+| claude-haiku-5.5 | closed | price-only | Anthropic | $0.200 | $0.200–$0.220 | OpenRouter list price |
+| gpt-6-luna | closed | price-only | OpenAI | $0.200 | $0.100–$0.400 | OpenRouter list price |
+| deepseek-v4.1-flash | open | price-only | DeepSeek | $0.077 | $0.077–$1.050 | OpenRouter list price |
 
 ## 7. Over time
 
@@ -150,10 +178,18 @@ Only one snapshot so far; the time-series chart appears after the second daily r
 - **llama-3.3-70b on B200**: newest benchmark is 2025-10-29 (>6 months old; software has improved since, so throughput is likely understated).
 - **deepseek-r1 on H100**: newest benchmark is 2026-02-13 (>6 months old; software has improved since, so throughput is likely understated).
 - **deepseek-r1 on B200**: newest benchmark is 2026-03-23 (>6 months old; software has improved since, so throughput is likely understated).
+- **deepseek-v4-pro on H100**: no InferenceX benchmark on this GPU; the model appears on the other GPU only.
+- **deepseek-v4-pro on B200**: benchmarked at fp4, but most providers report serving fp8.
+- **glm-5 on H100**: no InferenceX benchmark on this GPU; the model appears on the other GPU only.
+- **kimi-k2.5 on H100**: no InferenceX benchmark on this GPU; the model appears on the other GPU only.
+- **Sweep edges:** 12 of 30 chosen benchmark points are the last point of their concurrency sweep and still well above the speed floor. The benchmark stopped before reaching the floor, so throughput there is a lower bound.
+- **deepseek-v4.1-flash** (open-weight): agentic benchmarks only; shown as price-only.
+- **kimi-k3** (open-weight): agentic benchmarks only; shown as price-only.
+- **glm-5.2** (open-weight): agentic benchmarks only; shown as price-only.
+- **qwen3.8-flash-next** (open-weight): agentic benchmarks only; shown as price-only.
+- **qwen3.8-27b** (open-weight): no benchmark runs yet; shown as price-only.
 - **No 8B-class model**: InferenceX doesn't benchmark one, so there is no comparable throughput.
-- **Newest frontier open models** (DeepSeek-V4, Kimi-K3, GLM-5.2) have B200 but no H100 data
-  on InferenceX, so they are left out of v0.
-- Providers with **unknown quantization** on OpenRouter: deepseek-r1 1, gpt-oss-120b 9, llama-3.3-70b 5, minimax-m3 3, qwen3.5-397b 6.
+- Providers with **unknown quantization** on OpenRouter: deepseek-r1 1, deepseek-v4-pro 5, glm-5 1, gpt-oss-120b 9, kimi-k2.5 3, llama-3.3-70b 5, minimax-m2.5 4, minimax-m3 3, qwen3.5-397b 6.
   They are included in the price statistics regardless of precision.
 
 **Caveats**
