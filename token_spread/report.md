@@ -40,7 +40,7 @@ OpenRouter provider, rental = `silicondata_index_faq`.
 | minimax-m2.5 | H100 fp8 | base | 9 | 0.44–0.52–1.05 | 1824 | 2160 | $2.07 | $2.53 | $-0.46 | 0.82× | 73% | 2026-03-28,2026-06-04 |
 | minimax-m2.5 | B200 fp8 | base | 9 | 0.44–0.52–1.05 | 10290 | 11917 | $11.67 | $5.45 | $6.22 | 2.14× | 28% | 2026-03-28,2026-05-31,2026-06-03 |
 | minimax-m2.5 | B200 fp4 | variant | 9 | 0.44–0.52–1.05 | 19251 | 20532 | $21.83 | $5.45 | $16.38 | 4.01× | 15% | 2026-06-03 |
-| deepseek-v4-pro | B200 fp4 | base | 15 | 0.56–1.77–3.41 | 5489 | 8544 | $20.99 | $5.45 | $15.54 | 3.85× | 16% | 2026-06-12,2026-08-12 |
+| deepseek-v4-pro | B200 fp4 | base | 15 | 0.55–1.77–3.41 | 5489 | 8544 | $20.99 | $5.45 | $15.54 | 3.85× | 16% | 2026-06-12,2026-08-12 |
 | glm-5 | B200 fp8 | base | 8 | 0.93–1.45–1.55 | 1161 | 3572 | $3.64 | $5.45 | $-1.81 | 0.67× | 90% | 2026-03-20,2026-05-18,2026-06-12 |
 | glm-5 | B200 fp4 | variant | 8 | 0.93–1.45–1.55 | 2195 | 3486 | $6.88 | $5.45 | $1.43 | 1.26× | 48% | 2026-06-12 |
 | kimi-k2.5 | B200 int4 | base | 5 | 0.99–1.14–1.23 | 1112 | 1484 | $2.74 | $5.45 | $-2.71 | 0.50× | 119% | 2026-03-24,2026-07-05,2026-07-18 |
@@ -72,7 +72,7 @@ lines. Dots to the right mean B200 is cheap relative to H100 for that model (or 
 |---|---|---|---|---|
 | deepseek-r1 | B200 | DeepInfra (fp4) 1.73× | Novita (fp8) 2.18× | 4/4 |
 | deepseek-r1 | H100 | DeepInfra (fp4) 0.44× | Novita (fp8) 0.56× | 0/4 |
-| deepseek-v4-pro | B200 | StreamLake (fp8) 1.21× | Reka (unknown) 7.42× | 15/15 |
+| deepseek-v4-pro | B200 | StreamLake (fp8) 1.19× | Reka (unknown) 7.42× | 15/15 |
 | glm-5 | B200 | GMICloud (fp8) 0.43× | Amazon Bedrock (unknown) 0.71× | 0/8 |
 | gpt-oss-120b | B200 | Venice (int4) 0.97× | Cerebras (fp16) 7.28× | 23/24 |
 | gpt-oss-120b | H100 | Venice (int4) 0.38× | Cerebras (fp16) 2.84× | 14/24 |
@@ -93,9 +93,9 @@ Full table: `outputs/provider_spread.csv`.
 | gpu | series | price | method | estimate | notes |
 |---|---|---|---|---|---|
 | h100 | silicondata_index_faq | $2.53 | scraped | False | FAQ text on index page (SDH100RT, neocloud on-demand) |
-| h100 | silicondata_index_widget | $2.85 | scraped | False | 'Related indices' widget, ticker SDH100RT, 7D change 8.0% |
+| h100 | silicondata_index_widget | $2.85 | scraped | False | 'Related indices' widget, ticker SDH100RT, 7D change 7.1% |
 | b200 | silicondata_index_faq | $5.45 | scraped | False | FAQ text on index page (SDB200RT, neocloud on-demand) |
-| b200 | silicondata_index_widget | $5.94 | scraped | False | 'Related indices' widget, ticker SDB200RT, 7D change 4.2% |
+| b200 | silicondata_index_widget | $5.95 | scraped | False | 'Related indices' widget, ticker SDB200RT, 7D change 4.0% |
 | h100 | inferencex_retail | $2.00 | fetched | True | InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote |
 | h100 | inferencex_owner_tco | $1.17 | fetched | True | InferenceX 'owning at hyperscaler volume' $/GPU-hr (all-in TCO, not a rental price); modelled, not a market quote |
 | b200 | inferencex_retail | $3.70 | fetched | True | InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote |
@@ -112,8 +112,8 @@ the same breakeven, and spread ratio = measured ÷ needed.
 
 - **claude-fable-5.1** at $20.00/Mtok needs only **59 tok/s per H100**.
   The slowest open-weight model measured here manages 569.
-- **deepseek-v4.1-flash** at $0.08/Mtok needs **15,281 tok/s per H100**
-  (32,918 per B200). 0 of 6.0 benchmarked models reach that on H100.
+- **deepseek-v4.1-flash** at $0.19/Mtok needs **6,220 tok/s per H100**
+  (13,398 per B200). 1 of 6.0 benchmarked models reaches that on H100.
 - These are thresholds, not estimates of closed-model throughput or margin. Closed labs may
   run other hardware (TPUs, Trainium, own clusters), bill hidden reasoning tokens as output,
   and discount cached input heavily.
@@ -135,7 +135,7 @@ the same breakeven, and spread ratio = measured ÷ needed.
 | qwen3.8-flash-next | Qwen | open | $0.23 | 5,093 | 10,970 | 1 | 1 |
 | claude-haiku-5.5 | Anthropic | closed | $0.20 | 5,856 | 12,616 | 1 | 1 |
 | gpt-6-luna | OpenAI | closed | $0.20 | 5,856 | 12,616 | 1 | 1 |
-| deepseek-v4.1-flash | DeepSeek | open | $0.08 | 15,281 | 32,918 | 0 | 1 |
+| deepseek-v4.1-flash | DeepSeek | open | $0.19 | 6,220 | 13,398 | 1 | 1 |
 
 **Price comparison** (blended at 3:1; price-only = OpenRouter list price,
 benchmarked open-weight = median provider):
@@ -150,7 +150,7 @@ benchmarked open-weight = median provider):
 | kimi-k3 | open | price-only | Moonshot | $3.047 | $3.047–$9.000 | OpenRouter list price |
 | grok-4.7 | closed | price-only | xAI | $3.000 | $3.000–$6.000 | OpenRouter list price |
 | glm-5.2 | open | price-only | Zhipu | $1.795 | $0.625–$4.125 | OpenRouter list price |
-| deepseek-v4-pro | open | spread | open-weight | $1.770 | $0.558–$3.413 | median OpenRouter provider |
+| deepseek-v4-pro | open | spread | open-weight | $1.770 | $0.545–$3.413 | median OpenRouter provider |
 | glm-5 | open | spread | open-weight | $1.450 | $0.930–$1.550 | median OpenRouter provider |
 | qwen3.5-397b | open | spread | open-weight | $1.288 | $0.877–$1.688 | median OpenRouter provider |
 | grok-build-0.1 | closed | price-only | xAI | $1.250 | $1.250–$2.500 | OpenRouter list price |
@@ -164,7 +164,7 @@ benchmarked open-weight = median provider):
 | qwen3.8-flash-next | open | price-only | Qwen | $0.230 | $0.230–$0.230 | OpenRouter list price |
 | claude-haiku-5.5 | closed | price-only | Anthropic | $0.200 | $0.200–$0.220 | OpenRouter list price |
 | gpt-6-luna | closed | price-only | OpenAI | $0.200 | $0.100–$0.400 | OpenRouter list price |
-| deepseek-v4.1-flash | open | price-only | DeepSeek | $0.077 | $0.077–$1.050 | OpenRouter list price |
+| deepseek-v4.1-flash | open | price-only | DeepSeek | $0.188 | $0.113–$1.050 | OpenRouter list price |
 
 ## 7. Over time
 
