@@ -1,0 +1,1420 @@
+<title>Token Spread</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: a single scrolling research site. Slim sticky nav, 72rem column; reading sections
+   run at ~68ch, the dashboard and data sections use the full column width. */
+:root {
+  --bg: #f2f4f5;
+  --surface: #fbfcfc;
+  --surface-2: #e9edf0;
+  --ink: #10161b;
+  --ink-2: #46525c;
+  --muted: #707b84;
+  --rule: #d8dee2;
+  --rule-strong: #aeb8bf;
+  --s-h100: #2a78d6;
+  --s-b200: #eb6834;
+  --s-fp4: #1baf7a;
+  --good: #0a6e0a;
+  --bad: #b8302f;
+  --div-pos: #1c5cab;
+  --div-neg: #c23a3a;
+  --heat-mid: #e7eaec;
+  --on-strong: #ffffff;
+  --focus: #2a78d6;
+  --font-display: "Archivo", "Arial Narrow", "Helvetica Neue", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.125rem;
+  --step-2: 1.5rem;
+  --step-3: 2.25rem;
+  --step-4: clamp(2.4rem, 6vw, 4.25rem);
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1013; --surface: #13191d; --surface-2: #1b2227; --ink: #e7ecef; --ink-2: #a9b4bc;
+    --muted: #7d8992; --rule: #252e34; --rule-strong: #3a464f;
+    --s-h100: #3987e5; --s-b200: #d95926; --s-fp4: #199e70;
+    --good: #35c24f; --bad: #f07272; --div-pos: #3987e5; --div-neg: #e66767; --heat-mid: #1e262b;
+    --on-strong: #ffffff; --focus: #6aa8f0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1013; --surface: #13191d; --surface-2: #1b2227; --ink: #e7ecef; --ink-2: #a9b4bc;
+  --muted: #7d8992; --rule: #252e34; --rule-strong: #3a464f;
+  --s-h100: #3987e5; --s-b200: #d95926; --s-fp4: #199e70;
+  --good: #35c24f; --bad: #f07272; --div-pos: #3987e5; --div-neg: #e66767; --heat-mid: #1e262b;
+  --on-strong: #ffffff; --focus: #6aa8f0;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 4rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: var(--step-0); line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration-color: var(--rule-strong); text-underline-offset: 3px; }
+a:hover { text-decoration-color: currentColor; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.1; }
+h2 { font-size: var(--step-3); font-weight: 700; font-stretch: 112%; letter-spacing: -0.01em; }
+h3 { font-size: var(--step-1); font-weight: 650; font-stretch: 100%; }
+p { margin: 0; }
+code, .mono { font-family: var(--font-mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- nav ---------- */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+.nav-inner { max-width: 72rem; margin: 0 auto; padding: 0.6rem 1.25rem; display: flex; align-items: center; gap: 1.5rem; }
+.brand { font-family: var(--font-display); font-weight: 800; font-stretch: 125%; letter-spacing: 0.02em; text-transform: uppercase; font-size: 0.95rem; text-decoration: none; white-space: nowrap; }
+.nav-links { display: flex; gap: 1.1rem; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.nav-links a { font-size: var(--step--1); color: var(--ink-2); text-decoration: none; white-space: nowrap; padding-block: 0.2rem; }
+.nav-links a:hover { color: var(--ink); }
+.nav-date { margin-left: auto; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+@media (max-width: 640px) { .nav-date { display: none; } }
+
+main { max-width: 72rem; margin: 0 auto; padding-inline: 1.25rem; padding-block: 0 4rem; }
+section { padding-block: 3.5rem 1rem; border-top: 1px solid var(--rule); display: grid; gap: 1.5rem; min-width: 0; }
+section:first-child { border-top: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.section-head { display: grid; gap: 0.6rem; max-width: 68ch; }
+.lede { font-size: var(--step-1); color: var(--ink-2); max-width: 62ch; line-height: 1.5; }
+.prose { display: grid; gap: 0.9rem; max-width: 68ch; color: var(--ink-2); }
+.prose strong { color: var(--ink); font-weight: 600; }
+
+/* ---------- hero ---------- */
+.hero { padding-block: 3.5rem 2rem; gap: 2rem; }
+.hero h1 { font-size: var(--step-4); font-weight: 800; font-stretch: 118%; letter-spacing: -0.02em; max-width: 16ch; }
+.verdict { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.5rem; align-items: end; max-width: 52rem; }
+.verdict .fig { display: grid; gap: 0.35rem; }
+.verdict .big { font-family: var(--font-display); font-weight: 800; font-stretch: 125%; font-size: clamp(2.6rem, 8vw, 4.75rem); line-height: 0.95; letter-spacing: -0.02em; }
+.verdict .cap { color: var(--ink-2); font-size: var(--step-0); max-width: 30ch; }
+.verdict .vs { font-family: var(--font-mono); color: var(--muted); padding-bottom: 1.4rem; }
+.verdict .tokens .big { color: var(--s-b200); }
+@media (max-width: 640px) { .verdict { grid-template-columns: 1fr; gap: 1rem; } .verdict .vs { padding: 0; } }
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+.board div { padding: 0.7rem 0.9rem; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin: 0 -1px -1px 0; display: grid; gap: 0.15rem; }
+.board .k { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.board .v { font-family: var(--font-mono); font-size: 1rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.board .d { font-size: 0.75rem; color: var(--muted); }
+
+/* ---------- findings ---------- */
+.findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1rem; }
+.finding { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 1.1rem 1.2rem 1.2rem; display: grid; gap: 0.6rem; align-content: start; }
+.finding .stat { font-family: var(--font-display); font-weight: 750; font-stretch: 115%; font-size: 1.9rem; line-height: 1; }
+.finding h3 { font-family: var(--font-body); font-size: var(--step-0); font-weight: 600; }
+.finding p { color: var(--ink-2); font-size: 0.9rem; }
+.finding a.more { font-size: var(--step--1); color: var(--ink-2); }
+.note { font-size: var(--step--1); color: var(--muted); max-width: 68ch; }
+
+/* ---------- controls ---------- */
+.controls { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 2.7rem); z-index: 10; background: var(--bg); padding-block: 0.75rem; border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; align-items: end; }
+@media (max-width: 760px) { .controls { position: static; } }
+.ctl { display: grid; gap: 0.25rem; min-width: 0; }
+.ctl label, .ctl .lbl { font-size: 0.72rem; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.ctl .val { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ctl input[type=range] { width: 9rem; accent-color: var(--ink); }
+.seg { justify-self: start; display: inline-flex; border: 1px solid var(--rule-strong); border-radius: 5px; overflow: hidden; }
+.seg button { font: 500 0.8rem var(--font-mono); background: var(--surface); color: var(--ink-2); border: 0; border-right: 1px solid var(--rule); padding: 0.32rem 0.6rem; cursor: pointer; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.seg button:hover:not([aria-pressed="true"]) { background: var(--surface-2); }
+select { font: 0.82rem var(--font-body); background: var(--surface); color: var(--ink); border: 1px solid var(--rule-strong); border-radius: 5px; padding: 0.3rem 0.4rem; max-width: 100%; }
+.check { display: inline-flex; gap: 0.4rem; align-items: center; font-size: 0.82rem; color: var(--ink-2); cursor: pointer; }
+.check input { accent-color: var(--ink); }
+.btn { font: 500 0.8rem var(--font-body); background: var(--surface); color: var(--ink); border: 1px solid var(--rule-strong); border-radius: 5px; padding: 0.32rem 0.7rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; }
+.btn:hover { background: var(--surface-2); }
+.changed { font-size: 0.75rem; color: var(--muted); font-family: var(--font-mono); }
+.changed b { color: var(--s-b200); font-weight: 500; }
+
+/* ---------- panels & charts ---------- */
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 1.1rem 1.2rem; display: grid; gap: 0.8rem; min-width: 0; }
+.panel-head { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: baseline; justify-content: space-between; }
+.panel-head h3 { font-size: var(--step-1); }
+.panel-sub { font-size: var(--step--1); color: var(--muted); }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr)); gap: 1rem; }
+.chart { width: 100%; min-width: 0; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; font-size: 0.8rem; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.legend i { width: 12px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend i.line { height: 2px; border-radius: 0; }
+.ax text, .lab { font-family: var(--font-body); font-size: 11px; fill: var(--muted); }
+.ax line, .ax path { stroke: var(--rule); }
+.ax .zero { stroke: var(--ink); stroke-width: 1.25; }
+.lab-ink { fill: var(--ink-2); font-size: 11px; font-family: var(--font-body); }
+.lab-strong { fill: var(--ink); font-size: 12px; font-family: var(--font-body); font-weight: 600; }
+.f-h100 { fill: var(--s-h100); } .f-b200 { fill: var(--s-b200); } .f-fp4 { fill: var(--s-fp4); }
+.st-h100 { stroke: var(--s-h100); } .st-b200 { stroke: var(--s-b200); } .st-fp4 { stroke: var(--s-fp4); }
+.bg-h100 { background: var(--s-h100); } .bg-b200 { background: var(--s-b200); } .bg-fp4 { background: var(--s-fp4); }
+.whisk { stroke: var(--ink-2); stroke-width: 1; }
+.mark { cursor: pointer; transition: opacity .12s; }
+.mark:hover, .mark:focus { opacity: 0.8; outline: none; }
+.mark.sel { stroke: var(--ink); stroke-width: 1.5; }
+.hit { fill: transparent; cursor: pointer; }
+.hit:focus { outline: none; stroke: var(--focus); stroke-width: 2; }
+.surface-ring { stroke: var(--surface); stroke-width: 2; }
+.thresh { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.tip { position: fixed; z-index: 50; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--rule-strong); border-radius: 6px; padding: 0.55rem 0.7rem; font-size: 0.8rem; box-shadow: 0 6px 24px rgba(0,0,0,.14); max-width: 19rem; display: grid; gap: 0.2rem; }
+.tip .t { font-weight: 600; font-size: 0.82rem; margin-bottom: 0.15rem; }
+.tip .r { display: grid; grid-template-columns: auto 1fr; gap: 0 0.7rem; align-items: baseline; }
+.tip .r b { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+.tip .r span { color: var(--muted); }
+.tip .hint { color: var(--muted); font-size: 0.72rem; margin-top: 0.2rem; }
+
+/* ---------- tables ---------- */
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+th, td { padding: 0.45rem 0.65rem; text-align: left; border-bottom: 1px solid var(--rule); white-space: nowrap; vertical-align: top; }
+th { font-weight: 600; font-size: 0.74rem; color: var(--ink-2); background: var(--surface-2); position: sticky; top: 0; }
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { color: var(--ink); }
+th .arr { color: var(--muted); font-family: var(--font-mono); margin-left: 0.25rem; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--font-mono); font-size: 0.78rem; }
+tbody tr:last-child td { border-bottom: 0; }
+tr.clickable { cursor: pointer; }
+tr.clickable:hover td { background: var(--surface-2); }
+tr.sel td { background: color-mix(in srgb, var(--s-h100) 10%, var(--surface)); }
+td a { text-decoration-color: var(--rule-strong); }
+.sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 0.4rem; vertical-align: 0; }
+.chip { display: inline-flex; gap: 0.25rem; align-items: center; font-family: var(--font-mono); font-size: 0.75rem; padding: 0.05rem 0.4rem; border-radius: 4px; border: 1px solid currentColor; }
+.chip.good { color: var(--good); } .chip.bad { color: var(--bad); }
+.est { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); border: 1px dashed var(--rule-strong); border-radius: 3px; padding: 0 0.25rem; margin-left: 0.3rem; }
+
+/* ---------- audit ---------- */
+.audit { display: grid; gap: 1rem; }
+.audit ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.9rem; counter-reset: step; }
+.audit li { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 0.6rem; counter-increment: step; min-width: 0; }
+.audit li::before { content: counter(step); font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); border: 1px solid var(--rule-strong); border-radius: 50%; width: 1.6rem; height: 1.6rem; display: grid; place-items: center; }
+.audit .eq { font-family: var(--font-mono); font-size: 0.82rem; background: var(--surface-2); border-radius: 4px; padding: 0.45rem 0.6rem; overflow-x: auto; white-space: nowrap; margin-top: 0.3rem; }
+.audit .eq b { font-weight: 500; color: var(--ink); }
+.audit li > div { min-width: 0; display: grid; gap: 0.35rem; }
+.audit h4 { margin: 0; font-size: 0.88rem; font-weight: 600; }
+.audit p, .audit .small { font-size: 0.85rem; color: var(--ink-2); }
+.audit .src { font-size: 0.78rem; color: var(--muted); }
+.audit details { font-size: 0.82rem; }
+.audit summary { cursor: pointer; color: var(--ink-2); }
+.audit .table-wrap { margin-top: 0.4rem; }
+
+/* ---------- method ---------- */
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.75rem; counter-reset: none; }
+.flow .node { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); padding: 0.8rem 0.9rem; display: grid; gap: 0.3rem; align-content: start; }
+.flow .node .k { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.flow .node .t { font-weight: 600; }
+.flow .node .d { font-size: 0.82rem; color: var(--ink-2); }
+.flow .node.out { border-color: var(--ink); }
+.formula { font-family: var(--font-mono); font-size: 0.85rem; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 1rem 1.1rem; overflow-x: auto; white-space: pre; line-height: 1.75; color: var(--ink); }
+.formula .c { color: var(--muted); }
+.glossary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); gap: 0 2.5rem; margin: 0; }
+.glossary div { padding-block: 0.85rem; border-top: 1px solid var(--rule); display: grid; gap: 0.25rem; }
+.glossary dt { font-weight: 600; }
+.glossary dd { margin: 0; color: var(--ink-2); font-size: 0.9rem; }
+.example { border-left: 3px solid var(--ink); padding: 0.2rem 0 0.2rem 1rem; display: grid; gap: 0.4rem; max-width: 68ch; }
+.example .eq { font-family: var(--font-mono); font-size: 0.85rem; overflow-x: auto; white-space: nowrap; color: var(--ink); }
+
+/* ---------- data ---------- */
+.tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.tabs button { font: 500 0.82rem var(--font-body); background: transparent; border: 1px solid var(--rule-strong); color: var(--ink-2); border-radius: 999px; padding: 0.3rem 0.8rem; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.toolbar input[type=search] { font: 0.85rem var(--font-body); background: var(--surface); color: var(--ink); border: 1px solid var(--rule-strong); border-radius: 5px; padding: 0.35rem 0.6rem; min-width: 0; width: 16rem; max-width: 100%; }
+.toolbar .count { font-size: var(--step--1); color: var(--muted); font-family: var(--font-mono); }
+.pager { display: flex; gap: 0.5rem; align-items: center; font-size: var(--step--1); color: var(--muted); }
+.ds-desc { font-size: 0.88rem; color: var(--ink-2); max-width: 75ch; }
+.ds-table { max-height: 34rem; overflow: auto; }
+
+/* ---------- caveats ---------- */
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 2rem; }
+.list { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.6rem; color: var(--ink-2); font-size: 0.92rem; }
+.list strong { color: var(--ink); font-weight: 600; }
+footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5rem; display: grid; gap: 0.5rem; font-size: var(--step--1); color: var(--muted); }
+.verify { display: inline-flex; gap: 0.4rem; align-items: center; }
+</style>
+
+<nav class="nav" aria-label="Sections">
+  <div class="nav-inner">
+    <a class="brand" href="#top">Token Spread</a>
+    <div class="nav-links">
+      <a href="#findings">Findings</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#explore">Model explorer</a>
+      <a href="#method">Method</a>
+      <a href="#data">Data</a>
+      <a href="#caveats">Caveats</a>
+    </div>
+    <span class="nav-date" id="nav-date"></span>
+  </div>
+</nav>
+
+<main>
+  <section class="hero" id="top">
+    <div class="eyebrow" id="hero-eyebrow">Open-weight LLM inference · H100 and B200</div>
+    <h1>What is a GPU-hour worth in tokens?</h1>
+    <p class="lede">A GPU-hour has a market rental price. It also has a value as a factory for tokens:
+      run an open-weight model on it, sell the output at public API prices, and see what it earns.
+      The gap between those two numbers is the <strong>token spread</strong>.</p>
+    <div class="verdict" id="verdict"></div>
+    <div class="board" id="board" aria-label="Current inputs"></div>
+  </section>
+
+  <section id="findings">
+    <div class="section-head">
+      <div class="eyebrow">Findings</div>
+      <h2>What the latest data says</h2>
+      <p class="lede" id="findings-lede"></p>
+    </div>
+    <div class="findings" id="findings-list"></div>
+    <p class="note">These sentences are generated from the data on every rebuild, at the base assumptions in
+      <code>assumptions.yaml</code>. Move the controls in the dashboard to test how robust each one is.</p>
+  </section>
+
+  <section id="dashboard">
+    <div class="section-head">
+      <div class="eyebrow">Dashboard</div>
+      <h2>Change the assumptions, watch the spread move</h2>
+      <p class="lede">Every number below is recomputed in your browser from the raw inputs, with the same rules as the
+        Python pipeline. Click any bar or table row to see the full calculation and its sources.</p>
+    </div>
+
+    <div class="controls" id="controls" role="group" aria-label="Assumptions">
+      <div class="ctl">
+        <label for="c-util">Utilization</label>
+        <input type="range" id="c-util" min="0.1" max="1" step="0.05">
+        <span class="val" id="v-util"></span>
+      </div>
+      <div class="ctl">
+        <span class="lbl" id="l-ratio">Input : output tokens</span>
+        <div class="seg" id="c-ratio" role="group" aria-labelledby="l-ratio"></div>
+      </div>
+      <div class="ctl">
+        <label for="c-floor">Min. speed per user</label>
+        <input type="range" id="c-floor" min="0" max="100" step="5">
+        <span class="val" id="v-floor"></span>
+      </div>
+      <div class="ctl">
+        <span class="lbl" id="l-price">API price</span>
+        <div class="seg" id="c-price" role="group" aria-labelledby="l-price"></div>
+      </div>
+      <div class="ctl">
+        <label for="c-rental">Rental price</label>
+        <select id="c-rental"></select>
+      </div>
+      <div class="ctl">
+        <span class="lbl">Serving options</span>
+        <label class="check"><input type="checkbox" id="c-spec"> Speculative decoding</label>
+        <label class="check"><input type="checkbox" id="c-multi"> Multi-node serving</label>
+      </div>
+      <div class="ctl">
+        <button class="btn" id="c-reset" type="button">Reset to base</button>
+        <span class="changed" id="changed"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3 id="spread-title">Spread ratio by model and GPU</h3>
+          <div class="panel-sub" id="spread-sub"></div>
+        </div>
+        <div class="seg" id="c-metric" role="group" aria-label="Metric"></div>
+      </div>
+      <div class="legend" id="spread-legend"></div>
+      <div class="chart" id="chart-spread"></div>
+      <div class="note">Bars start at breakeven. Whiskers run from the cheapest to the most expensive OpenRouter provider.
+        Click a bar to audit it.</div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="results-table"></table>
+    </div>
+
+    <div class="panel" id="audit-panel">
+      <div class="panel-head">
+        <div>
+          <h3 id="audit-title">Show the math</h3>
+          <div class="panel-sub">Every step of one calculation, with the inputs and where they came from.</div>
+        </div>
+        <select id="audit-pick" aria-label="Case to audit"></select>
+      </div>
+      <div class="audit" id="audit"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h3>B200 vs H100: earning power vs rent</h3>
+            <div class="panel-sub">How many H100-hours of token revenue one B200-hour produces, against how many H100-hours it costs to rent.</div>
+          </div>
+        </div>
+        <div class="chart" id="chart-rel"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h3>Over time</h3>
+            <div class="panel-sub">Spread ratio at base assumptions, one point per daily snapshot.</div>
+          </div>
+        </div>
+        <div class="legend" id="ts-legend"></div>
+        <div class="chart" id="chart-ts"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="explore">
+    <div class="section-head">
+      <div class="eyebrow">Model explorer</div>
+      <h2>One model, in detail</h2>
+      <p class="lede">See the benchmark curve the throughput comes from, how sensitive the spread is, and how each
+        API provider's price changes the answer. Uses the dashboard settings above.</p>
+    </div>
+    <div class="toolbar">
+      <div class="ctl"><label for="x-model">Model</label><select id="x-model"></select></div>
+      <div class="ctl"><span class="lbl" id="l-seq">Benchmark sequence (input/output tokens)</span><div class="seg" id="x-seq" role="group" aria-labelledby="l-seq"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Throughput vs speed per user</h3>
+          <div class="panel-sub" id="frontier-sub"></div>
+        </div>
+      </div>
+      <div class="legend" id="frontier-legend"></div>
+      <div class="chart" id="chart-frontier"></div>
+      <div class="note">Each dot is one InferenceX benchmark run at one concurrency level. Serving more users at once raises
+        throughput per GPU but slows each user's stream. Ringed dots are the points the spread uses: the highest throughput
+        to the right of the speed floor. Click a dot to open its benchmark run on GitHub.</div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Sensitivity: utilization × input:output mix</h3>
+          <div class="panel-sub">Spread ratio in each cell. Blue is above breakeven, red below. <span class="est">~</span> marks throughput that is interpolated or held flat rather than measured.</div>
+        </div>
+      </div>
+      <div class="grid-2" id="heatmaps"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Every provider's price, on both GPUs</h3>
+          <div class="panel-sub" id="prov-sub"></div>
+        </div>
+      </div>
+      <div class="legend" id="prov-legend"></div>
+      <div class="chart" id="chart-prov"></div>
+    </div>
+  </section>
+
+  <section id="method">
+    <div class="section-head">
+      <div class="eyebrow">Method</div>
+      <h2>How the spread is calculated</h2>
+      <p class="lede">Four public inputs, one multiplication chain. Each step is simple; the uncertainty lives in the inputs.</p>
+    </div>
+    <div class="flow" aria-label="Calculation steps">
+      <div class="node"><span class="k">Input · OpenRouter</span><span class="t">API price per million tokens</span><span class="d">Separate input and output prices for each provider serving the model.</span></div>
+      <div class="node"><span class="k">Step</span><span class="t">Blended price</span><span class="d">Weight input and output prices by the traffic mix, e.g. 3 input tokens per output token.</span></div>
+      <div class="node"><span class="k">Input · InferenceX</span><span class="t">Throughput per GPU</span><span class="d">Tokens per second one GPU processes at the chosen speed-per-user floor.</span></div>
+      <div class="node"><span class="k">Step</span><span class="t">Tokens per GPU-hour</span><span class="d">Throughput × 3,600 seconds × utilization.</span></div>
+      <div class="node out"><span class="k">Result</span><span class="t">Implied revenue per GPU-hour</span><span class="d">Tokens per hour ÷ 1,000,000 × blended price.</span></div>
+      <div class="node"><span class="k">Input · Silicon Data</span><span class="t">Rental price per GPU-hour</span><span class="d">Neocloud on-demand index, the basis of CME's GPU futures.</span></div>
+      <div class="node out"><span class="k">Result</span><span class="t">Token spread and ratio</span><span class="d">Revenue minus rental, and revenue divided by rental.</span></div>
+    </div>
+<div class="formula" aria-label="Formulas"><span class="c"># r = input tokens per output token</span>
+blended_price_per_Mtok       = (r × input_price + output_price) / (r + 1)
+tokens_per_gpu_hour          = throughput_tok_s_per_gpu × 3600 × utilization
+implied_revenue_per_gpu_hour = tokens_per_gpu_hour / 1,000,000 × blended_price_per_Mtok
+token_spread                 = implied_revenue_per_gpu_hour − rental_price_per_gpu_hour
+spread_ratio                 = implied_revenue_per_gpu_hour ÷ rental_price_per_gpu_hour
+breakeven_utilization        = rental_price ÷ (revenue at 100% utilization)</div>
+    <div class="example" id="worked-example"></div>
+
+    <div class="section-head"><h3>Concepts</h3></div>
+    <dl class="glossary">
+      <div><dt>Token</dt><dd>The unit LLMs read and write, roughly ¾ of an English word. APIs charge per million tokens.</dd></div>
+      <div><dt>Input vs output tokens</dt><dd>Input (prompt) tokens are processed in parallel and are cheap to serve. Output tokens are generated one at a time and cost more, so providers price them 2–6× higher.</dd></div>
+      <div><dt>Blended price</dt><dd>One price per million tokens that mixes input and output prices in the proportions real traffic has. Chat and coding traffic is input-heavy, often 3:1 to 10:1.</dd></div>
+      <div><dt>Open-weight model</dt><dd>A model whose weights are published, so anyone can serve it and anyone can benchmark it. Closed models hide their hardware, so they are left out.</dd></div>
+      <div><dt>Dense vs mixture-of-experts (MoE)</dt><dd>A dense model uses all its weights for every token. An MoE model routes each token through a few "experts", so a 397B-parameter model may only use 17B per token, which makes it cheaper to run than its size suggests.</dd></div>
+      <div><dt>Throughput per GPU</dt><dd>Total tokens (input + output) a GPU processes per second, divided across every GPU in the serving setup.</dd></div>
+      <div><dt>Speed per user (interactivity)</dt><dd>Output tokens per second one user sees streaming back. Below roughly 20–30 tokens/s a chat feels slow.</dd></div>
+      <div><dt>Concurrency and the operating point</dt><dd>Serving more requests at once raises throughput per GPU but slows each stream. The operating point is where on that trade-off curve you run. We take the highest-throughput point that keeps each user above the speed floor.</dd></div>
+      <div><dt>Utilization</dt><dd>The share of paid hours spent serving at that operating point. Real fleets idle at night and keep headroom for traffic spikes.</dd></div>
+      <div><dt>Precision (bf16, fp8, fp4)</dt><dd>How many bits each weight uses. Fewer bits mean more throughput but can cost a little quality. B200 has hardware fp4 support; H100 does not.</dd></div>
+      <div><dt>Speculative decoding (MTP)</dt><dd>A small draft model or extra prediction heads guess several tokens ahead, and the main model verifies them in one pass. Common in production, and it raises throughput at a given speed per user.</dd></div>
+      <div><dt>Disaggregated, multi-node serving</dt><dd>Splitting prompt processing and token generation onto different GPUs, sometimes across machines. Needed for very large models such as DeepSeek-R1 on H100.</dd></div>
+      <div><dt>GPU rental index</dt><dd>Silicon Data publishes daily H100 (SDH100RT) and B200 (SDB200RT) on-demand rental indices from neoclouds. CME launched cash-settled futures on them (GPU1, GPU2) on 5 October 2026.</dd></div>
+      <div><dt>Owner TCO</dt><dd>What a GPU-hour costs someone who owns the hardware at hyperscaler scale: depreciation, power, hosting. SemiAnalysis estimates this for InferenceX. It is a floor under rental prices.</dd></div>
+      <div><dt>Token spread and spread ratio</dt><dd>Spread = implied revenue − rental, in dollars per GPU-hour. Ratio = revenue ÷ rental. A ratio of 2× means a GPU-hour earns twice its rent at list API prices.</dd></div>
+      <div><dt>Breakeven utilization</dt><dd>The utilization at which revenue equals rent. Above 100% means the model cannot pay its rent on that GPU at market prices, however busy it is.</dd></div>
+    </dl>
+
+    <div class="section-head"><h3>Choices and defaults</h3></div>
+    <div class="table-wrap"><table id="assumptions-table"></table></div>
+
+    <div class="section-head"><h3>Update cadence</h3></div>
+    <div class="table-wrap"><table id="cadence-table"></table></div>
+  </section>
+
+  <section id="data">
+    <div class="section-head">
+      <div class="eyebrow">Data</div>
+      <h2>Every input, every row</h2>
+      <p class="lede">The raw rows behind every number on this page. Each row carries its source link and retrieval date.
+        Search, sort, copy as CSV, or open the files in the repository.</p>
+    </div>
+    <div class="tabs" role="tablist" id="ds-tabs"></div>
+    <p class="ds-desc" id="ds-desc"></p>
+    <div class="toolbar">
+      <input type="search" id="ds-search" placeholder="Filter rows…" aria-label="Filter rows">
+      <span class="count" id="ds-count"></span>
+      <button class="btn" type="button" id="ds-copy">Copy CSV</button>
+      <button class="btn" type="button" id="ds-download" hidden>Download CSV</button>
+      <a class="btn" id="ds-github" target="_blank" rel="noopener">File on GitHub ↗</a>
+      <span class="count" id="ds-msg" role="status"></span>
+    </div>
+    <div class="table-wrap ds-table"><table id="ds-table"></table></div>
+    <div class="pager" id="ds-pager"></div>
+  </section>
+
+  <section id="caveats">
+    <div class="section-head">
+      <div class="eyebrow">Caveats</div>
+      <h2>Gaps, uncertainties, and what would fix them</h2>
+    </div>
+    <div class="cols">
+      <div class="prose"><h3>Data gaps in this build</h3><ul class="list" id="gaps"></ul></div>
+      <div class="prose"><h3>Biggest uncertainties</h3>
+        <ul class="list">
+          <li><strong>Which point on the throughput curve.</strong> Dropping the speed floor can double throughput per GPU. Benchmarks use random data at fixed lengths; production traffic has prefix-cache hits, bursts and long-context tails.</li>
+          <li><strong>Configurations differ across GPUs.</strong> The best published point may use speculative decoding on one GPU and not the other, or multi-node serving. Part of the B200 advantage may be better-tuned software, not silicon.</li>
+          <li><strong>Stale benchmarks.</strong> Some model and GPU pairs have not been re-run for months; inference software improves fast, so their throughput is likely understated.</li>
+          <li><strong>Unmeasured mixes.</strong> 3:1 is interpolated between the measured 1:1 and 8:1 points; 10:1 is held at 8:1.</li>
+          <li><strong>List prices and on-demand rents.</strong> OpenRouter shows public per-token prices without volume or cache discounts. Rental is the neocloud on-demand index; term contracts are cheaper.</li>
+          <li><strong>Revenue is not margin.</strong> The spread leaves out CPU hosts, networking, storage, staff, idle peak capacity and the API marketplace's fee.</li>
+        </ul>
+      </div>
+      <div class="prose"><h3>What would most improve v1</h3>
+        <ul class="list">
+          <li><strong>Production throughput</strong> from providers' own disclosures, or OpenRouter's measured throughput per endpoint.</li>
+          <li><strong>Matched benchmark configurations</strong> across GPUs, plus a measured 3:1 sequence.</li>
+          <li><strong>Rental index history and term prices</strong>, to backfill the time series and compare on-demand with reserved capacity.</li>
+          <li><strong>Which hardware each provider runs</strong>, so each provider's spread uses its real GPU.</li>
+          <li><strong>A small model</strong> (8B class) and the newest MoE models once H100 benchmarks exist for them.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div><span class="verify" id="verify"></span></div>
+    <div id="footer-meta"></div>
+    <div>Method and code: <a id="repo-link" target="_blank" rel="noopener">token_spread on GitHub</a>. Re-run with
+      <code>python fetch/run_all.py && python compute.py && python build_site.py</code>.</div>
+  </footer>
+</main>
+
+<div class="tip" id="tip" hidden></div>
+
+<script id="ts-data" type="application/json">__TOKEN_SPREAD_DATA__</script>
+<script>
+"use strict";
+const D = JSON.parse(document.getElementById("ts-data").textContent);
+const CFG = D.config;
+const MODELS = CFG.models;
+const GPUS = CFG.gpus;
+const RATIOS = [[0.125, "1:8"], [1, "1:1"], [3, "3:1"], [8, "8:1"], [10, "10:1"]];
+const RENTAL_LABEL = {
+  silicondata_index_faq: "Silicon Data index (page text)",
+  silicondata_index_widget: "Silicon Data index (widget)",
+  inferencex_retail: "InferenceX retail estimate",
+  inferencex_owner_tco: "Owner TCO (SemiAnalysis)",
+};
+
+/* ===================== ENGINE START (mirrors compute.py) ===================== */
+const ENGINE = (() => {
+  function median(a) {
+    const s = [...a].sort((x, y) => x - y), n = s.length;
+    if (!n) return NaN;
+    return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
+  }
+  const blend = (p, r) => (r * p.inp + p.out) / (r + 1);
+  const excluded = new Set(CFG.exclude_providers || []);
+  function prices(m) {
+    return D.prices.filter(p => p.m === m && p.inp != null && p.out != null && !excluded.has(p.provider));
+  }
+  function priceStats(ps, r) {
+    const b = ps.map(p => blend(p, r));
+    return { n: b.length, min: Math.min(...b), median: median(b), max: Math.max(...b) };
+  }
+  const index = new Map();
+  for (const t of D.tput) {
+    const k = t.m + "|" + t.gpu + "|" + t.prec;
+    if (!index.has(k)) index.set(k, []);
+    index.get(k).push(t);
+  }
+  function rows(m, gpu, prec, st) {
+    return (index.get(m + "|" + gpu + "|" + prec) || [])
+      .filter(t => (st.spec || t.spec === "none") && (st.multi || (!t.disagg && !t.multi)));
+  }
+  function opPoints(rs, floor) {
+    const groups = new Map();
+    for (const r of rs) {
+      const k = r.isl + "/" + r.osl;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(r);
+    }
+    const best = arr => arr.reduce((a, b) => (b.tput > a.tput ? b : a));
+    const out = { floor: [], max: [] };
+    for (const g of groups.values()) {
+      const base = { isl: g[0].isl, osl: g[0].osl, ratio: g[0].isl / g[0].osl };
+      const f = g.filter(r => r.intv >= floor);
+      if (f.length) out.floor.push({ ...base, row: best(f) });
+      out.max.push({ ...base, row: best(g) });
+    }
+    out.floor.sort((a, b) => a.ratio - b.ratio);
+    out.max.sort((a, b) => a.ratio - b.ratio);
+    return out;
+  }
+  function tputAt(pts, ratio) {
+    if (!pts.length) return { tput: NaN, est: true, basis: "no benchmark", used: [] };
+    const x = Math.log(ratio), xs = pts.map(p => Math.log(p.ratio));
+    for (let i = 0; i < pts.length; i++) {
+      if (Math.abs(xs[i] - x) < 1e-9)
+        return { tput: pts[i].row.tput, est: false, basis: `measured ${pts[i].isl}/${pts[i].osl}`, used: [{ p: pts[i], w: 1 }] };
+    }
+    if (x <= xs[0] || x >= xs[xs.length - 1]) {
+      const p = x <= xs[0] ? pts[0] : pts[pts.length - 1];
+      return { tput: p.row.tput, est: true, basis: `held flat at nearest measured ${p.isl}/${p.osl}`, used: [{ p, w: 1 }] };
+    }
+    let j = xs.findIndex(v => v >= x);
+    const a = pts[j - 1], b = pts[j];
+    const w = (x - xs[j - 1]) / (xs[j] - xs[j - 1]);
+    return { tput: a.row.tput + (b.row.tput - a.row.tput) * w, est: true,
+             basis: `log-interp ${a.isl}/${a.osl}–${b.isl}/${b.osl}`, used: [{ p: a, w: 1 - w }, { p: b, w }] };
+  }
+  function rental(gpu, series) {
+    const rs = D.rental.filter(r => r.gpu === gpu);
+    const base = rs.find(r => r.series === series);
+    const market = rs.filter(r => !r.series.includes("owner_tco")).map(r => r.price);
+    const owner = rs.filter(r => r.series.includes("owner_tco")).map(r => r.price);
+    return { base: base ? base.price : NaN, row: base, low: Math.min(...market), high: Math.max(...market),
+             owner: owner.length ? Math.min(...owner) : NaN };
+  }
+  function cases() {
+    const out = [];
+    for (const m of MODELS) {
+      for (const g of GPUS) out.push({ m, gpu: g, prec: m.base_precision[g], kind: "base" });
+      for (const v of m.variants || []) out.push({ m, gpu: v.gpu, prec: v.precision, kind: "variant" });
+    }
+    return out;
+  }
+  function evaluate(c, st, ratio = st.ratio, util = st.util) {
+    const rs = rows(c.m.key, c.gpu, c.prec, st);
+    const op = opPoints(rs, st.floor);
+    const tf = tputAt(op.floor, ratio), tm = tputAt(op.max, ratio);
+    const ps = prices(c.m.key);
+    const pst = priceStats(ps, ratio);
+    const price = pst[st.price];
+    const R = rental(c.gpu, st.rental);
+    const tokH = tf.tput * 3600 * util;
+    const rev = tokH / 1e6 * price;
+    const rev100 = tf.tput * 3600 / 1e6 * price;
+    return {
+      c, ratio, util, op, tf, tm, ps, pst, price, R, tokH, rev,
+      revMin: tokH / 1e6 * pst.min, revMax: tokH / 1e6 * pst.max,
+      revMaxTput: tm.tput * 3600 * util / 1e6 * price,
+      spread: rev - R.base, sratio: rev / R.base,
+      sMin: tokH / 1e6 * pst.min / R.base, sMax: tokH / 1e6 * pst.max / R.base,
+      breakeven: rev100 ? R.base / rev100 : NaN,
+      blend: p => blend(p, ratio),
+    };
+  }
+  return { cases, evaluate, prices, priceStats, rows, opPoints, tputAt, rental, median, blend };
+})();
+/* ===================== ENGINE END ===================== */
+
+const BASE = {
+  util: CFG.utilization_base, ratio: CFG.io_ratio_base, floor: CFG.interactivity_floor_tok_s_per_user,
+  price: CFG.price_statistic, rental: CFG.rental_base_series,
+  spec: CFG.allow_speculative_decoding, multi: CFG.allow_disaggregated_multinode,
+};
+const state = { ...BASE, metric: "ratio", sel: null, model: MODELS[0].key, seq: "1024/1024" };
+const CASES = ENGINE.cases();
+const caseId = c => `${c.m.key}|${c.gpu}|${c.prec}`;
+state.sel = caseId(CASES[0]);
+
+/* ---------- formatting ---------- */
+const nf = (d) => new Intl.NumberFormat("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmtUSD = (v, d = 2) => !isFinite(v) ? "–" : (v < 0 ? "−$" : "$") + nf(d).format(Math.abs(v));
+const fmtX = (v, d = 2) => !isFinite(v) ? "–" : nf(d).format(v) + "×";
+const fmtInt = v => !isFinite(v) ? "–" : nf(0).format(v);
+const fmtPct = v => !isFinite(v) ? "–" : nf(0).format(v * 100) + "%";
+const fmtRatio = r => (RATIOS.find(x => Math.abs(x[0] - r) < 1e-9) || [0, r + ":1"])[1];
+const fmtDate = s => { if (!s) return "–"; const d = new Date(s + "T00:00:00Z"); return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }); };
+const gpuName = g => g.toUpperCase();
+const seriesCls = c => c.gpu === "h100" ? "h100" : (c.kind === "variant" ? "fp4" : "b200");
+const caseLabel = c => `${gpuName(c.gpu)} ${c.prec}`;
+
+/* ---------- DOM helpers ---------- */
+const $ = id => document.getElementById(id);
+function h(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k === "text") e.textContent = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids.flat()) if (k != null) e.append(k instanceof Node ? k : document.createTextNode(String(k)));
+  return e;
+}
+const SVGNS = "http://www.w3.org/2000/svg";
+function s(tag, attrs = {}, parent) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) if (v != null) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function st(parent, x, y, str, attrs = {}) { const t = s("text", { x, y, ...attrs }, parent); t.textContent = str; return t; }
+function link(href, text) { return h("a", { href, target: "_blank", rel: "noopener", text }); }
+
+/* ---------- tooltip ---------- */
+const tip = $("tip");
+function tipFill(title, rows, hint) {
+  tip.replaceChildren(h("div", { class: "t", text: title }));
+  for (const [k, v] of rows) tip.append(h("div", { class: "r" }, h("b", { text: v }), h("span", { text: k })));
+  if (hint) tip.append(h("div", { class: "hint", text: hint }));
+  tip.hidden = false;
+}
+function tipPlace(x, y) {
+  const r = tip.getBoundingClientRect(), pad = 14;
+  let left = x + pad, top = y + pad;
+  if (left + r.width > innerWidth - 8) left = x - r.width - pad;
+  if (top + r.height > innerHeight - 8) top = y - r.height - pad;
+  tip.style.left = Math.max(8, left) + "px"; tip.style.top = Math.max(8, top) + "px";
+}
+function bindTip(el, fn) {
+  el.addEventListener("pointermove", e => { const [t, r, hnt] = fn(); tipFill(t, r, hnt); tipPlace(e.clientX, e.clientY); });
+  el.addEventListener("pointerleave", () => { tip.hidden = true; });
+  el.addEventListener("focus", () => { const [t, r, hnt] = fn(); tipFill(t, r, hnt); const b = el.getBoundingClientRect(); tipPlace(b.right, b.top); });
+  el.addEventListener("blur", () => { tip.hidden = true; });
+}
+addEventListener("scroll", () => { tip.hidden = true; }, { passive: true });
+
+/* ---------- scales ---------- */
+function logScale(lo, hi, a, b) { const l0 = Math.log2(lo), l1 = Math.log2(hi); return v => a + (Math.log2(v) - l0) / (l1 - l0) * (b - a); }
+function linScale(lo, hi, a, b) { return v => a + (v - lo) / (hi - lo) * (b - a); }
+function niceStep(range, target) {
+  const raw = range / target, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const n = raw / mag; return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * mag;
+}
+function linTicks(lo, hi, target = 5) { const step = niceStep(hi - lo, target), out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10)); return out; }
+const pow2Ticks = (lo, hi) => { const out = []; for (let e = Math.ceil(Math.log2(lo) - 1e-9); e <= Math.floor(Math.log2(hi) + 1e-9); e++) out.push(Math.pow(2, e)); return out; };
+const fmtTickX = v => v >= 1 ? v + "×" : (v === 0.5 ? "½×" : v === 0.25 ? "¼×" : v === 0.125 ? "⅛×" : v + "×");
+const widthOf = el => Math.max(300, Math.floor(el.clientWidth || el.parentElement.clientWidth || 600));
+
+/* ================= compute all ================= */
+let RESULTS = [];
+function computeAll() { RESULTS = CASES.map(c => ENGINE.evaluate(c, state)); }
+const resultFor = id => RESULTS.find(r => caseId(r.c) === id);
+
+/* ================= hero + findings (base assumptions) ================= */
+function renderStatic() {
+  const base = CASES.map(c => ENGINE.evaluate(c, BASE));
+  const by = (m, g, kind = "base") => base.find(r => r.c.m.key === m && r.c.gpu === g && r.c.kind === kind);
+  const rH = ENGINE.rental("h100", BASE.rental), rB = ENGINE.rental("b200", BASE.rental);
+  const rentRatio = rB.base / rH.base;
+  const rel = MODELS.map(m => ({ m: m.key, v: by(m.key, "b200").rev / by(m.key, "h100").rev })).filter(x => isFinite(x.v));
+  const relMin = Math.min(...rel.map(x => x.v)), relMax = Math.max(...rel.map(x => x.v));
+  const dd = D.meta.data_date;
+
+  $("nav-date").textContent = "Data " + fmtDate(dd);
+  $("hero-eyebrow").textContent = `Open-weight LLM inference · H100 and B200 · data as of ${fmtDate(dd)}`;
+  const v = $("verdict");
+  v.replaceChildren(
+    h("div", { class: "fig" }, h("div", { class: "big", text: fmtX(rentRatio) }),
+      h("div", { class: "cap", text: `What a B200-hour rents for, in H100-hours (Silicon Data: ${fmtUSD(rB.base)} vs ${fmtUSD(rH.base)}).` })),
+    h("div", { class: "vs", text: "vs" }),
+    h("div", { class: "fig tokens" }, h("div", { class: "big", text: `${nf(1).format(relMin)}–${nf(1).format(relMax)}×` }),
+      h("div", { class: "cap", text: `What a B200-hour earns in H100-hours, serving the same model at the same precision and market API prices.` })),
+  );
+  const hRev = base.filter(r => r.c.gpu === "h100").map(r => r.rev), bRev = base.filter(r => r.c.gpu === "b200" && r.c.kind === "base").map(r => r.rev);
+  const cells = [
+    ["SDH100RT", fmtUSD(rH.base) + "/h", "H100 rental index"],
+    ["SDB200RT", fmtUSD(rB.base) + "/h", "B200 rental index"],
+    ["H100 earns", `${fmtUSD(Math.min(...hRev))}–${fmtUSD(Math.max(...hRev))}`, "per hour, by model"],
+    ["B200 earns", `${fmtUSD(Math.min(...bRev))}–${fmtUSD(Math.max(...bRev))}`, "per hour, by model"],
+    ["Models", String(MODELS.length), "open-weight, 70B–671B"],
+    ["API quotes", fmtInt(D.prices.length), "OpenRouter endpoints"],
+    ["Benchmarks", fmtInt(D.tput.length), `newest ${fmtDate(D.meta.newest_benchmark)}`],
+  ];
+  $("board").replaceChildren(...cells.map(([k, val, d]) => h("div", {}, h("span", { class: "k", text: k }), h("span", { class: "v", text: val }), h("span", { class: "d", text: d }))));
+
+  // findings
+  $("findings-lede").textContent = `At base assumptions: ${BASE.ratio}:1 input:output tokens, ${fmtPct(BASE.util)} utilization, at least ${BASE.floor} tokens/s per user, the ${BASE.price} provider price, and the Silicon Data rental index.`;
+  const F = [];
+  F.push({
+    stat: `${nf(1).format(relMin)}–${nf(1).format(relMax)}× vs ${fmtX(rentRatio)}`,
+    title: "The rental market undercharges for B200, relative to its earning power",
+    text: `A B200-hour produces ${nf(1).format(relMin)}–${nf(1).format(relMax)}× the token revenue of an H100-hour across the ${rel.length} models, but rents for only ${fmtX(rentRatio)} as much. ` +
+      (relMin > rentRatio ? "On every model, tokens value the B200 premium above what renters pay. Either B200 is cheap or H100 is dear." : "The gap is not uniform: some models are close to the rental ratio."),
+    href: "#chart-rel",
+  });
+  const hb = MODELS.map(m => by(m.key, "h100")).filter(Boolean);
+  const below = hb.filter(r => r.sratio < 1), near = hb.filter(r => r.sratio >= 1 && r.sratio < 1.25);
+  F.push({
+    stat: `${below.length} of ${hb.length}`,
+    title: "On H100, many models can't pay their rent at market prices",
+    text: (below.length ? `${below.map(r => `${r.c.m.key} (${fmtX(r.sratio)})`).join(" and ")} earn less than an H100 rents for; they would need ${below.map(r => fmtPct(r.breakeven)).join(" and ")} utilization to break even. ` : "Every model covers its H100 rent. ") +
+      (near.length ? `${near.map(r => `${r.c.m.key} (${fmtX(r.sratio)})`).join(", ")} barely ${near.length > 1 ? "break" : "breaks"} even.` : ""),
+    href: "#dashboard",
+  });
+  const bb = MODELS.map(m => by(m.key, "b200")).filter(Boolean);
+  const bAbove = bb.filter(r => r.sratio > 1);
+  const fp4 = base.filter(r => r.c.kind === "variant");
+  F.push({
+    stat: `${bAbove.length} of ${bb.length}`,
+    title: "On B200, every model clears its rent",
+    text: `At base precision, B200 ratios run from ${fmtX(Math.min(...bb.map(r => r.sratio)))} to ${fmtX(Math.max(...bb.map(r => r.sratio)))}, with breakeven utilization of ${fmtPct(Math.min(...bb.map(r => r.breakeven)))}–${fmtPct(Math.max(...bb.map(r => r.breakeven)))}.` +
+      (fp4.length ? ` Serving at fp4 lifts the range to ${fmtX(Math.min(...fp4.map(r => r.sratio)))}–${fmtX(Math.max(...fp4.map(r => r.sratio)))}.` : ""),
+    href: "#dashboard",
+  });
+  if (bAbove.length < bb.length) F[2].title = `On B200, ${bAbove.length} of ${bb.length} models clear their rent`;
+  const top = [...bb].sort((a, b) => b.sratio - a.sratio)[0];
+  const topH = by(top.c.m.key, "h100");
+  F.push({
+    stat: fmtX(top.sratio),
+    title: `${top.c.m.key} has the widest spread`,
+    text: `It sells at ${fmtUSD(top.price)} per million tokens (blended), high for its throughput of ${fmtInt(top.tf.tput)} tokens/s per B200 and ${fmtInt(topH.tf.tput)} per H100. It earns ${fmtUSD(top.rev)} per B200-hour against ${fmtUSD(top.R.base)} rent.`,
+    href: "#explore",
+  });
+  let widest = null;
+  for (const r of base.filter(r => r.c.kind === "base")) {
+    const sp = r.sMax / r.sMin;
+    if (!widest || sp > widest.sp) widest = { r, sp };
+  }
+  const cheap = ENGINE.prices(widest.r.c.m.key).map(p => ({ p, b: widest.r.blend(p) })).sort((a, b) => a.b - b.b);
+  F.push({
+    stat: `${fmtX(widest.r.sMin)} to ${fmtX(widest.r.sMax)}`,
+    title: "Provider prices matter as much as the GPU",
+    text: `For ${widest.r.c.m.key} on ${gpuName(widest.r.c.gpu)}, the spread ratio runs from ${fmtX(widest.r.sMin)} at the cheapest provider (${cheap[0].p.provider}) to ${fmtX(widest.r.sMax)} at the most expensive (${cheap[cheap.length - 1].p.provider}). Providers pricing near or below rental cost probably own their hardware, run cheaper capacity, or subsidise.`,
+    href: "#explore",
+  });
+  $("findings-list").replaceChildren(...F.map(f => h("article", { class: "finding" },
+    h("div", { class: "stat", text: f.stat }), h("h3", { text: f.title }), h("p", { text: f.text }),
+    h("a", { class: "more", href: f.href, text: "See the data →" }))));
+
+  // worked example: first model on H100 at base
+  const ex = by(MODELS[0].key, "h100");
+  $("worked-example").replaceChildren(
+    h("h3", { text: `Worked example: ${ex.c.m.key} on ${caseLabel(ex.c)}, base assumptions` }),
+    h("div", { class: "eq", text: `blended price  = median over ${ex.pst.n} providers at ${fmtRatio(ex.ratio)} = ${fmtUSD(ex.price, 3)} per million tokens` }),
+    h("div", { class: "eq", text: `tokens / hour  = ${fmtInt(ex.tf.tput)} tok/s × 3,600 × ${fmtPct(ex.util)} = ${nf(2).format(ex.tokH / 1e6)} M tokens` }),
+    h("div", { class: "eq", text: `revenue / hour = ${nf(2).format(ex.tokH / 1e6)} M × ${fmtUSD(ex.price, 3)} = ${fmtUSD(ex.rev)}` }),
+    h("div", { class: "eq", text: `spread         = ${fmtUSD(ex.rev)} − ${fmtUSD(ex.R.base)} rent = ${fmtUSD(ex.spread)}   (ratio ${fmtX(ex.sratio)}, breakeven at ${fmtPct(ex.breakeven)} utilization)` }),
+  );
+
+  // engine check against compute.py
+  let ok = 0, n = 0;
+  for (const p of D.python_summary) {
+    const r = base.find(r => r.c.m.key === p.m && r.c.gpu === p.gpu && r.c.prec === p.prec);
+    if (!r) continue; n++;
+    if (Math.abs(r.rev - p.revenue) <= 1e-6 * Math.max(1, Math.abs(p.revenue))) ok++;
+  }
+  $("verify").replaceChildren(h("span", { class: "chip " + (ok === n ? "good" : "bad"), text: ok === n ? "✓ verified" : "✗ mismatch" }),
+    ` The in-browser engine reproduces compute.py for ${ok} of ${n} base cases.`);
+  $("footer-meta").textContent = `Prices retrieved ${fmtDate(D.meta.prices_retrieved)} · rental retrieved ${fmtDate(D.meta.rental_retrieved)} · benchmarks retrieved ${fmtDate(D.meta.throughput_retrieved)} (newest run ${fmtDate(D.meta.newest_benchmark)}).`;
+  const repo = $("repo-link"); repo.href = D.meta.tree_url;
+  return base;
+}
+
+/* ================= controls ================= */
+function seg(container, options, get, set) {
+  container.replaceChildren(...options.map(([val, label]) => {
+    const b = h("button", { type: "button", "aria-pressed": String(get() === val), text: label });
+    b.addEventListener("click", () => { set(val); update(); });
+    return b;
+  }));
+}
+function renderControls() {
+  $("c-util").value = state.util; $("v-util").textContent = fmtPct(state.util);
+  $("c-floor").value = state.floor; $("v-floor").textContent = state.floor === 0 ? "none" : `${state.floor} tok/s`;
+  seg($("c-ratio"), RATIOS, () => state.ratio, v => state.ratio = v);
+  seg($("c-price"), [["min", "Cheapest"], ["median", "Median"], ["max", "Priciest"]], () => state.price, v => state.price = v);
+  seg($("c-metric"), [["ratio", "Ratio"], ["usd", "$ per GPU-hour"]], () => state.metric, v => state.metric = v);
+  $("c-spec").checked = state.spec; $("c-multi").checked = state.multi;
+  const sel = $("c-rental");
+  if (!sel.options.length) {
+    const series = [...new Set(D.rental.map(r => r.series))];
+    for (const sr of series) {
+      const vals = GPUS.map(g => { const r = D.rental.find(x => x.gpu === g && x.series === sr); return r ? `${gpuName(g)} ${fmtUSD(r.price)}` : null; }).filter(Boolean).join(", ");
+      sel.append(h("option", { value: sr, text: `${RENTAL_LABEL[sr] || sr}: ${vals}` }));
+    }
+  }
+  sel.value = state.rental;
+  const diffs = [];
+  if (state.util !== BASE.util) diffs.push("utilization");
+  if (state.ratio !== BASE.ratio) diffs.push("mix");
+  if (state.floor !== BASE.floor) diffs.push("speed floor");
+  if (state.price !== BASE.price) diffs.push("price");
+  if (state.rental !== BASE.rental) diffs.push("rental");
+  if (state.spec !== BASE.spec || state.multi !== BASE.multi) diffs.push("serving");
+  $("changed").replaceChildren(diffs.length ? h("span", {}, "Changed: ", h("b", { text: diffs.join(", ") })) : "Base assumptions");
+}
+$("c-util").addEventListener("input", e => { state.util = +e.target.value; update(); });
+$("c-floor").addEventListener("input", e => { state.floor = +e.target.value; update(); });
+$("c-rental").addEventListener("change", e => { state.rental = e.target.value; update(); });
+$("c-spec").addEventListener("change", e => { state.spec = e.target.checked; update(); });
+$("c-multi").addEventListener("change", e => { state.multi = e.target.checked; update(); });
+$("c-reset").addEventListener("click", () => { Object.assign(state, BASE); update(); });
+
+/* ================= spread chart ================= */
+function renderSpreadChart() {
+  const el = $("chart-spread"), W = widthOf(el);
+  const usd = state.metric === "usd";
+  $("spread-title").textContent = usd ? "Token spread by model and GPU ($ per GPU-hour)" : "Spread ratio by model and GPU";
+  $("spread-sub").textContent = `${fmtRatio(state.ratio)} input:output · ${fmtPct(state.util)} utilization · ≥${state.floor} tok/s per user · ${state.price} provider price · ${RENTAL_LABEL[state.rental]}`;
+  const kinds = [["h100", "H100 · base precision"], ["b200", "B200 · base precision"], ["fp4", "B200 · fp4 variant"]];
+  $("spread-legend").replaceChildren(...kinds.map(([k, l]) => h("span", {}, h("i", { class: "bg-" + k }), l)),
+    h("span", {}, h("i", { class: "line", style: "background:var(--ink-2)" }), "provider price range"));
+  const narrow = W < 560;
+  const L = narrow ? 92 : 128, Rm = 58, top = 22, barH = 14, gap = 3, groupGap = 16;
+  const groups = MODELS.map(m => RESULTS.filter(r => r.c.m.key === m.key));
+  const H = top + groups.reduce((a, g) => a + g.length * (barH + gap) + groupGap, 0) + 26;
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Spread by model and GPU" });
+  const vals = RESULTS.flatMap(r => usd ? [r.spread, (r.revMin - r.R.base), (r.revMax - r.R.base)] : [r.sratio, r.sMin, r.sMax]).filter(isFinite);
+  let x, ticks, zero;
+  if (usd) {
+    const lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
+    ticks = linTicks(lo, hi, narrow ? 4 : 7);
+    const d0 = Math.min(lo, ticks[0]), d1 = Math.max(hi, ticks[ticks.length - 1]);
+    x = linScale(d0, d1, L, W - Rm); zero = 0;
+  } else {
+    const lo = Math.min(0.5, ...vals) / 1.1, hi = Math.max(2, ...vals) * 1.1;
+    const d0 = Math.pow(2, Math.floor(Math.log2(lo))), d1 = Math.pow(2, Math.ceil(Math.log2(hi)));
+    ticks = pow2Ticks(d0, d1); x = logScale(d0, d1, L, W - Rm); zero = 1;
+  }
+  const ax = s("g", { class: "ax" }, svg);
+  for (const t of ticks) {
+    s("line", { x1: x(t), x2: x(t), y1: top - 4, y2: H - 22 }, ax);
+    st(ax, x(t), H - 8, usd ? fmtUSD(t, 0) : fmtTickX(t), { "text-anchor": "middle" });
+  }
+  let y = top;
+  for (const g of groups) {
+    st(svg, L - 10, y + (g.length * (barH + gap)) / 2 + 4, g[0].c.m.key, { "text-anchor": "end", class: "lab-strong" });
+    for (const r of g) {
+      const v = usd ? r.spread : r.sratio, lo = usd ? r.revMin - r.R.base : r.sMin, hi = usd ? r.revMax - r.R.base : r.sMax;
+      const cy = y + barH / 2;
+      if (isFinite(v)) {
+        const x0 = x(zero), x1 = x(v);
+        const rect = s("rect", { x: Math.min(x0, x1), y, width: Math.max(1.5, Math.abs(x1 - x0)), height: barH, rx: 2.5,
+          class: `mark f-${seriesCls(r.c)}${caseId(r.c) === state.sel ? " sel" : ""}`, tabindex: 0, role: "button",
+          "aria-label": `${r.c.m.key} ${caseLabel(r.c)}: ${usd ? fmtUSD(v) : fmtX(v)}` }, svg);
+        s("line", { x1: x(lo), x2: x(hi), y1: cy, y2: cy, class: "whisk" }, svg);
+        s("line", { x1: x(lo), x2: x(lo), y1: cy - 3.5, y2: cy + 3.5, class: "whisk" }, svg);
+        s("line", { x1: x(hi), x2: x(hi), y1: cy - 3.5, y2: cy + 3.5, class: "whisk" }, svg);
+        const right = v >= zero;
+        const lx = right ? Math.max(x1, x(hi)) + 5 : Math.min(x1, x(lo)) - 5;
+        st(svg, lx, cy + 4, `${narrow ? "" : r.c.gpu.toUpperCase() + " " + (r.c.kind === "variant" ? r.c.prec + " " : "")}${usd ? fmtUSD(v) : fmtX(v)}`, { class: "lab-ink", "text-anchor": right ? "start" : "end" });
+        bindTip(rect, () => [`${r.c.m.key} · ${caseLabel(r.c)}`, [
+          [usd ? "spread per GPU-hour" : "revenue ÷ rental", usd ? fmtUSD(v) : fmtX(v)],
+          ["revenue per GPU-hour", fmtUSD(r.rev)], ["rental per GPU-hour", fmtUSD(r.R.base)],
+          ["blended price, $/M tokens", `${fmtUSD(r.price, 3)} (${fmtUSD(r.pst.min, 2)}–${fmtUSD(r.pst.max, 2)})`],
+          ["tokens/s per GPU", fmtInt(r.tf.tput)], ["breakeven utilization", fmtPct(r.breakeven)]], "Click to audit this calculation"]);
+        const pick = () => { state.sel = caseId(r.c); update(); $("audit-panel").scrollIntoView({ block: "nearest" }); };
+        rect.addEventListener("click", pick);
+        rect.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+      } else {
+        st(svg, x(zero) + 6, cy + 4, `${caseLabel(r.c)}: no benchmark meets these settings`, { class: "lab" });
+      }
+      y += barH + gap;
+    }
+    y += groupGap;
+  }
+  s("line", { x1: x(zero), x2: x(zero), y1: top - 6, y2: H - 22, style: "stroke:var(--ink);stroke-width:1.25" }, svg);
+  st(svg, x(zero), 10, usd ? "breakeven ($0)" : "breakeven (1×)", { class: "lab", "text-anchor": "middle" });
+  el.replaceChildren(svg);
+}
+
+/* ================= results table ================= */
+function renderResultsTable() {
+  const t = $("results-table");
+  const cols = ["Model", "GPU · precision", "Providers", "Blended $/M tok", "Tok/s per GPU", "M tok per GPU-h", "Revenue $/h", "Rental $/h", "Spread $/h", "Ratio", "Breakeven util.", "Throughput basis", "Benchmark date"];
+  const numCols = new Set([2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  t.replaceChildren(h("thead", {}, h("tr", {}, ...cols.map((c, i) => h("th", { class: numCols.has(i) ? "n" : null, scope: "col", text: c })))));
+  const tb = h("tbody");
+  for (const r of RESULTS) {
+    const id = caseId(r.c);
+    const dates = [...new Set(r.tf.used.map(u => u.p.row.date))].sort().join(", ");
+    const good = r.sratio >= 1;
+    const tr = h("tr", { class: "clickable" + (id === state.sel ? " sel" : ""), tabindex: 0 },
+      h("td", { text: r.c.m.key }),
+      h("td", {}, h("span", { class: "sw bg-" + seriesCls(r.c) }), caseLabel(r.c), r.c.kind === "variant" ? h("span", { class: "est", text: "variant" }) : null),
+      h("td", { class: "n", text: String(r.pst.n) }),
+      h("td", { class: "n", text: `${fmtUSD(r.price, 3)}` }),
+      h("td", { class: "n", text: fmtInt(r.tf.tput) }),
+      h("td", { class: "n", text: isFinite(r.tokH) ? nf(1).format(r.tokH / 1e6) : "–" }),
+      h("td", { class: "n", text: fmtUSD(r.rev) }),
+      h("td", { class: "n", text: fmtUSD(r.R.base) }),
+      h("td", { class: "n", text: fmtUSD(r.spread) }),
+      h("td", { class: "n" }, isFinite(r.sratio) ? h("span", { class: "chip " + (good ? "good" : "bad"), text: (good ? "▲ " : "▼ ") + fmtX(r.sratio) }) : "–"),
+      h("td", { class: "n", text: fmtPct(r.breakeven) }),
+      h("td", {}, r.tf.basis, r.tf.est ? h("span", { class: "est", text: "estimate" }) : null),
+      h("td", { text: dates || "–" }));
+    const pick = () => { state.sel = id; update(); };
+    tr.addEventListener("click", pick);
+    tr.addEventListener("keydown", e => { if (e.key === "Enter") pick(); });
+    tb.append(tr);
+  }
+  t.append(tb);
+  t.append(h("caption", { class: "note", style: "caption-side:bottom;text-align:left;padding:0.5rem 0.65rem", text: "▲ revenue covers rent · ▼ revenue below rent. Click a row to audit it." }));
+}
+
+/* ================= audit ================= */
+function renderAudit() {
+  const pick = $("audit-pick");
+  if (!pick.options.length) for (const c of CASES) pick.append(h("option", { value: caseId(c), text: `${c.m.key} · ${caseLabel(c)}` }));
+  pick.value = state.sel;
+  const r = resultFor(state.sel);
+  $("audit-title").textContent = `Show the math: ${r.c.m.key} on ${caseLabel(r.c)}`;
+  const ps = [...r.ps].map(p => ({ p, b: r.blend(p) })).sort((a, b) => a.b - b.b);
+  const priceTable = h("table", {},
+    h("thead", {}, h("tr", {}, ...["Provider", "Quantization", "Input $/M", "Output $/M", `Blended at ${fmtRatio(r.ratio)}`, "Source"].map((c, i) => h("th", { class: i >= 2 && i <= 4 ? "n" : null, text: c })))),
+    h("tbody", {}, ...ps.map(({ p, b }) => h("tr", {},
+      h("td", { text: p.provider }), h("td", { text: p.q }), h("td", { class: "n", text: fmtUSD(p.inp, 3) }),
+      h("td", { class: "n", text: fmtUSD(p.out, 3) }), h("td", { class: "n", text: fmtUSD(b, 3) }),
+      h("td", {}, link(p.url, "OpenRouter API"))))));
+  const usedRows = r.tf.used;
+  const tputTable = h("table", {},
+    h("thead", {}, h("tr", {}, ...["Sequence", "Weight", "Tok/s per GPU", "Tok/s per user", "Framework", "Spec. decoding", "Multi-node", "Concurrency", "GPUs", "Run date", "Source"].map((c, i) => h("th", { class: [1, 2, 3, 7, 8].includes(i) ? "n" : null, text: c })))),
+    h("tbody", {}, ...usedRows.map(({ p, w }) => h("tr", {},
+      h("td", { text: `${p.isl}/${p.osl}` }), h("td", { class: "n", text: nf(3).format(w) }),
+      h("td", { class: "n", text: fmtInt(p.row.tput) }), h("td", { class: "n", text: nf(1).format(p.row.intv) }),
+      h("td", { text: p.row.fw }), h("td", { text: p.row.spec }), h("td", { text: p.row.disagg ? "yes" : "no" }),
+      h("td", { class: "n", text: fmtInt(p.row.conc) }), h("td", { class: "n", text: p.row.ngpu ?? "–" }),
+      h("td", { text: p.row.date }), h("td", {}, p.row.url ? link(p.row.url, "GitHub run") : "–")))));
+  const tputEq = usedRows.length === 2
+    ? `${fmtInt(usedRows[0].p.row.tput)} × ${nf(3).format(usedRows[0].w)} + ${fmtInt(usedRows[1].p.row.tput)} × ${nf(3).format(usedRows[1].w)} = ${fmtInt(r.tf.tput)} tok/s per GPU`
+    : usedRows.length ? `${fmtInt(r.tf.tput)} tok/s per GPU (${r.tf.basis})` : "no benchmark meets these settings";
+  const rr = r.R.row;
+  $("audit").replaceChildren(h("ol", {},
+    h("li", {}, h("div", {},
+      h("h4", { text: "Blend each provider's input and output price" }),
+      h("p", { text: `Each provider's price is weighted ${fmtRatio(r.ratio)} input to output. The ${state.price} of ${r.pst.n} providers is used; the range feeds the whiskers.` }),
+      h("div", { class: "eq" }, `blended = (${r.ratio} × input + output) / ${r.ratio + 1} → ${state.price} = `, h("b", { text: `${fmtUSD(r.price, 3)} per million tokens` }), ` (range ${fmtUSD(r.pst.min, 3)}–${fmtUSD(r.pst.max, 3)})`),
+      h("details", {}, h("summary", { text: `All ${r.pst.n} provider prices` }), h("div", { class: "table-wrap" }, priceTable)))),
+    h("li", {}, h("div", {},
+      h("h4", { text: "Pick throughput from the benchmark curve" }),
+      h("p", { text: `For each measured sequence, the highest throughput with at least ${state.floor} tok/s per user${state.spec ? "" : ", without speculative decoding"}${state.multi ? "" : ", single-node only"}. ${r.tf.est ? `The ${fmtRatio(r.ratio)} mix is not measured, so it is ${r.tf.basis.startsWith("log") ? "interpolated in log(ratio) between the two nearest measured sequences" : "held at the nearest measured sequence"}.` : "This mix is measured directly."}` }),
+      h("div", { class: "eq" }, h("b", { text: tputEq })),
+      h("div", { class: "table-wrap" }, tputTable),
+      h("p", { class: "src", text: `Without a speed floor the best point would give ${fmtInt(r.tm.tput)} tok/s per GPU (revenue ${fmtUSD(r.revMaxTput)} per hour).` }))),
+    h("li", {}, h("div", {},
+      h("h4", { text: "Convert to tokens per GPU-hour" }),
+      h("div", { class: "eq" }, `${fmtInt(r.tf.tput)} × 3,600 s × ${fmtPct(r.util)} utilization = `, h("b", { text: `${nf(2).format(r.tokH / 1e6)} million tokens` })))),
+    h("li", {}, h("div", {},
+      h("h4", { text: "Implied revenue per GPU-hour" }),
+      h("div", { class: "eq" }, `${nf(2).format(r.tokH / 1e6)} M × ${fmtUSD(r.price, 3)} = `, h("b", { text: fmtUSD(r.rev) }), ` (cheapest provider ${fmtUSD(r.revMin)}, priciest ${fmtUSD(r.revMax)})`))),
+    h("li", {}, h("div", {},
+      h("h4", { text: "Rental price" }),
+      h("div", { class: "eq" }, `${RENTAL_LABEL[state.rental]}, ${gpuName(r.c.gpu)} = `, h("b", { text: fmtUSD(r.R.base) + " per GPU-hour" })),
+      rr ? h("p", { class: "src" }, `${rr.notes}. Retrieved ${rr.date}. `, link(rr.url, "Source")) : null)),
+    h("li", {}, h("div", {},
+      h("h4", { text: "Spread, ratio and breakeven" }),
+      h("div", { class: "eq" }, `${fmtUSD(r.rev)} − ${fmtUSD(r.R.base)} = `, h("b", { text: fmtUSD(r.spread) }), `   ratio `, h("b", { text: fmtX(r.sratio) }), `   breakeven utilization `, h("b", { text: fmtPct(r.breakeven) })),
+      h("p", { class: "src", text: isFinite(r.R.owner) ? `For comparison, SemiAnalysis's owner TCO for ${gpuName(r.c.gpu)} is ${fmtUSD(r.R.owner)} per hour, so an owner-operator's ratio would be ${fmtX(r.rev / r.R.owner)}.` : "" })))));
+}
+$("audit-pick").addEventListener("change", e => { state.sel = e.target.value; update(); });
+
+/* ================= relative value chart ================= */
+function renderRelChart() {
+  const el = $("chart-rel"), W = widthOf(el);
+  const rows = MODELS.map(m => {
+    const a = RESULTS.find(r => r.c.m.key === m.key && r.c.gpu === "b200" && r.c.kind === "base");
+    const b = RESULTS.find(r => r.c.m.key === m.key && r.c.gpu === "h100");
+    return { m: m.key, v: a && b ? a.rev / b.rev : NaN, a, b };
+  });
+  const series = [...new Set(D.rental.map(r => r.series))].filter(s0 => !s0.includes("owner_tco"));
+  const rentR = series.map(sr => { const a = D.rental.find(r => r.gpu === "b200" && r.series === sr), b = D.rental.find(r => r.gpu === "h100" && r.series === sr); return { sr, v: a && b ? a.price / b.price : NaN }; }).filter(r => isFinite(r.v));
+  const L = 110, R = 30, top = 30, rowH = 34;
+  const H = top + rows.length * rowH + 28;
+  const max = Math.max(4, ...rows.map(r => r.v).filter(isFinite), ...rentR.map(r => r.v)) * 1.12;
+  const x = linScale(0, max, L, W - R);
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "B200 to H100 value ratio by model" });
+  const ax = s("g", { class: "ax" }, svg);
+  for (const t of linTicks(0, max, 5)) { s("line", { x1: x(t), x2: x(t), y1: top - 6, y2: H - 22 }, ax); st(ax, x(t), H - 8, t + "×", { "text-anchor": "middle" }); }
+  const cur = rentR.find(r => r.sr === state.rental) || rentR[0];
+  rentR.forEach((r, i) => {
+    const isCur = r === cur;
+    s("line", { x1: x(r.v), x2: x(r.v), y1: top - 10, y2: H - 22, style: `stroke:var(--ink${isCur ? "" : "-2"});stroke-width:${isCur ? 1.5 : 1};${isCur ? "" : "stroke-dasharray:3 3"}` }, svg);
+  });
+  st(svg, x(cur.v) + 4, top - 14, `rent ratio ${fmtX(cur.v)}`, { class: "lab-ink" });
+  rows.forEach((r, i) => {
+    const cy = top + i * rowH + rowH / 2;
+    st(svg, L - 10, cy + 4, r.m, { "text-anchor": "end", class: "lab-strong" });
+    if (!isFinite(r.v)) { st(svg, L, cy + 4, "no data", { class: "lab" }); return; }
+    s("line", { x1: x(0), x2: x(r.v), y1: cy, y2: cy, style: "stroke:var(--rule-strong);stroke-width:1" }, svg);
+    const dot = s("circle", { cx: x(r.v), cy, r: 6, class: "mark f-b200 surface-ring", tabindex: 0 }, svg);
+    st(svg, x(r.v) + 10, cy + 4, fmtX(r.v, 1), { class: "lab-ink" });
+    bindTip(dot, () => [r.m, [["B200 revenue ÷ H100 revenue", fmtX(r.v)], ["B200 earns", fmtUSD(r.a.rev) + "/h"], ["H100 earns", fmtUSD(r.b.rev) + "/h"], ["rent ratio (selected index)", fmtX(cur.v)]]]);
+  });
+  el.replaceChildren(svg);
+  const others = rentR.filter(r => r !== cur).map(r => `${RENTAL_LABEL[r.sr]} ${fmtX(r.v)}`).join(" · ");
+  el.append(h("div", { class: "note", text: `Solid line: rent ratio from the selected rental series. Dashed: ${others}. Dots right of the line mean the B200 earns more than its rental premium.` }));
+}
+
+/* ================= time series ================= */
+function renderTimeseries() {
+  const el = $("chart-ts"), W = widthOf(el);
+  const ts = D.timeseries.filter(r => r.case === "base");
+  const dates = [...new Set(ts.map(r => r.date))].sort();
+  $("ts-legend").replaceChildren(h("span", {}, h("i", { class: "line bg-h100" }), "H100"), h("span", {}, h("i", { class: "line bg-b200" }), "B200"));
+  if (dates.length < 2) {
+    el.replaceChildren(h("p", { class: "note", text: `One snapshot so far (${fmtDate(dates[0])}). A daily job adds a point each day; the chart appears from the second snapshot. Meanwhile the table lists today's values.` }),
+      h("div", { class: "table-wrap" }, h("table", {}, h("thead", {}, h("tr", {}, ...["Model", "H100", "B200"].map((c, i) => h("th", { class: i ? "n" : null, text: c })))),
+        h("tbody", {}, ...MODELS.map(m => { const g = gg => ts.find(r => r.model === m.key && r.gpu === gg); return h("tr", {}, h("td", { text: m.key }), h("td", { class: "n", text: g("h100") ? fmtX(g("h100").spread_ratio) : "–" }), h("td", { class: "n", text: g("b200") ? fmtX(g("b200").spread_ratio) : "–" })); })))));
+    return;
+  }
+  const cols = W < 560 ? 2 : 3, pw = (W - (cols - 1) * 16) / cols, ph = 120;
+  const rowsN = Math.ceil(MODELS.length / cols), H = rowsN * (ph + 34);
+  const t0 = Date.parse(dates[0]), t1 = Date.parse(dates[dates.length - 1]);
+  const vals = ts.map(r => r.spread_ratio).filter(isFinite);
+  const lo = Math.pow(2, Math.floor(Math.log2(Math.min(0.5, ...vals)))), hi = Math.pow(2, Math.ceil(Math.log2(Math.max(2, ...vals))));
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Spread ratio over time" });
+  MODELS.forEach((m, i) => {
+    const ox = (i % cols) * (pw + 16), oy = Math.floor(i / cols) * (ph + 34) + 18;
+    const x = linScale(t0, t1, ox + 30, ox + pw - 6), y = logScale(lo, hi, oy + ph, oy);
+    st(svg, ox, oy - 6, m.key, { class: "lab-strong" });
+    const ax = s("g", { class: "ax" }, svg);
+    for (const t of pow2Ticks(lo, hi)) { s("line", { x1: ox + 30, x2: ox + pw - 6, y1: y(t), y2: y(t) }, ax); st(ax, ox + 26, y(t) + 4, fmtTickX(t), { "text-anchor": "end" }); }
+    s("line", { x1: ox + 30, x2: ox + pw - 6, y1: y(1), y2: y(1), style: "stroke:var(--ink)" }, svg);
+    st(svg, ox + 30, oy + ph + 14, fmtDate(dates[0]), { class: "lab" });
+    st(svg, ox + pw - 6, oy + ph + 14, fmtDate(dates[dates.length - 1]), { class: "lab", "text-anchor": "end" });
+    for (const g of ["h100", "b200"]) {
+      const pts = ts.filter(r => r.model === m.key && r.gpu === g).sort((a, b) => a.date < b.date ? -1 : 1);
+      if (!pts.length) continue;
+      s("path", { d: pts.map((p, k) => `${k ? "L" : "M"}${x(Date.parse(p.date))},${y(p.spread_ratio)}`).join(""), fill: "none", class: "st-" + g, "stroke-width": 2 }, svg);
+      const last = pts[pts.length - 1];
+      const dot = s("circle", { cx: x(Date.parse(last.date)), cy: y(last.spread_ratio), r: 4, class: "f-" + g + " surface-ring", tabindex: 0 }, svg);
+      bindTip(dot, () => [`${m.key} · ${gpuName(g)}`, pts.slice(-6).map(p => [fmtDate(p.date), fmtX(p.spread_ratio)])]);
+    }
+  });
+  el.replaceChildren(svg);
+}
+
+/* ================= model explorer ================= */
+function renderExplorerControls() {
+  const sel = $("x-model");
+  if (!sel.options.length) for (const m of MODELS) sel.append(h("option", { value: m.key, text: `${m.key} · ${m.kind}` }));
+  sel.value = state.model;
+  const seqs = [...new Set(D.tput.filter(t => t.m === state.model).map(t => t.isl + "/" + t.osl))]
+    .sort((a, b) => { const r = x => { const [i, o] = x.split("/").map(Number); return i / o; }; return r(a) - r(b); });
+  if (!seqs.includes(state.seq)) state.seq = seqs.includes("1024/1024") ? "1024/1024" : seqs[0];
+  seg($("x-seq"), seqs.map(q => [q, q.replace(/1024/g, "1k").replace(/8192/g, "8k")]), () => state.seq, v => state.seq = v);
+}
+$("x-model").addEventListener("change", e => { state.model = e.target.value; update(); });
+
+function renderFrontier() {
+  const el = $("chart-frontier"), W = widthOf(el);
+  const m = MODELS.find(x => x.key === state.model);
+  const [isl, osl] = state.seq.split("/").map(Number);
+  const cs = CASES.filter(c => c.m.key === m.key);
+  const sets = cs.map(c => {
+    const rs = ENGINE.rows(c.m.key, c.gpu, c.prec, state).filter(r => r.isl === isl && r.osl === osl);
+    const op = ENGINE.opPoints(rs, state.floor);
+    const chosen = op.floor[0] ? op.floor[0].row : null;
+    return { c, rs, chosen };
+  });
+  $("frontier-sub").textContent = `${m.key}, ${state.seq.replace("/", " input / ")} output tokens per request. Speed floor ${state.floor} tok/s per user. ${state.spec ? "" : "No speculative decoding. "}${state.multi ? "" : "Single-node only."}`;
+  $("frontier-legend").replaceChildren(...sets.map(sv => h("span", {}, h("i", { class: "bg-" + seriesCls(sv.c) }), `${caseLabel(sv.c)}: ${sv.rs.length} runs, uses ${sv.chosen ? fmtInt(sv.chosen.tput) + " tok/s" : "none"}`)),
+    h("span", {}, h("i", { class: "line", style: "background:var(--ink-2)" }), "speed floor"));
+  const all = sets.flatMap(sv => sv.rs);
+  if (!all.length) { el.replaceChildren(h("p", { class: "note", text: "No benchmark runs for this sequence with the current serving options." })); return; }
+  const L = 66, R = 16, top = 12, Hh = Math.min(380, Math.max(260, W * 0.45)), B = 40;
+  const xmax = Math.max(state.floor * 1.2, ...all.map(r => r.intv)) * 1.05;
+  const ylo = Math.min(...all.map(r => r.tput)), yhi = Math.max(...all.map(r => r.tput));
+  const y0 = Math.pow(10, Math.floor(Math.log10(ylo))), y1 = Math.pow(10, Math.ceil(Math.log10(yhi)));
+  const x = linScale(0, xmax, L, W - R);
+  const ly = v => top + (1 - (Math.log10(v) - Math.log10(y0)) / (Math.log10(y1) - Math.log10(y0))) * (Hh - top - B);
+  const svg = s("svg", { viewBox: `0 0 ${W} ${Hh}`, role: "img", "aria-label": "Throughput versus speed per user" });
+  const ax = s("g", { class: "ax" }, svg);
+  for (const t of linTicks(0, xmax, 6)) { s("line", { x1: x(t), x2: x(t), y1: top, y2: Hh - B }, ax); st(ax, x(t), Hh - B + 16, String(t), { "text-anchor": "middle" }); }
+  for (let e = Math.log10(y0); e <= Math.log10(y1); e++) {
+    for (const mlt of [1, 2, 5]) {
+      const v = mlt * Math.pow(10, e); if (v < y0 || v > y1) continue;
+      s("line", { x1: L, x2: W - R, y1: ly(v), y2: ly(v), style: mlt === 1 ? "" : "opacity:.5" }, ax);
+      st(ax, L - 6, ly(v) + 4, v >= 1000 ? (v / 1000) + "k" : String(v), { "text-anchor": "end" });
+    }
+  }
+  st(svg, (L + W - R) / 2, Hh - 6, "tokens/s per user (higher = faster stream)", { class: "lab", "text-anchor": "middle" });
+  st(svg, 14, top + (Hh - B) / 2, "tokens/s per GPU", { class: "lab", "text-anchor": "middle", transform: `rotate(-90 14 ${top + (Hh - B) / 2})` });
+  if (state.floor > 0) {
+    s("rect", { x: L, y: top, width: x(state.floor) - L, height: Hh - B - top, style: "fill:var(--ink);opacity:.04" }, svg);
+    s("line", { x1: x(state.floor), x2: x(state.floor), y1: top, y2: Hh - B, class: "thresh" }, svg);
+    st(svg, x(state.floor) + 5, top + 12, `floor ${state.floor} tok/s`, { class: "lab-ink" });
+  }
+  for (const sv of sets) {
+    const cls = seriesCls(sv.c);
+    const pts = [...sv.rs].sort((a, b) => a.intv - b.intv);
+    for (const r of pts) {
+      const ok = r.intv >= state.floor;
+      const a = s("a", { href: r.url || null, target: "_blank", rel: "noopener" }, svg);
+      s("circle", { cx: x(r.intv), cy: ly(r.tput), r: 4.5, class: `f-${cls} surface-ring`, style: ok ? "" : "opacity:.35" }, a);
+      const hit = s("circle", { cx: x(r.intv), cy: ly(r.tput), r: 11, class: "hit", tabindex: 0 }, a);
+      bindTip(hit, () => [`${caseLabel(sv.c)} · ${r.fw}`, [["tokens/s per GPU", fmtInt(r.tput)], ["tokens/s per user", nf(1).format(r.intv)], ["concurrency", fmtInt(r.conc)], ["GPUs", r.ngpu ?? "–"], ["speculative decoding", r.spec], ["multi-node", r.disagg ? "yes" : "no"], ["run date", r.date]], ok ? "Click to open the benchmark run" : "Below the speed floor · click to open run"]);
+    }
+    if (sv.chosen) {
+      const cx = x(sv.chosen.intv), cy = ly(sv.chosen.tput);
+      s("circle", { cx, cy, r: 9, fill: "none", class: "st-" + cls, "stroke-width": 2, "pointer-events": "none" }, svg);
+    }
+  }
+  el.replaceChildren(svg);
+}
+
+function renderHeatmaps() {
+  const box = $("heatmaps");
+  const m = MODELS.find(x => x.key === state.model);
+  const utils = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
+  box.replaceChildren(...GPUS.map(g => {
+    const c = CASES.find(c => c.m.key === m.key && c.gpu === g && c.kind === "base");
+    const tbl = h("table", { style: "table-layout:fixed" });
+    tbl.append(h("thead", {}, h("tr", {}, h("th", { text: "Util. \\ mix" }), ...RATIOS.map(([, l]) => h("th", { class: "n", text: l })))));
+    const tb = h("tbody");
+    for (const u of utils) {
+      const tr = h("tr", {}, h("th", { scope: "row", class: "n", text: fmtPct(u) }));
+      for (const [rt] of RATIOS) {
+        const r = ENGINE.evaluate(c, state, rt, u);
+        const v = r.sratio, t = isFinite(v) ? Math.max(-1, Math.min(1, Math.log2(v) / 2.5)) : 0;
+        const pole = t >= 0 ? "var(--div-pos)" : "var(--div-neg)", a = Math.abs(t);
+        const isCur = Math.abs(u - state.util) < 1e-9 && rt === state.ratio;
+        const td = h("td", { class: "n", style: `background:color-mix(in srgb, ${pole} ${Math.round(a * 85)}%, var(--heat-mid));color:${a > 0.5 ? "var(--on-strong)" : "var(--ink)"};${isCur ? "outline:2px solid var(--ink);outline-offset:-2px;" : ""}`, tabindex: 0 },
+          (r.tf.est ? "~" : "") + (isFinite(v) ? fmtX(v) : "–"));
+        bindTip(td, () => [`${caseLabel(c)} · ${fmtPct(u)} · ${fmtRatio(rt)}`, [["revenue ÷ rental", fmtX(v)], ["revenue per hour", fmtUSD(r.rev)], ["tokens/s per GPU", fmtInt(r.tf.tput)], ["throughput", r.tf.basis]]]);
+        tr.append(td);
+      }
+      tb.append(tr);
+    }
+    tbl.append(tb);
+    return h("div", { style: "display:grid;gap:.4rem;min-width:0" }, h("div", { class: "legend" }, h("span", {}, h("i", { class: "bg-" + seriesCls(c) }), `${caseLabel(c)} · rent ${fmtUSD(ENGINE.rental(g, state.rental).base)}/h`)), h("div", { class: "table-wrap" }, tbl));
+  }));
+}
+
+function renderProviders() {
+  const el = $("chart-prov"), W = widthOf(el);
+  const m = MODELS.find(x => x.key === state.model);
+  const rs = GPUS.map(g => RESULTS.find(r => r.c.m.key === m.key && r.c.gpu === g && r.c.kind === "base"));
+  const ps = ENGINE.prices(m.key).map(p => ({ p, b: ENGINE.blend(p, state.ratio) })).sort((a, b) => a.b - b.b);
+  $("prov-sub").textContent = `${ps.length} OpenRouter endpoints for ${m.key}, sorted by blended price at ${fmtRatio(state.ratio)}. Each dot is that provider's price applied to the benchmark throughput on each GPU.`;
+  $("prov-legend").replaceChildren(...rs.map(r => h("span", {}, h("i", { class: "bg-" + seriesCls(r.c) }), caseLabel(r.c))));
+  const narrow = W < 560;
+  const L = narrow ? 150 : 250, R = 40, top = 22, rowH = 22;
+  const H = top + ps.length * rowH + 26;
+  const vals = ps.flatMap(({ b }) => rs.map(r => r.tokH / 1e6 * b / r.R.base)).filter(isFinite);
+  if (!vals.length) { el.replaceChildren(h("p", { class: "note", text: "No benchmark meets the current settings for this model." })); return; }
+  const d0 = Math.pow(2, Math.floor(Math.log2(Math.min(0.5, ...vals) / 1.05))), d1 = Math.pow(2, Math.ceil(Math.log2(Math.max(2, ...vals) * 1.05)));
+  const x = logScale(d0, d1, L, W - R);
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Spread ratio by provider" });
+  const ax = s("g", { class: "ax" }, svg);
+  for (const t of pow2Ticks(d0, d1)) { s("line", { x1: x(t), x2: x(t), y1: top - 6, y2: H - 22 }, ax); st(ax, x(t), H - 8, fmtTickX(t), { "text-anchor": "middle" }); }
+  s("line", { x1: x(1), x2: x(1), y1: top - 10, y2: H - 22, style: "stroke:var(--ink);stroke-width:1.25" }, svg);
+  st(svg, x(1) + 4, top - 10, "breakeven", { class: "lab" });
+  if (!narrow) st(svg, L - 10, top - 8, "blended $/M", { class: "lab", "text-anchor": "end" });
+  ps.forEach(({ p, b }, i) => {
+    const cy = top + i * rowH + rowH / 2;
+    st(svg, 0, cy + 4, `${p.provider}${narrow ? "" : " · " + p.q}`, { class: "lab-ink" });
+    st(svg, L - 10, cy + 4, fmtUSD(b, 3), { class: "lab", "text-anchor": "end" });
+    s("line", { x1: L, x2: W - R, y1: cy, y2: cy, style: "stroke:var(--rule);stroke-width:1" }, svg);
+    const xs = rs.map(r => x(r.tokH / 1e6 * b / r.R.base)).filter(isFinite);
+    if (xs.length === 2) s("line", { x1: Math.min(...xs), x2: Math.max(...xs), y1: cy, y2: cy, style: "stroke:var(--rule-strong);stroke-width:2" }, svg);
+    for (const r of rs) {
+      const v = r.tokH / 1e6 * b / r.R.base;
+      if (!isFinite(v)) continue;
+      const dot = s("circle", { cx: x(v), cy, r: 5, class: `mark f-${seriesCls(r.c)} surface-ring`, tabindex: 0 }, svg);
+      bindTip(dot, () => [`${p.provider} on ${caseLabel(r.c)}`, [["revenue ÷ rental", fmtX(v)], ["revenue per hour", fmtUSD(r.tokH / 1e6 * b)], ["input / output $/M", `${fmtUSD(p.inp, 3)} / ${fmtUSD(p.out, 3)}`], ["quantization", p.q]]]);
+    }
+  });
+  el.replaceChildren(svg);
+}
+
+/* ================= method tables ================= */
+function renderMethodTables() {
+  const rows = [
+    ["Input:output ratio", `${CFG.io_ratio_base}:1`, "Typical chat and coding traffic is input-heavy. Sensitivity runs 1:1 to 10:1."],
+    ["Utilization", fmtPct(CFG.utilization_base), "Share of paid hours spent serving at the operating point. Sensitivity runs 30–80%."],
+    ["Speed floor", `${CFG.interactivity_floor_tok_s_per_user} tok/s per user`, "Roughly the slowest stream a paying API customer accepts. The point with no floor is shown as an upper bound."],
+    ["Price statistic", CFG.price_statistic, "Median across OpenRouter providers; the cheapest and priciest give the range."],
+    ["Rental price", RENTAL_LABEL[CFG.rental_base_series], "The index CME's GPU futures settle on. The page shows a second reading that sometimes differs; both are kept."],
+    ["Speculative decoding", CFG.allow_speculative_decoding ? "allowed" : "excluded", "Widely used in production serving."],
+    ["Multi-node serving", CFG.allow_disaggregated_multinode ? "allowed" : "excluded", "Needed for DeepSeek-R1 on H100, which doesn't fit one 8×H100 node at fp8."],
+    ...MODELS.map(m => [`Precision · ${m.key}`, Object.entries(m.base_precision).map(([g, p]) => `${gpuName(g)} ${p}`).join(", ") + ((m.variants || []).length ? `; variant ${(m.variants).map(v => `${gpuName(v.gpu)} ${v.precision}`).join(", ")}` : ""), m.key === "gpt-oss-120b" ? "Released in 4-bit (MXFP4); served that way on both GPUs." : "fp8 is what most providers report serving; fp4 on B200 shown separately."]),
+  ];
+  $("assumptions-table").replaceChildren(h("thead", {}, h("tr", {}, ...["Assumption", "Base value", "Why"].map(c => h("th", { text: c })))),
+    h("tbody", {}, ...rows.map(r => h("tr", {}, ...r.map((c, i) => h("td", { text: c, style: i === 2 ? "white-space:normal;min-width:18rem" : null }))))));
+  const cad = [
+    ["API prices", "OpenRouter", "A few times a month per model, unannounced", "Current only", fmtDate(D.meta.prices_retrieved)],
+    ["Rental index", "Silicon Data", "Daily", "Current only on the free page", fmtDate(D.meta.rental_retrieved)],
+    ["Throughput", "InferenceX", "In steps, every few weeks per model and GPU", "Full history, every run dated and linked", `newest run ${fmtDate(D.meta.newest_benchmark)}`],
+  ];
+  $("cadence-table").replaceChildren(h("thead", {}, h("tr", {}, ...["Input", "Source", "Changes", "Source keeps history?", "This build"].map(c => h("th", { text: c })))),
+    h("tbody", {}, ...cad.map(r => h("tr", {}, ...r.map(c => h("td", { text: c, style: "white-space:normal" }))))));
+  const cap = h("caption", { class: "note", style: "caption-side:bottom;text-align:left;padding:.5rem .65rem", text: "Two of three inputs keep no public history, so a daily job snapshots them. Unchanged files are not stored again." });
+  $("cadence-table").append(cap);
+}
+
+/* ================= data explorer ================= */
+const DATASETS = [
+  { id: "prices", label: "API prices", file: "data/api_prices.csv", rows: () => D.prices,
+    desc: "One row per OpenRouter provider endpoint. Prices are USD per million tokens, from GET /api/v1/models/{id}/endpoints.",
+    cols: [["m", "model"], ["provider", "provider"], ["tag", "endpoint"], ["q", "quantization"], ["inp", "input $/M", "n"], ["out", "output $/M", "n"], ["cache", "cache read $/M", "n"], ["ctx", "context", "n"], ["date", "retrieved"], ["url", "source", "url"]] },
+  { id: "tput", label: "Throughput benchmarks", file: "data/throughput.csv", rows: () => D.tput,
+    desc: "One row per InferenceX benchmark point (latest run of each configuration). Throughput is total input+output tokens/s divided by GPUs. Source links open the GitHub Actions run that measured it.",
+    cols: [["m", "model"], ["gpu", "GPU"], ["prec", "precision"], ["fw", "framework"], ["spec", "spec. decoding"], ["disagg", "multi-node"], ["isl", "input len", "n"], ["osl", "output len", "n"], ["conc", "concurrency", "n"], ["ngpu", "GPUs", "n"], ["tput", "tok/s per GPU", "n0"], ["intv", "tok/s per user", "n1"], ["ttft", "time to first token (s)", "n"], ["date", "run date"], ["url", "source", "url"]] },
+  { id: "rental", label: "GPU rental", file: "data/gpu_rental.csv", rows: () => D.rental,
+    desc: "Rental and cost series per GPU. Silicon Data values are scraped from the public index pages; InferenceX values are SemiAnalysis model assumptions (estimate = true).",
+    cols: [["gpu", "GPU"], ["series", "series"], ["price", "$/GPU-hour", "n"], ["method", "method"], ["estimate", "estimate"], ["date", "retrieved"], ["notes", "notes"], ["url", "source", "url"]] },
+  { id: "results", label: "Computed spread (live)", file: "outputs/spread_summary.csv", rows: () => RESULTS.map(r => ({ model: r.c.m.key, gpu: r.c.gpu, precision: r.c.prec, case: r.c.kind, io_ratio: r.ratio, utilization: r.util, floor: state.floor, providers: r.pst.n, price: r.price, price_min: r.pst.min, price_max: r.pst.max, tput_per_gpu: r.tf.tput, tput_basis: r.tf.basis, estimate: r.tf.est, tokens_per_gpu_hour: r.tokH, revenue: r.rev, rental: r.R.base, spread: r.spread, spread_ratio: r.sratio, breakeven_utilization: r.breakeven })),
+    desc: "The dashboard's current results, recomputed with your settings. The file link opens the pipeline's base-case output.",
+    cols: [["model", "model"], ["gpu", "GPU"], ["precision", "precision"], ["case", "case"], ["io_ratio", "in:out", "n"], ["utilization", "util.", "n"], ["providers", "providers", "n"], ["price", "blended $/M", "n"], ["tput_per_gpu", "tok/s per GPU", "n0"], ["tput_basis", "basis"], ["revenue", "revenue $/h", "n"], ["rental", "rental $/h", "n"], ["spread", "spread $/h", "n"], ["spread_ratio", "ratio", "n"], ["breakeven_utilization", "breakeven", "n"]] },
+  { id: "ts", label: "Time series", file: "snapshots/timeseries.csv", rows: () => D.timeseries,
+    desc: "One row per base case per daily snapshot, at base assumptions.",
+    cols: [["date", "date"], ["model", "model"], ["gpu", "GPU"], ["precision", "precision"], ["case", "case"], ["price_median", "blended $/M", "n"], ["tput_per_gpu", "tok/s per GPU", "n0"], ["revenue", "revenue $/h", "n"], ["rental", "rental $/h", "n"], ["spread", "spread $/h", "n"], ["spread_ratio", "ratio", "n"]] },
+];
+const ds = { id: "prices", q: "", sort: null, dir: 1, page: 0 };
+const PAGE = 100;
+function fmtCell(v, kind) {
+  if (v == null || v === "") return "";
+  if (kind === "n0") return fmtInt(v);
+  if (kind === "n1") return nf(1).format(v);
+  if (kind === "n") return typeof v === "number" ? (Math.abs(v) >= 100 ? nf(1).format(v) : String(+v.toPrecision(5))) : String(v);
+  return String(v);
+}
+function dsRows() {
+  const d = DATASETS.find(x => x.id === ds.id);
+  let rows = d.rows();
+  if (ds.q) { const q = ds.q.toLowerCase(); rows = rows.filter(r => d.cols.some(([k]) => String(r[k] ?? "").toLowerCase().includes(q))); }
+  if (ds.sort) { const k = ds.sort; rows = [...rows].sort((a, b) => { const x = a[k], y = b[k]; if (x == null) return 1; if (y == null) return -1; return (typeof x === "number" ? x - y : String(x).localeCompare(String(y))) * ds.dir; }); }
+  return { d, rows };
+}
+function toCSV(d, rows) {
+  const esc = v => { if (v == null) return ""; const t = String(v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  return [d.cols.map(c => c[0]).join(","), ...rows.map(r => d.cols.map(([k]) => esc(r[k])).join(","))].join("\n");
+}
+function renderData() {
+  $("ds-tabs").replaceChildren(...DATASETS.map(d => {
+    const b = h("button", { role: "tab", type: "button", "aria-selected": String(d.id === ds.id), text: `${d.label} (${fmtInt(d.rows().length)})` });
+    b.addEventListener("click", () => { Object.assign(ds, { id: d.id, q: "", sort: null, page: 0 }); $("ds-search").value = ""; renderData(); });
+    return b;
+  }));
+  const { d, rows } = dsRows();
+  $("ds-desc").textContent = d.desc;
+  $("ds-count").textContent = `${fmtInt(rows.length)} rows`;
+  $("ds-github").href = `${D.meta.blob_url}/${d.file}`;
+  const t = $("ds-table");
+  const head = h("tr", {}, ...d.cols.map(([k, l, kind]) => {
+    const th = h("th", { class: "sortable" + (kind && kind.startsWith("n") ? " n" : ""), scope: "col", tabindex: 0 }, l, h("span", { class: "arr", text: ds.sort === k ? (ds.dir > 0 ? "↑" : "↓") : "" }));
+    const go = () => { if (ds.sort === k) ds.dir *= -1; else { ds.sort = k; ds.dir = 1; } ds.page = 0; renderData(); };
+    th.addEventListener("click", go); th.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+    return th;
+  }));
+  const pages = Math.max(1, Math.ceil(rows.length / PAGE));
+  ds.page = Math.min(ds.page, pages - 1);
+  const slice = rows.slice(ds.page * PAGE, (ds.page + 1) * PAGE);
+  t.replaceChildren(h("thead", {}, head), h("tbody", {}, ...slice.map(r => h("tr", {}, ...d.cols.map(([k, , kind]) => {
+    const v = r[k];
+    if (kind === "url") return h("td", {}, v ? link(v, "link ↗") : "");
+    return h("td", { class: kind && kind.startsWith("n") ? "n" : null, text: fmtCell(v, kind) });
+  })))));
+  const pg = $("ds-pager");
+  if (pages > 1) {
+    const prev = h("button", { class: "btn", type: "button", text: "← Previous", disabled: ds.page === 0 ? true : null });
+    const next = h("button", { class: "btn", type: "button", text: "Next →", disabled: ds.page >= pages - 1 ? true : null });
+    prev.addEventListener("click", () => { ds.page--; renderData(); });
+    next.addEventListener("click", () => { ds.page++; renderData(); });
+    pg.replaceChildren(prev, h("span", { text: `Page ${ds.page + 1} of ${pages}` }), next);
+  } else pg.replaceChildren();
+}
+$("ds-search").addEventListener("input", e => { ds.q = e.target.value; ds.page = 0; renderData(); });
+$("ds-copy").addEventListener("click", () => {
+  const { d, rows } = dsRows(); const csv = toCSV(d, rows); const msg = $("ds-msg");
+  const done = () => { msg.textContent = `Copied ${fmtInt(rows.length)} rows`; setTimeout(() => msg.textContent = "", 2500); };
+  try {
+    navigator.clipboard.writeText(csv).then(done, () => { msg.textContent = "Copy was blocked here. Use the GitHub link instead."; });
+  } catch (e) { msg.textContent = "Copy was blocked here. Use the GitHub link instead."; }
+});
+let framed = true;
+try { framed = window.self !== window.top; } catch (e) { framed = true; }
+if (!framed) {
+  const dl = $("ds-download"); dl.hidden = false;
+  dl.addEventListener("click", () => {
+    const { d, rows } = dsRows();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([toCSV(d, rows)], { type: "text/csv" }));
+    a.download = `${d.id}_${D.meta.data_date}.csv`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+}
+
+/* ================= gaps ================= */
+function renderGaps() {
+  const out = [];
+  const cutoff = new Date(Date.parse(D.meta.data_date) - 180 * 864e5).toISOString().slice(0, 10);
+  for (const c of CASES.filter(c => c.kind === "base")) {
+    const rs = ENGINE.rows(c.m.key, c.gpu, c.prec, BASE);
+    const op = ENGINE.opPoints(rs, BASE.floor);
+    const have = new Set(op.floor.map(p => p.isl + "/" + p.osl));
+    const miss = ["1024/1024", "8192/1024"].filter(q => !have.has(q));
+    if (miss.length) out.push([`${c.m.key} on ${caseLabel(c)}:`, ` no benchmark meets the speed floor for ${miss.join(", ")}. Mixes use the nearest measured sequence.`]);
+    const newest = rs.map(r => r.date).sort().pop();
+    if (newest && newest < cutoff) out.push([`${c.m.key} on ${gpuName(c.gpu)}:`, ` newest benchmark is ${fmtDate(newest)}, over six months old. Throughput is probably understated.`]);
+  }
+  out.push(["No 8B-class model:", " InferenceX doesn't benchmark one, so there's no comparable throughput."]);
+  out.push(["Newest open models", " (DeepSeek-V4, Kimi-K3, GLM-5.2) have B200 but no H100 benchmarks, so they're left out for now."]);
+  const unk = MODELS.map(m => [m.key, D.prices.filter(p => p.m === m.key && p.q === "unknown").length]).filter(x => x[1]);
+  if (unk.length) out.push(["Unknown quantization:", ` ${unk.map(([k, n]) => `${k} ${n}`).join(", ")} provider endpoints don't say what precision they serve. They count in the price statistics regardless.`]);
+  for (const g of GPUS) {
+    const a = D.rental.find(r => r.gpu === g && r.series === "silicondata_index_faq"), b = D.rental.find(r => r.gpu === g && r.series === "silicondata_index_widget");
+    if (a && b && Math.abs(a.price - b.price) > 0.005) out.push([`Two ${gpuName(g)} index readings:`, ` the Silicon Data page shows ${fmtUSD(a.price)} in its text and ${fmtUSD(b.price)} in its widget on the same day. Switch between them in the dashboard.`]);
+  }
+  $("gaps").replaceChildren(...out.map(([b, t]) => h("li", {}, h("strong", { text: b }), t)));
+}
+
+/* ================= update loop ================= */
+let raf = 0;
+function update() {
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(() => {
+    computeAll();
+    renderControls(); renderSpreadChart(); renderResultsTable(); renderAudit(); renderRelChart(); renderTimeseries();
+    renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders();
+    if (ds.id === "results") renderData();
+  });
+}
+function boot() {
+  renderStatic(); renderMethodTables(); renderGaps();
+  computeAll();
+  renderControls(); renderSpreadChart(); renderResultsTable(); renderAudit(); renderRelChart(); renderTimeseries();
+  renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderData();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = document.body.clientWidth; if (Math.abs(w - lastW) > 8) { lastW = w; update(); } }).observe(document.body);
+}
+boot();
+</script>

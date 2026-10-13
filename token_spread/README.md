@@ -57,6 +57,7 @@ report.py               report.md + charts/*.png
 outputs/                spread_summary, sensitivity, provider_spread, operating_points
 snapshots/<date>/       copies of inputs/outputs that changed since the last stored copy
 snapshots/timeseries.csv  one row per base case per run date
+build_site.py, site/    the website (template.html -> index.html)
 ```
 
 ## Re-running
@@ -67,10 +68,21 @@ pip install -r requirements.txt
 python fetch/run_all.py   # pull fresh data
 python compute.py         # spread + snapshot
 python report.py          # report.md + charts
+python build_site.py      # site/index.html
 ```
 
 To change an assumption, edit `assumptions.yaml` and re-run `compute.py` and `report.py`
 (no fetch needed).
+
+## Website
+
+`python build_site.py` writes `site/index.html`: a single self-contained page with the
+findings, an explainer of every concept, an interactive dashboard and the full raw data.
+It embeds every input row and recomputes the spread in the browser with the same rules as
+`compute.py`. The footer shows a check that the browser engine reproduces `compute.py` for
+every base case. Open the file directly, or serve it with GitHub Pages (see below).
+`site/template.html` is the source; `site/artifact.html` is the same page without the
+document wrapper.
 
 ## Daily time series
 
@@ -82,8 +94,12 @@ daily snapshot is the only way to get their history. InferenceX keeps its own hi
 changes in steps every few weeks. Unchanged files are not re-copied, so `snapshots/` grows
 slowly.
 
+The job also rebuilds `site/index.html` daily. To publish it on GitHub Pages, set
+Settings → Pages → Source to "GitHub Actions" and add a repository variable
+`ENABLE_PAGES=true`.
+
 GitHub runs scheduled workflows only from the default branch, so the job starts once this
-is merged to `main`. It can also be started manually from the Actions tab.
+is merged into the default branch. It can also be started manually from the Actions tab.
 
 ## Known limitations
 

@@ -1,7 +1,9 @@
 name: token-spread daily snapshot
 
 # Fetch prices / throughput / rental daily, recompute the spread, save a dated
-# snapshot and commit it. report.md is regenerated on Mondays (and on manual runs).
+# snapshot, rebuild the website (site/index.html) and commit. report.md is regenerated on
+# Mondays (and on manual runs). To also publish the site on GitHub Pages: Settings → Pages →
+# Source "GitHub Actions", then add the repository variable ENABLE_PAGES = true.
 # Note: GitHub only runs scheduled workflows from the default branch.
 on:
   schedule:
@@ -10,6 +12,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: token-spread
@@ -40,14 +44,32 @@ jobs:
           else
             echo "Not Monday; skipping report"
           fi
+      - name: Build website
+        run: python build_site.py
       - name: Commit
         run: |
           git config user.name "token-spread-bot"
           git config user.email "token-spread-bot@users.noreply.github.com"
-          git add -A data outputs snapshots charts report.md
+          git add -A data outputs snapshots charts report.md site
           if git diff --cached --quiet; then
             echo "No changes"
           else
             git commit -m "token-spread snapshot $(date -u +%F)"
             git push
           fi
+      - name: Upload site for Pages
+        if: vars.ENABLE_PAGES == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: token_spread/site
+
+  deploy-pages:
+    if: vars.ENABLE_PAGES == 'true'
+    needs: snapshot
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
