@@ -1,0 +1,15 @@
+model,weights,lab,tier,input_price,output_price,blended_price,endpoint_blended_min,endpoint_blended_max,n_endpoints,price_basis,source_url
+claude-fable-5.1,closed,Anthropic,frontier,10.0,50.0,20.0,20.0,20.0,4,OpenRouter list price,https://openrouter.ai/api/v1/models
+gpt-6-astra,closed,OpenAI,frontier,10.0,50.0,20.0,10.0,120.0,7,OpenRouter list price,https://openrouter.ai/api/v1/models
+claude-opus-5.5,closed,Anthropic,large,4.0,20.0,8.0,8.0,16.0,11,OpenRouter list price,https://openrouter.ai/api/v1/models
+claude-sonnet-5.5,closed,Anthropic,mid,2.0,10.0,4.0,4.0,4.4,8,OpenRouter list price,https://openrouter.ai/api/v1/models
+gpt-6.1-sol,closed,OpenAI,mid,2.0,10.0,4.0,2.0,24.0,8,OpenRouter list price,https://openrouter.ai/api/v1/models
+grok-4.7,closed,xAI,large,2.0,6.0,3.0,3.0,6.0,5,OpenRouter list price,https://openrouter.ai/api/v1/models
+qwen3.5-397b,open,open-weight,MoE 397B (17B active),,,1.2875,0.8775,1.6875,10,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
+grok-build-0.1,closed,xAI,mid,1.0,2.0,1.25,1.25,2.5,4,OpenRouter list price,https://openrouter.ai/api/v1/models
+deepseek-r1,open,open-weight,MoE 671B (37B active),,,0.959875,0.9125,1.15,4,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
+llama-3.3-70b,open,open-weight,dense 70B,,,0.64,0.15500000000000003,1.04,11,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
+minimax-m3,open,open-weight,MoE (large),,,0.5249999999999999,0.4125,1.3125,13,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
+gpt-oss-120b,open,open-weight,MoE 117B (5.1B active),,,0.23124999999999998,0.06,0.44999999999999996,24,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
+claude-haiku-5.5,closed,Anthropic,small,0.1,0.5,0.2,0.2,0.22000000000000003,10,OpenRouter list price,https://openrouter.ai/api/v1/models
+gpt-6-luna,closed,OpenAI,small,0.1,0.5,0.2,0.1,0.4,7,OpenRouter list price,https://openrouter.ai/api/v1/models
