@@ -14,7 +14,7 @@ grok-build-0.1,closed,price-only,xAI,mid,1.0,2.0,1.25,1.25,2.5,4,OpenRouter list
 kimi-k2.5,open,spread,open-weight,MoE,,,1.1400000000000001,0.9924999999999999,1.23025,5,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
 deepseek-r1,open,spread,open-weight,MoE 671B (37B active),,,0.959875,0.9125,1.15,4,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
 llama-3.3-70b,open,spread,open-weight,dense 70B,,,0.64,0.15500000000000003,1.04,11,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
-qwen3.8-27b,open,price-only,Qwen,open,0.04,2.3,0.605,0.14,1.1375000000000002,20,OpenRouter list price,https://openrouter.ai/api/v1/models
+qwen3.8-27b,open,price-only,Qwen,open,0.04,2.3,0.605,0.34175,1.1375000000000002,19,OpenRouter list price,https://openrouter.ai/api/v1/models
 minimax-m3,open,spread,open-weight,MoE (large),,,0.5249999999999999,0.4125,1.3125,13,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
 minimax-m2.5,open,spread,open-weight,MoE,,,0.5249999999999999,0.44,1.0499999999999998,9,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
 gpt-oss-120b,open,spread,open-weight,MoE 117B (5.1B active),,,0.23124999999999998,0.06,0.44999999999999996,24,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints

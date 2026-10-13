@@ -157,7 +157,7 @@ benchmarked open-weight = median provider):
 | kimi-k2.5 | open | spread | open-weight | $1.140 | $0.993–$1.230 | median OpenRouter provider |
 | deepseek-r1 | open | spread | open-weight | $0.960 | $0.912–$1.150 | median OpenRouter provider |
 | llama-3.3-70b | open | spread | open-weight | $0.640 | $0.155–$1.040 | median OpenRouter provider |
-| qwen3.8-27b | open | price-only | Qwen | $0.605 | $0.140–$1.138 | OpenRouter list price |
+| qwen3.8-27b | open | price-only | Qwen | $0.605 | $0.342–$1.138 | OpenRouter list price |
 | minimax-m3 | open | spread | open-weight | $0.525 | $0.412–$1.312 | median OpenRouter provider |
 | minimax-m2.5 | open | spread | open-weight | $0.525 | $0.440–$1.050 | median OpenRouter provider |
 | gpt-oss-120b | open | spread | open-weight | $0.231 | $0.060–$0.450 | median OpenRouter provider |
