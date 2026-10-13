@@ -40,7 +40,7 @@ OpenRouter provider, rental = `silicondata_index_faq`.
 | minimax-m2.5 | H100 fp8 | base | 9 | 0.44–0.52–1.05 | 1824 | 2160 | $2.07 | $2.53 | $-0.46 | 0.82× | 73% | 2026-03-28,2026-06-04 |
 | minimax-m2.5 | B200 fp8 | base | 9 | 0.44–0.52–1.05 | 10290 | 11917 | $11.67 | $5.45 | $6.22 | 2.14× | 28% | 2026-03-28,2026-05-31,2026-06-03 |
 | minimax-m2.5 | B200 fp4 | variant | 9 | 0.44–0.52–1.05 | 19251 | 20532 | $21.83 | $5.45 | $16.38 | 4.01× | 15% | 2026-06-03 |
-| deepseek-v4-pro | B200 fp4 | base | 15 | 0.56–1.77–3.41 | 5489 | 8544 | $20.99 | $5.45 | $15.54 | 3.85× | 16% | 2026-06-12,2026-08-12 |
+| deepseek-v4-pro | B200 fp4 | base | 15 | 0.55–1.77–3.41 | 5489 | 8544 | $20.99 | $5.45 | $15.54 | 3.85× | 16% | 2026-06-12,2026-08-12 |
 | glm-5 | B200 fp8 | base | 8 | 0.93–1.45–1.55 | 1161 | 3572 | $3.64 | $5.45 | $-1.81 | 0.67× | 90% | 2026-03-20,2026-05-18,2026-06-12 |
 | glm-5 | B200 fp4 | variant | 8 | 0.93–1.45–1.55 | 2195 | 3486 | $6.88 | $5.45 | $1.43 | 1.26× | 48% | 2026-06-12 |
 | kimi-k2.5 | B200 int4 | base | 5 | 0.99–1.14–1.23 | 1112 | 1484 | $2.74 | $5.45 | $-2.71 | 0.50× | 119% | 2026-03-24,2026-07-05,2026-07-18 |
@@ -49,7 +49,7 @@ OpenRouter provider, rental = `silicondata_index_faq`.
 `tok/s/GPU` = total (input+output) tokens/s per GPU at the base in:out ratio, interactivity-floor
 point; `(max)` = highest throughput with no latency floor. Breakeven util = utilization at
 which revenue = rental. Rows with `estimate=True` in `outputs/spread_summary.csv` use
-interpolated throughput (see section 8).
+interpolated throughput (see section 9).
 
 ![spread by model and GPU](charts/spread_by_model_gpu.png)
 
@@ -72,7 +72,7 @@ lines. Dots to the right mean B200 is cheap relative to H100 for that model (or 
 |---|---|---|---|---|
 | deepseek-r1 | B200 | DeepInfra (fp4) 1.73× | Novita (fp8) 2.18× | 4/4 |
 | deepseek-r1 | H100 | DeepInfra (fp4) 0.44× | Novita (fp8) 0.56× | 0/4 |
-| deepseek-v4-pro | B200 | StreamLake (fp8) 1.21× | Reka (unknown) 7.42× | 15/15 |
+| deepseek-v4-pro | B200 | StreamLake (fp8) 1.19× | Reka (unknown) 7.42× | 15/15 |
 | glm-5 | B200 | GMICloud (fp8) 0.43× | Amazon Bedrock (unknown) 0.71× | 0/8 |
 | gpt-oss-120b | B200 | Venice (int4) 0.97× | Cerebras (fp16) 7.28× | 23/24 |
 | gpt-oss-120b | H100 | Venice (int4) 0.38× | Cerebras (fp16) 2.84× | 14/24 |
@@ -93,9 +93,9 @@ Full table: `outputs/provider_spread.csv`.
 | gpu | series | price | method | estimate | notes |
 |---|---|---|---|---|---|
 | h100 | silicondata_index_faq | $2.53 | scraped | False | FAQ text on index page (SDH100RT, neocloud on-demand) |
-| h100 | silicondata_index_widget | $2.85 | scraped | False | 'Related indices' widget, ticker SDH100RT, 7D change 8.0% |
+| h100 | silicondata_index_widget | $2.85 | scraped | False | 'Related indices' widget, ticker SDH100RT, 7D change 7.1% |
 | b200 | silicondata_index_faq | $5.45 | scraped | False | FAQ text on index page (SDB200RT, neocloud on-demand) |
-| b200 | silicondata_index_widget | $5.94 | scraped | False | 'Related indices' widget, ticker SDB200RT, 7D change 4.2% |
+| b200 | silicondata_index_widget | $5.95 | scraped | False | 'Related indices' widget, ticker SDB200RT, 7D change 4.0% |
 | h100 | inferencex_retail | $2.00 | fetched | True | InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote |
 | h100 | inferencex_owner_tco | $1.17 | fetched | True | InferenceX 'owning at hyperscaler volume' $/GPU-hr (all-in TCO, not a rental price); modelled, not a market quote |
 | b200 | inferencex_retail | $3.70 | fetched | True | InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote |
@@ -112,8 +112,8 @@ the same breakeven, and spread ratio = measured ÷ needed.
 
 - **claude-fable-5.1** at $20.00/Mtok needs only **59 tok/s per H100**.
   The slowest open-weight model measured here manages 569.
-- **deepseek-v4.1-flash** at $0.08/Mtok needs **15,281 tok/s per H100**
-  (32,918 per B200). 0 of 6.0 benchmarked models reach that on H100.
+- **deepseek-v4.1-flash** at $0.19/Mtok needs **6,220 tok/s per H100**
+  (13,398 per B200). 1 of 6.0 benchmarked models reaches that on H100.
 - These are thresholds, not estimates of closed-model throughput or margin. Closed labs may
   run other hardware (TPUs, Trainium, own clusters), bill hidden reasoning tokens as output,
   and discount cached input heavily.
@@ -135,7 +135,7 @@ the same breakeven, and spread ratio = measured ÷ needed.
 | qwen3.8-flash-next | Qwen | open | $0.23 | 5,093 | 10,970 | 1 | 1 |
 | claude-haiku-5.5 | Anthropic | closed | $0.20 | 5,856 | 12,616 | 1 | 1 |
 | gpt-6-luna | OpenAI | closed | $0.20 | 5,856 | 12,616 | 1 | 1 |
-| deepseek-v4.1-flash | DeepSeek | open | $0.08 | 15,281 | 32,918 | 0 | 1 |
+| deepseek-v4.1-flash | DeepSeek | open | $0.19 | 6,220 | 13,398 | 1 | 1 |
 
 **Price comparison** (blended at 3:1; price-only = OpenRouter list price,
 benchmarked open-weight = median provider):
@@ -150,7 +150,7 @@ benchmarked open-weight = median provider):
 | kimi-k3 | open | price-only | Moonshot | $3.047 | $3.047–$9.000 | OpenRouter list price |
 | grok-4.7 | closed | price-only | xAI | $3.000 | $3.000–$6.000 | OpenRouter list price |
 | glm-5.2 | open | price-only | Zhipu | $1.795 | $0.625–$4.125 | OpenRouter list price |
-| deepseek-v4-pro | open | spread | open-weight | $1.770 | $0.558–$3.413 | median OpenRouter provider |
+| deepseek-v4-pro | open | spread | open-weight | $1.770 | $0.545–$3.413 | median OpenRouter provider |
 | glm-5 | open | spread | open-weight | $1.450 | $0.930–$1.550 | median OpenRouter provider |
 | qwen3.5-397b | open | spread | open-weight | $1.288 | $0.877–$1.688 | median OpenRouter provider |
 | grok-build-0.1 | closed | price-only | xAI | $1.250 | $1.250–$2.500 | OpenRouter list price |
@@ -164,13 +164,77 @@ benchmarked open-weight = median provider):
 | qwen3.8-flash-next | open | price-only | Qwen | $0.230 | $0.230–$0.230 | OpenRouter list price |
 | claude-haiku-5.5 | closed | price-only | Anthropic | $0.200 | $0.200–$0.220 | OpenRouter list price |
 | gpt-6-luna | closed | price-only | OpenAI | $0.200 | $0.100–$0.400 | OpenRouter list price |
-| deepseek-v4.1-flash | open | price-only | DeepSeek | $0.077 | $0.077–$1.050 | OpenRouter list price |
+| deepseek-v4.1-flash | open | price-only | DeepSeek | $0.188 | $0.113–$1.050 | OpenRouter list price |
 
-## 7. Over time
+## 7. From electricity to tokens
+
+A GPU-hour's cost starts with electricity. Each GPU draws its **all-in** power (chip plus its
+share of host CPU, memory and network; SemiAnalysis: H100 1.37 kW,
+B200 1.71 kW), and the facility adds cooling and conversion losses
+(PUE 1.3). `power cost per GPU-hour = all-in kW × load factor (1.0) × PUE × $/kWh`.
+
+At the base region (U.S. average (industrial), $0.098/kWh):
+
+- Electricity costs **$0.17 per H100-hour** and
+  **$0.22 per B200-hour**: 6.9%
+  and 4.0% of the rent, and about
+  15% / 13% of the owner's full cost (SemiAnalysis TCO).
+- Across regions ($0.071–$0.201/kWh),
+  power is 2.9%–14.2% of rent.
+- Turned into tokens and sold at market prices, one kWh earns
+  $0.66–$9.89: **7–101×**
+  what the electricity cost.
+- Measured GPU draw (newer InferenceX runs only) is 72%–92% of
+  TDP at the chosen operating points, so the full-load assumption is conservative.
+
+![power chain](charts/power_chain.png)
+
+| model | GPU | power $/h | owner TCO $/h | rent $/h | revenue $/h | tokens per kWh | revenue per kWh | revenue ÷ power | measured GPU W (% TDP) |
+|---|---|---|---|---|---|---|---|---|---|
+| llama-3.3-70b | H100 fp8 | $0.17 | $1.17 | $2.53 | $2.56 | 2.24M | $1.44 | 15× | – |
+| llama-3.3-70b | B200 fp8 | $0.22 | $1.73 | $5.45 | $9.75 | 6.85M | $4.38 | 45× | – |
+| gpt-oss-120b | H100 fp4 | $0.17 | $1.17 | $2.53 | $3.69 | 8.97M | $2.07 | 21× | – |
+| gpt-oss-120b | B200 fp4 | $0.22 | $1.73 | $5.45 | $20.38 | 39.64M | $9.17 | 94× | – |
+| qwen3.5-397b | H100 fp8 | $0.17 | $1.17 | $2.53 | $4.56 | 1.99M | $2.56 | 26× | 503 (72%) |
+| qwen3.5-397b | B200 fp8 | $0.22 | $1.73 | $5.45 | $21.98 | 7.68M | $9.89 | 101× | 921 (92%) |
+| minimax-m3 | H100 fp8 | $0.17 | $1.17 | $2.53 | $1.24 | 1.33M | $0.70 | 7× | 583 (83%) |
+| minimax-m3 | B200 fp8 | $0.22 | $1.73 | $5.45 | $7.05 | 6.04M | $3.17 | 32× | 829 (83%) |
+| deepseek-r1 | H100 fp8 | $0.17 | $1.17 | $2.53 | $1.18 | 0.69M | $0.66 | 7× | – |
+| deepseek-r1 | B200 fp8 | $0.22 | $1.73 | $5.45 | $9.91 | 4.64M | $4.46 | 46× | – |
+| minimax-m2.5 | H100 fp8 | $0.17 | $1.17 | $2.53 | $2.07 | 2.21M | $1.16 | 12× | 519 (74%) |
+| minimax-m2.5 | B200 fp8 | $0.22 | $1.73 | $5.45 | $11.67 | 10.00M | $5.25 | 54× | – |
+| deepseek-v4-pro | B200 fp4 | $0.22 | $1.73 | $5.45 | $20.99 | 5.33M | $9.44 | 97× | – |
+| glm-5 | B200 fp8 | $0.22 | $1.73 | $5.45 | $3.64 | 1.13M | $1.64 | 17× | – |
+| kimi-k2.5 | B200 int4 | $0.22 | $1.73 | $5.45 | $2.74 | 1.08M | $1.23 | 13× | 788 (79%) |
+
+**Electricity cost per GPU-hour by region** (EIA: latest month, by sector; Eurostat:
+MWH70000-149999 kWh/yr band, excl. VAT, converted at the ECB rate):
+
+| region | $/kWh | period | H100 power $/h | B200 power $/h | share of H100 rent | share of B200 rent |
+|---|---|---|---|---|---|---|
+| Texas | $0.071 | July 2026 | $0.13 | $0.16 | 5.0% | 2.9% |
+| Washington | $0.075 | July 2026 | $0.13 | $0.17 | 5.3% | 3.1% |
+| Norway | $0.080 | 2026-S1 | $0.14 | $0.18 | 5.6% | 3.2% |
+| Finland | $0.089 | 2026-S1 | $0.16 | $0.20 | 6.2% | 3.6% |
+| France | $0.089 | 2026-S1 | $0.16 | $0.20 | 6.3% | 3.6% |
+| Oregon | $0.089 | July 2026 | $0.16 | $0.20 | 6.3% | 3.6% |
+| Arizona | $0.093 | July 2026 | $0.17 | $0.21 | 6.6% | 3.8% |
+| U.S. average (industrial) | $0.098 | July 2026 | $0.17 | $0.22 | 6.9% | 4.0% |
+| Georgia | $0.100 | July 2026 | $0.18 | $0.22 | 7.1% | 4.1% |
+| Sweden | $0.100 | 2026-S1 | $0.18 | $0.22 | 7.1% | 4.1% |
+| Virginia | $0.101 | July 2026 | $0.18 | $0.22 | 7.1% | 4.1% |
+| Spain | $0.103 | 2026-S1 | $0.18 | $0.23 | 7.2% | 4.2% |
+| Ohio | $0.110 | July 2026 | $0.20 | $0.24 | 7.7% | 4.5% |
+| Netherlands | $0.140 | 2026-S1 | $0.25 | $0.31 | 9.9% | 5.7% |
+| U.S. average (commercial) | $0.145 | July 2026 | $0.26 | $0.32 | 10.2% | 5.9% |
+| Germany | $0.154 | 2026-S1 | $0.27 | $0.34 | 10.9% | 6.3% |
+| Ireland | $0.201 | 2026-S1 | $0.36 | $0.45 | 14.2% | 8.2% |
+
+## 8. Over time
 
 Only one snapshot so far; the time-series chart appears after the second daily run.
 
-## 8. Data gaps and caveats
+## 9. Data gaps and caveats
 
 **Gaps found this run**
 
@@ -211,5 +275,8 @@ Only one snapshot so far; the time-series chart appears after the second daily r
   InferenceX's owner-TCO figures (H100 $1.17,
   B200 $1.73) are a floor for what serving
   costs an owner-operator.
+- **Electricity is modelled, not metered.** Power cost uses SemiAnalysis all-in kW per GPU at
+  full load, an assumed PUE and average published tariffs. Large operators buy power through
+  contracts (PPAs) whose prices are not public, and pay demand charges not captured here.
 - **Revenue ≠ margin.** The spread excludes networking, storage, CPU hosts, engineering,
   idle capacity reserved for peaks, and OpenRouter's fee.

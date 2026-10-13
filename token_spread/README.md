@@ -63,12 +63,38 @@ flex) are kept as a range in `data/api_prices_price_only.csv`.
 than the speed floor. `outputs/operating_points.csv` marks such points `sweep_edge=True`;
 their throughput at the floor is a lower bound.
 
+## Electricity layer
+
+The chain extends one step down: **electricity price → GPU-hour cost → rent → token revenue**.
+
+```
+kwh_per_gpu_hour       = all_in_kW × load_factor × PUE
+power_cost_per_gpu_hour = kwh_per_gpu_hour × price_per_kWh
+revenue_per_kWh        = implied_revenue_per_gpu_hour ÷ kwh_per_gpu_hour
+```
+
+- **All-in kW** per GPU (H100 1.37, B200 1.71) and the owner's total cost per GPU-hour come from
+  SemiAnalysis's AI Cloud TCO model as published in InferenceX's open-source constants
+  (`data/gpu_power.csv`). All-in includes the GPU's share of host CPU, memory and network.
+- **PUE** (default 1.3) and **load factor** (default 1.0, full load) are in `assumptions.yaml`
+  under `power`. Measured GPU power from newer InferenceX runs (`avg_power_w`) is reported in
+  `outputs/power_chain.csv` as a cross-check; it is not used in the cost.
+- **Electricity prices** (`data/electricity_prices.csv`): US states from EIA Electric Power
+  Monthly table 5.6.A (latest month, by sector); European countries from Eurostat `nrg_pc_205`
+  (non-household, 70–150 GWh/yr band, excl. VAT), converted to USD at the ECB rate. Regions
+  are listed under `power.regions`.
+- Outputs: `outputs/power_costs.csv` (power cost per GPU-hour by region) and
+  `outputs/power_chain.csv` (per model and GPU: power, owner cost, rent, revenue, tokens and
+  revenue per kWh).
+
 ## Data sources
 
 | File | Source | Fetch |
 |---|---|---|
 | `data/api_prices.csv` | [OpenRouter](https://openrouter.ai) `GET /api/v1/models/{id}/endpoints`: per-provider list prices and quantization | `fetch/fetch_openrouter.py` |
 | `data/api_prices_price_only.csv` | OpenRouter `GET /api/v1/models` (list price) and `/models/{id}/endpoints` for each price-only model | `fetch/fetch_openrouter.py` |
+| `data/electricity_prices.csv` | [EIA](https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a) table 5.6.A, [Eurostat](https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_205/default/table) nrg_pc_205, [ECB](https://data.ecb.europa.eu/) EUR/USD | `fetch/fetch_power.py` |
+| `data/gpu_power.csv` | InferenceX open-source GPU constants (SemiAnalysis TCO model) | `fetch/fetch_power.py` |
 | `data/throughput.csv` | [SemiAnalysis InferenceX](https://inferencex.semianalysis.com) `GET /api/v1/benchmarks?model=…`: per-GPU throughput across framework, precision, ISL/OSL and concurrency. Each row links its GitHub Actions run (`source_url`). Only the latest run date per configuration is kept. | `fetch/fetch_inferencex.py` |
 | `data/gpu_rental.csv` | [Silicon Data](https://www.silicondata.com/products/silicon-index/h100) H100/B200 rental index pages (SDH100RT / SDB200RT, the indices underlying CME GPU1/GPU2 futures). Two readings per page (FAQ text and widget) are both recorded. Also includes InferenceX's retail and owner-TCO $/GPU-hr assumptions (`estimate=True`). Rows with `method=manual` are preserved across fetches, so you can add your own. | `fetch/fetch_silicondata.py` |
 

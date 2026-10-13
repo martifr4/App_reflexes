@@ -157,7 +157,7 @@ select { font: 0.82rem var(--font-body); background: var(--surface); color: var(
 .changed b { color: var(--s-b200); font-weight: 500; }
 
 /* ---------- panels & charts ---------- */
-.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 1.1rem 1.2rem; display: grid; gap: 0.8rem; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 1.1rem 1.2rem; display: grid; gap: 0.8rem; min-width: 0; align-content: start; }
 .panel-head { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: baseline; justify-content: space-between; }
 .panel-head h3 { font-size: var(--step-1); }
 .panel-sub { font-size: var(--step--1); color: var(--muted); }
@@ -268,6 +268,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <a href="#start">Start here</a>
       <a href="#findings">Findings</a>
       <a href="#dashboard">Dashboard</a>
+      <a href="#power">Electricity</a>
       <a href="#explore">Model explorer</a>
       <a href="#closed">Price-only models</a>
       <a href="#method">Method</a>
@@ -293,14 +294,15 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
     <div class="section-head">
       <div class="eyebrow">Start here</div>
       <h2>What this page is for</h2>
-      <p class="lede">AI models are sold by the token. The chips that run them are rented by the hour.
-        This page connects the two prices.</p>
+      <p class="lede">AI models are sold by the token. The chips that run them are rented by the hour, and they run on
+        electricity. This page connects the three prices.</p>
     </div>
     <div class="intro">
       <div class="prose">
         <p>Two markets have grown up side by side. AI companies and hosting providers publish what they charge for every
           million tokens a model reads or writes. Separately, cloud companies rent out the chips those models run on, and
-          since October 2026 the rental price of NVIDIA's main AI chips even trades as a futures contract on CME.</p>
+          since October 2026 the rental price of NVIDIA's main AI chips even trades as a futures contract on CME.
+          Underneath both sits a third price: the electricity those chips burn.</p>
         <p>Nobody publishes how the two fit together. <strong>If you rent a chip for an hour and use it to run a popular AI
           model, how much would you earn selling its output?</strong> Is that more or less than the rent?</p>
         <p>The answer says things a rental price alone can't: whether a newer chip is cheap or expensive for the work it does,
@@ -310,12 +312,15 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
           number yourself.</p>
       </div>
       <div>
-        <div class="primer-title">Three ideas you need</div>
+        <div class="primer-title">Four ideas you need</div>
         <dl class="primer">
           <div><dt>Token</dt><dd>A small chunk of text, about ¾ of a word. AI services charge per million tokens:
             <span id="primer-tok"></span>, depending on the model.</dd></div>
           <div><dt>GPU-hour</dt><dd>One hour of one AI chip, here NVIDIA's H100 or its newer B200, rented from a cloud
             provider. Today that costs <span id="primer-gpu"></span>.</dd></div>
+          <div><dt>Electricity</dt><dd>Each AI chip and its share of the server draws about 1.4–1.7 kilowatts, and the
+            building adds cooling on top. At <span id="primer-kwh"></span> that costs <span id="primer-pow"></span> per
+            GPU-hour: a small slice of the rent.</dd></div>
           <div><dt>Throughput</dt><dd>How many tokens one chip can produce per second. It links the two prices: tokens per
             hour × price per token = what a GPU-hour earns. The <strong>token spread</strong> is that amount minus the rent.</dd></div>
         </dl>
@@ -325,6 +330,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
     <ul class="guide">
       <li><a href="#findings">Findings <span>→</span></a><p>The main conclusions in plain sentences, rewritten automatically when the data changes. Start here if you have a minute.</p></li>
       <li><a href="#dashboard">Dashboard <span>→</span></a><p>The results for every model and chip. Move the sliders to try your own assumptions, and click any result to see the full calculation.</p></li>
+      <li><a href="#power">Electricity <span>→</span></a><p>The full chain of a GPU-hour: what its power costs, what it costs its owner, what it rents for and what its tokens sell for, by region.</p></li>
       <li><a href="#explore">Model explorer <span>→</span></a><p>One model at a time: the test data behind it, how much the answer depends on the assumptions, and how each seller's price changes it.</p></li>
       <li><a href="#closed">Price-only models <span>→</span></a><p>Claude, GPT, Grok and the newest open models lack comparable test data, so we show how efficient they would need to be to pay for the chips.</p></li>
       <li><a href="#method">Method <span>→</span></a><p>How the calculation works, step by step, with a glossary of every term on the page.</p></li>
@@ -439,6 +445,46 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
     </div>
   </section>
 
+  <section id="power">
+    <div class="section-head">
+      <div class="eyebrow">Electricity</div>
+      <h2>From electricity to tokens</h2>
+      <p class="lede">Every GPU-hour starts as electricity. Follow one up the chain: what its power costs, what the hour
+        costs its owner in total, what it rents for, and what its tokens sell for.</p>
+    </div>
+    <div class="toolbar">
+      <div class="ctl"><label for="p-region">Electricity price</label><select id="p-region"></select></div>
+      <div class="ctl"><label for="p-pue">PUE (facility overhead)</label><input type="range" id="p-pue" min="1.05" max="1.8" step="0.05"><span class="val" id="v-pue"></span></div>
+      <div class="ctl"><label for="p-lf">Average power draw</label><input type="range" id="p-lf" min="0.4" max="1" step="0.05"><span class="val" id="v-lf"></span></div>
+      <div class="ctl"><label for="p-model">Tokens from</label><select id="p-model"></select></div>
+    </div>
+    <div class="prose" id="power-summary"></div>
+    <div class="panel">
+      <div class="panel-head"><div><h3>What one GPU-hour is worth at each step</h3><div class="panel-sub" id="chain-sub"></div></div></div>
+      <div class="legend" id="chain-legend"></div>
+      <div class="chart" id="chart-chain"></div>
+      <div class="note">Owner cost is SemiAnalysis's all-in cost of owning the GPU at scale (hardware, power, hosting),
+        which uses its own electricity assumption. Token revenue uses the dashboard settings above.</div>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head"><div><h3>Electricity price by region</h3><div class="panel-sub">US dollars per kWh. Hover for the cost per GPU-hour.</div></div></div>
+        <div class="chart" id="chart-regions"></div>
+      </div>
+      <div class="table-wrap"><table id="regions-table"></table></div>
+    </div>
+    <div class="table-wrap"><table id="chain-table"></table></div>
+    <div class="prose">
+      <h3>Reading these numbers</h3>
+      <ul class="list">
+        <li><strong>Power per GPU includes its server.</strong> SemiAnalysis's "all-in" figure adds the GPU's share of host CPUs, memory and network cards to the chip itself: <span id="allin-txt"></span>.</li>
+        <li><strong>PUE covers the building.</strong> Cooling and power conversion add 10–60% on top. SemiAnalysis uses 1.2 for AI facilities; the Uptime Institute's 2025 survey puts the global average just above 1.5.</li>
+        <li><strong>Full load is the conservative case.</strong> Where InferenceX measured it, GPUs drew <span id="meas-txt"></span> of their rated power at the operating points used here. Lower the average power draw to see the effect.</li>
+        <li><strong>Published tariffs, not contracts.</strong> Prices are average industrial or large non-household tariffs. Big operators sign long-term power contracts whose prices are not public, and pay demand charges not included here.</li>
+      </ul>
+    </div>
+  </section>
+
   <section id="explore">
     <div class="section-head">
       <div class="eyebrow">Model explorer</div>
@@ -525,6 +571,8 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <p class="lede">Four public inputs, one multiplication chain. Each step is simple; the uncertainty lives in the inputs.</p>
     </div>
     <div class="flow" aria-label="Calculation steps">
+      <div class="node"><span class="k">Input · EIA, Eurostat</span><span class="t">Electricity price</span><span class="d">Average industrial or large-business tariff per kWh, by US state or European country.</span></div>
+      <div class="node"><span class="k">Step</span><span class="t">Power cost per GPU-hour</span><span class="d">All-in kW per GPU × PUE × average draw × price. Compared with rent and token revenue.</span></div>
       <div class="node"><span class="k">Input · OpenRouter</span><span class="t">API price per million tokens</span><span class="d">Separate input and output prices for each provider serving the model.</span></div>
       <div class="node"><span class="k">Step</span><span class="t">Blended price</span><span class="d">Weight input and output prices by the traffic mix, e.g. 3 input tokens per output token.</span></div>
       <div class="node"><span class="k">Input · InferenceX</span><span class="t">Throughput per GPU</span><span class="d">Tokens per second one GPU processes at the chosen speed-per-user floor.</span></div>
@@ -539,7 +587,10 @@ tokens_per_gpu_hour          = throughput_tok_s_per_gpu × 3600 × utilization
 implied_revenue_per_gpu_hour = tokens_per_gpu_hour / 1,000,000 × blended_price_per_Mtok
 token_spread                 = implied_revenue_per_gpu_hour − rental_price_per_gpu_hour
 spread_ratio                 = implied_revenue_per_gpu_hour ÷ rental_price_per_gpu_hour
-breakeven_utilization        = rental_price ÷ (revenue at 100% utilization)</div>
+breakeven_utilization        = rental_price ÷ (revenue at 100% utilization)
+<span class="c"># electricity</span>
+power_cost_per_gpu_hour      = all_in_kW × average_draw × PUE × price_per_kWh
+revenue_per_kWh              = implied_revenue_per_gpu_hour ÷ (all_in_kW × average_draw × PUE)</div>
     <div class="example" id="worked-example"></div>
 
     <div class="section-head"><h3>Concepts</h3></div>
@@ -562,6 +613,9 @@ breakeven_utilization        = rental_price ÷ (revenue at 100% utilization)</di
       <div><dt>Breakeven throughput</dt><dd>Tokens per second one GPU must produce for a model's price to cover the GPU's rent at a given utilization: rent ÷ (3,600 × utilization × price per token). For open-weight models, measured throughput ÷ breakeven throughput = spread ratio.</dd></div>
       <div><dt>Price-only model</dt><dd>A model shown without a spread because its throughput isn't measured in a comparable way: closed models, and open-weight models InferenceX has only tested on agentic workloads (long, mostly cached conversations) or not at all.</dd></div>
       <div><dt>Closed vs open-weight</dt><dd>Closed models (Claude, GPT, Grok) are only available through their makers' APIs and cloud partners. Their size, hardware and throughput are not published, so only their prices enter this analysis.</dd></div>
+      <div><dt>kWh</dt><dd>Kilowatt-hour, the unit electricity is sold in: one kilowatt drawn for one hour. An H100 with its share of the server draws about 1.4 kW.</dd></div>
+      <div><dt>All-in power per GPU</dt><dd>The chip's own power plus its share of the server around it: CPUs, memory, network cards. SemiAnalysis estimates 1.37 kW for an H100 and 1.71 kW for a B200 at full load.</dd></div>
+      <div><dt>PUE (power usage effectiveness)</dt><dd>Total building power divided by IT power. A PUE of 1.3 means every kW of servers needs 0.3 kW more for cooling and power conversion.</dd></div>
       <div><dt>Breakeven utilization</dt><dd>The utilization at which revenue equals rent. Above 100% means the model cannot pay its rent on that GPU at market prices, however busy it is.</dd></div>
     </dl>
 
@@ -754,7 +808,15 @@ const ENGINE = (() => {
     return { list: (r * f.linp + f.lout) / (r + 1), min: Math.min(...eb), max: Math.max(...eb), n: rs.length, row: f, rows: rs };
   }
   const breakeven = (rent, price, util) => rent / (3600 * util * price / 1e6);
-  return { cases, evaluate, prices, priceStats, rows, opPoints, tputAt, rental, median, blend, closedPrice, breakeven };
+  function gpuPower(gpu) { return (D.gpu_power || []).find(g => g.gpu === gpu); }
+  function kwhPerHour(gpu, ps) { const g = gpuPower(gpu); return g ? g.kw * ps.lf * ps.pue : NaN; }
+  function elecPrice(region) { const e = (D.electricity || []).find(x => x.region === region); return e ? e.price : NaN; }
+  function measuredPower(tf) {
+    if (!tf.used.length || tf.used.some(u => u.p.row.pw == null)) return NaN;
+    return tf.used.reduce((a, u) => a + u.p.row.pw * u.w, 0);
+  }
+  return { cases, evaluate, prices, priceStats, rows, opPoints, tputAt, rental, median, blend, closedPrice, breakeven,
+           gpuPower, kwhPerHour, elecPrice, measuredPower };
 })();
 /* ===================== ENGINE END ===================== */
 
@@ -763,6 +825,8 @@ const BASE = {
   price: CFG.price_statistic, rental: CFG.rental_base_series,
   spec: CFG.allow_speculative_decoding, multi: CFG.allow_disaggregated_multinode,
 };
+const PBASE = { region: (CFG.power || {}).base_region, pue: (CFG.power || {}).pue_base, lf: (CFG.power || {}).load_factor };
+const pstate = { ...PBASE, model: "__median" };
 const state = { ...BASE, metric: "ratio", sel: null, model: MODELS[0].key, seq: "1024/1024", cgpu: "h100" };
 const CASES = ENGINE.cases();
 const CLOSED = [
@@ -894,6 +958,12 @@ function renderStatic() {
     ["Benchmarks", fmtInt(D.tput.length), `newest ${fmtDate(D.meta.newest_benchmark)}`],
     ["Price-only", String(CLOSED.length), "closed + unbenchmarked open"],
   ];
+  if ((D.electricity || []).length && (D.gpu_power || []).length) {
+    const ep = ENGINE.elecPrice(PBASE.region), el0 = D.electricity.find(x => x.region === PBASE.region);
+    cells.splice(2, 0, ["Electricity", `${nf(1).format(ep * 100)}¢/kWh`, `${el0.label}`]);
+    $("primer-kwh").textContent = `${nf(1).format(ep * 100)}¢ per kWh (${el0.label})`;
+    $("primer-pow").textContent = GPUS.map(g => `${fmtUSD(ENGINE.kwhPerHour(g, PBASE) * ep)} (${gpuName(g)})`).join(" or ");
+  }
   $("board").replaceChildren(...cells.map(([k, val, d]) => h("div", {}, h("span", { class: "k", text: k }), h("span", { class: "v", text: val }), h("span", { class: "d", text: d }))));
 
   // primer: live price ranges
@@ -973,6 +1043,18 @@ function renderStatic() {
       href: "#closed",
     });
   }
+  if ((D.electricity || []).length && (D.gpu_power || []).length) {
+    const ep = ENGINE.elecPrice(PBASE.region), el0 = D.electricity.find(x => x.region === PBASE.region);
+    const pr = base.filter(r => r.c.kind === "base" && isFinite(r.rev)).map(r => { const kwh = ENGINE.kwhPerHour(r.c.gpu, PBASE); return { r, mult: r.rev / (kwh * ep), share: kwh * ep / r.R.base }; });
+    const shares = GPUS.map(g => ({ g, s: ENGINE.kwhPerHour(g, PBASE) * ep / ENGINE.rental(g, BASE.rental).base }));
+    const allPrices = D.electricity.map(x => x.price);
+    F.push({
+      stat: `${nf(0).format(Math.min(...pr.map(x => x.mult)))}–${nf(0).format(Math.max(...pr.map(x => x.mult)))}×`,
+      title: "Electricity is a small slice of the chain",
+      text: `At ${el0.label} prices (${nf(1).format(ep * 100)}¢/kWh) electricity is ${shares.map(o => `${fmtPct(o.s)} of ${gpuName(o.g)} rent`).join(" and ")}. Sold as tokens, each kWh earns ${nf(0).format(Math.min(...pr.map(x => x.mult)))}–${nf(0).format(Math.max(...pr.map(x => x.mult)))}× what it cost. Even at the dearest price tracked (${nf(1).format(Math.max(...allPrices) * 100)}¢/kWh) power stays under ${fmtPct(Math.ceil(Math.max(...GPUS.map(g => ENGINE.kwhPerHour(g, PBASE) * Math.max(...allPrices) / ENGINE.rental(g, BASE.rental).base)) * 20) / 20)} of rent.`,
+      href: "#power",
+    });
+  }
   $("findings-list").replaceChildren(...F.map(f => h("article", { class: "finding" },
     h("div", { class: "stat", text: f.stat }), h("h3", { text: f.title }), h("p", { text: f.text }),
     h("a", { class: "more", href: f.href, text: "See the data →" }))));
@@ -1002,8 +1084,15 @@ function renderStatic() {
     n++;
     if (Math.abs(ENGINE.breakeven(rent, price, BASE.util) - p.be) <= 1e-6 * Math.max(1, p.be)) ok++;
   }
+  for (const p of D.python_power || []) {
+    const r = base.find(r => r.c.m.key === p.m && r.c.gpu === p.gpu && r.c.prec === p.prec);
+    if (!r) continue;
+    n++;
+    const pc = ENGINE.kwhPerHour(p.gpu, PBASE) * ENGINE.elecPrice(PBASE.region);
+    if (Math.abs(pc - p.power) <= 1e-9 && Math.abs(r.rev / ENGINE.kwhPerHour(p.gpu, PBASE) - p.rpk) <= 1e-6 * Math.max(1, p.rpk)) ok++;
+  }
   $("verify").replaceChildren(h("span", { class: "chip " + (ok === n ? "good" : "bad"), text: ok === n ? "✓ verified" : "✗ mismatch" }),
-    ` The in-browser engine reproduces compute.py for ${ok} of ${n} base-case results (spreads and breakeven throughputs).`);
+    ` The in-browser engine reproduces compute.py for ${ok} of ${n} base-case results (spreads, breakeven throughputs and electricity costs).`);
   $("footer-meta").textContent = `Prices retrieved ${fmtDate(D.meta.prices_retrieved)} · rental retrieved ${fmtDate(D.meta.rental_retrieved)} · benchmarks retrieved ${fmtDate(D.meta.throughput_retrieved)} (newest run ${fmtDate(D.meta.newest_benchmark)}).`;
   const repo = $("repo-link"); repo.href = D.meta.tree_url;
   return base;
@@ -1418,6 +1507,142 @@ function renderProviders() {
   el.replaceChildren(svg);
 }
 
+/* ================= electricity ================= */
+function powerRows(st, ps) {
+  const price = ENGINE.elecPrice(ps.region);
+  return RESULTS.map(r => {
+    const kwh = ENGINE.kwhPerHour(r.c.gpu, ps), pc = kwh * price, g = ENGINE.gpuPower(r.c.gpu);
+    const mw = ENGINE.measuredPower(r.tf);
+    return { r, kwh, pc, price, tco: r.R.owner, rent: r.R.base, rev: r.rev, tokKwh: r.tokH / kwh, revKwh: r.rev / kwh,
+             mult: r.rev / pc, shareRent: pc / r.R.base, shareTco: pc / r.R.owner, shareRev: pc / r.rev,
+             mw, mwPct: g ? mw / g.tdp : NaN };
+  });
+}
+function renderPower() {
+  if (!(D.electricity || []).length || !(D.gpu_power || []).length) { $("power").hidden = true; return; }
+  const reg = $("p-region");
+  if (!reg.options.length) {
+    for (const e of [...D.electricity].sort((a, b) => a.price - b.price))
+      reg.append(h("option", { value: e.region, text: `${e.label}: ${nf(1).format(e.price * 100)}¢/kWh (${e.period})` }));
+    const pm = $("p-model");
+    pm.append(h("option", { value: "__median", text: "Median of all models" }));
+    for (const m of MODELS) pm.append(h("option", { value: m.key, text: m.key }));
+  }
+  reg.value = pstate.region; $("p-pue").value = pstate.pue; $("v-pue").textContent = nf(2).format(pstate.pue);
+  $("p-lf").value = pstate.lf; $("v-lf").textContent = fmtPct(pstate.lf) + " of all-in";
+  $("p-model").value = pstate.model;
+  const rows = powerRows(state, pstate).filter(x => isFinite(x.rev));
+  const base = rows.filter(x => x.r.c.kind === "base");
+  const e = D.electricity.find(x => x.region === pstate.region);
+  const byGpu = g => base.filter(x => x.r.c.gpu === g);
+  const pick = g => {
+    const xs = byGpu(g);
+    if (!xs.length) return null;
+    if (pstate.model !== "__median") return xs.find(x => x.r.c.m.key === pstate.model) || null;
+    const med = ENGINE.median(xs.map(x => x.rev));
+    return { ...xs[0], rev: med, lo: Math.min(...xs.map(x => x.rev)), hi: Math.max(...xs.map(x => x.rev)), median: true };
+  };
+
+  // summary prose
+  const pcs = GPUS.map(g => ({ g, x: byGpu(g)[0] })).filter(o => o.x);
+  const mults = base.map(x => x.mult).filter(isFinite);
+  $("power-summary").replaceChildren(
+    h("p", {}, `At ${e.label} prices (${nf(1).format(e.price * 100)}¢/kWh, ${e.period}) and a PUE of ${nf(2).format(pstate.pue)}, electricity costs `,
+      ...pcs.flatMap((o, i) => [i ? " and " : "", h("strong", { text: `${fmtUSD(o.x.pc)} per ${gpuName(o.g)}-hour` }), ` (${fmtPct(o.x.shareRent)} of its rent)`]), "."),
+    h("p", {}, `Turned into tokens and sold at market prices, one kWh earns ${fmtUSD(Math.min(...base.map(x => x.revKwh)))}–${fmtUSD(Math.max(...base.map(x => x.revKwh)))}, `,
+      h("strong", { text: `${nf(0).format(Math.min(...mults))}–${nf(0).format(Math.max(...mults))}×` }), ` what the electricity cost. Power is a small input; the chip and the software running on it decide almost everything.`));
+
+  // chain chart
+  const el = $("chart-chain"), W = widthOf(el), narrow = W < 560;
+  const picked = GPUS.map(g => ({ g, x: pick(g) })).filter(o => o.x);
+  $("chain-sub").textContent = `${pstate.model === "__median" ? "Token revenue: median model, whisker = range across models" : `Token revenue: ${pstate.model}`} · ${fmtRatio(state.ratio)} input:output · ${fmtPct(state.util)} utilization · ${RENTAL_LABEL[state.rental]}`;
+  $("chain-legend").replaceChildren(...picked.map(o => h("span", {}, h("i", { class: "bg-" + o.g }), gpuName(o.g))));
+  const steps = [["pc", "Electricity"], ["tco", "Owner cost"], ["rent", "Rent"], ["rev", "Token revenue"]];
+  const L = narrow ? 92 : 120, R = 70, top = 6, barH = 15, gap = 3, grp = 16;
+  const H = top + steps.length * (picked.length * (barH + gap) + grp) + 24;
+  const vals = picked.flatMap(o => [o.x.pc, o.x.tco, o.x.rent, o.x.rev, o.x.hi, o.x.lo]).filter(v => isFinite(v) && v > 0);
+  const d0 = Math.pow(10, Math.floor(Math.log10(Math.min(...vals)))), d1 = Math.pow(10, Math.ceil(Math.log10(Math.max(...vals) * 1.3)));
+  const x = v => L + (Math.log10(v) - Math.log10(d0)) / (Math.log10(d1) - Math.log10(d0)) * (W - L - R);
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Value of one GPU-hour at each step" });
+  const ax = s("g", { class: "ax" }, svg);
+  for (const t of logTicks125(d0, d1, narrow)) { s("line", { x1: x(t), x2: x(t), y1: top, y2: H - 22 }, ax); st(ax, x(t), H - 8, "$" + (t < 1 ? t : fmtCompact(t)), { "text-anchor": "middle" }); }
+  let y = top;
+  steps.forEach(([k, label], si) => {
+    st(svg, L - 10, y + picked.length * (barH + gap) / 2 + 3, label, { "text-anchor": "end", class: "lab-strong" });
+    for (const o of picked) {
+      const v = o.x[k];
+      if (isFinite(v) && v > 0) {
+        const rect = s("rect", { x: L, y, width: Math.max(1.5, x(v) - L), height: barH, rx: 2.5, class: "mark f-" + o.g, tabindex: 0 }, svg);
+        let end = x(v);
+        if (k === "rev" && o.x.median) {
+          const cy = y + barH / 2;
+          s("line", { x1: x(o.x.lo), x2: x(o.x.hi), y1: cy, y2: cy, class: "whisk" }, svg);
+          for (const ev of [o.x.lo, o.x.hi]) s("line", { x1: x(ev), x2: x(ev), y1: cy - 3.5, y2: cy + 3.5, class: "whisk" }, svg);
+          end = Math.max(end, x(o.x.hi));
+        }
+        st(svg, end + 6, y + barH / 2 + 4, fmtUSD(v) + (si ? `  ${nf(v / o.x.pc >= 10 ? 0 : 1).format(v / o.x.pc)}× power` : ""), { class: "lab-ink" });
+        bindTip(rect, () => [`${gpuName(o.g)} · ${label}`, [["per GPU-hour", fmtUSD(v)], ["× electricity cost", fmtX(v / o.x.pc, 1)],
+          ...(k === "pc" ? [["kWh per GPU-hour", nf(2).format(o.x.kwh)], ["$/kWh", fmtUSD(o.x.price, 3)]] : [])]]);
+      }
+      y += barH + gap;
+    }
+    y += grp;
+  });
+  el.replaceChildren(svg);
+
+  // regions dot plot
+  const rel = $("chart-regions"), RW = widthOf(rel);
+  const regs = [...D.electricity].sort((a, b) => a.price - b.price);
+  const rL = 150, rR = 60, rTop = 6, rRow = 22, RH = rTop + regs.length * rRow + 26;
+  const rmax = Math.max(...regs.map(r0 => r0.price)) * 1.15;
+  const rx = linScale(0, rmax, rL, RW - rR);
+  const rsvg = s("svg", { viewBox: `0 0 ${RW} ${RH}`, role: "img", "aria-label": "Electricity price by region" });
+  const rax = s("g", { class: "ax" }, rsvg);
+  for (const t of linTicks(0, rmax, 4)) { s("line", { x1: rx(t), x2: rx(t), y1: rTop, y2: RH - 22 }, rax); st(rax, rx(t), RH - 8, `${nf(0).format(t * 100)}¢`, { "text-anchor": "middle" }); }
+  regs.forEach((r0, i) => {
+    const cy = rTop + i * rRow + rRow / 2, sel = r0.region === pstate.region;
+    st(rsvg, rL - 10, cy + 4, r0.label, { "text-anchor": "end", class: sel ? "lab-strong" : "lab-ink" });
+    s("line", { x1: rL, x2: rx(r0.price), y1: cy, y2: cy, style: "stroke:var(--rule-strong);stroke-width:1" }, rsvg);
+    s("circle", { cx: rx(r0.price), cy, r: sel ? 6 : 4.5, style: `fill:var(--${sel ? "ink" : "muted"})`, class: "surface-ring" }, rsvg);
+    st(rsvg, rx(r0.price) + 9, cy + 4, `${nf(1).format(r0.price * 100)}¢`, { class: "lab" });
+    const hit = s("rect", { x: 0, y: cy - rRow / 2, width: RW, height: rRow, class: "hit", tabindex: 0 }, rsvg);
+    hit.addEventListener("click", () => { pstate.region = r0.region; renderPower(); });
+    bindTip(hit, () => [r0.label, [["$/kWh", fmtUSD(r0.price, 3)], ...GPUS.map(g => [`${gpuName(g)} power per hour`, fmtUSD(ENGINE.kwhPerHour(g, pstate) * r0.price)]), ["period", r0.period]], "Click to use this price"]);
+  });
+  rel.replaceChildren(rsvg);
+
+  // regions table
+  const rt = $("regions-table");
+  rt.replaceChildren(h("thead", {}, h("tr", {}, ...["Region", "¢/kWh", ...GPUS.map(g => `${gpuName(g)} $/h`), ...GPUS.map(g => `% of ${gpuName(g)} rent`), "Period", "Source"].map((c, i) => h("th", { class: i && i < 1 + 2 * GPUS.length + 1 ? "n" : null, text: c })))),
+    h("tbody", {}, ...regs.map(r0 => h("tr", { class: r0.region === pstate.region ? "sel" : null },
+      h("td", { text: r0.label }), h("td", { class: "n", text: nf(2).format(r0.price * 100) }),
+      ...GPUS.map(g => h("td", { class: "n", text: fmtUSD(ENGINE.kwhPerHour(g, pstate) * r0.price) })),
+      ...GPUS.map(g => h("td", { class: "n", text: fmtPct(ENGINE.kwhPerHour(g, pstate) * r0.price / ENGINE.rental(g, state.rental).base) })),
+      h("td", { text: r0.period }), h("td", {}, link(r0.url, r0.cur === "EUR" ? "Eurostat ↗" : "EIA ↗"))))));
+
+  // chain table
+  const ct = $("chain-table");
+  const cols = ["Model", "GPU · precision", "Power $/h", "Owner cost $/h", "Rent $/h", "Revenue $/h", "Tokens per kWh", "Revenue per kWh", "Revenue ÷ power", "Power share of revenue", "Measured GPU power"];
+  ct.replaceChildren(h("thead", {}, h("tr", {}, ...cols.map((c, i) => h("th", { class: i >= 2 ? "n" : null, text: c })))),
+    h("tbody", {}, ...rows.map(x0 => h("tr", {},
+      h("td", { text: x0.r.c.m.key }), h("td", {}, h("span", { class: "sw bg-" + seriesCls(x0.r.c) }), caseLabel(x0.r.c)),
+      h("td", { class: "n", text: fmtUSD(x0.pc) }), h("td", { class: "n", text: fmtUSD(x0.tco) }), h("td", { class: "n", text: fmtUSD(x0.rent) }),
+      h("td", { class: "n", text: fmtUSD(x0.rev) }), h("td", { class: "n", text: isFinite(x0.tokKwh) ? nf(2).format(x0.tokKwh / 1e6) + "M" : "–" }),
+      h("td", { class: "n", text: fmtUSD(x0.revKwh) }), h("td", { class: "n", text: isFinite(x0.mult) ? nf(0).format(x0.mult) + "×" : "–" }),
+      h("td", { class: "n", text: fmtPct(x0.shareRev) }),
+      h("td", { class: "n", text: isFinite(x0.mw) ? `${nf(0).format(x0.mw)} W (${fmtPct(x0.mwPct)})` : "not measured" })))));
+
+  // reading notes
+  const gp = D.gpu_power;
+  $("allin-txt").textContent = gp.map(g => `${gpuName(g.gpu)} ${g.kw} kW all-in vs ${g.tdp} W for the chip alone`).join(", ");
+  const mp = rows.map(x0 => x0.mwPct).filter(isFinite);
+  $("meas-txt").textContent = mp.length ? `${fmtPct(Math.min(...mp))}–${fmtPct(Math.max(...mp))} (${mp.length} of ${rows.length} cases measured)` : "no measured cases yet";
+}
+$("p-region").addEventListener("change", e => { pstate.region = e.target.value; renderPower(); });
+$("p-pue").addEventListener("input", e => { pstate.pue = +e.target.value; renderPower(); });
+$("p-lf").addEventListener("input", e => { pstate.lf = +e.target.value; renderPower(); });
+$("p-model").addEventListener("change", e => { pstate.model = e.target.value; renderPower(); });
+
 /* ================= closed models ================= */
 function logTicks125(lo, hi, decadesOnly = false) {
   const out = [];
@@ -1562,6 +1787,11 @@ function renderMethodTables() {
     ["Rental price", RENTAL_LABEL[CFG.rental_base_series], "The index CME's GPU futures settle on. The page shows a second reading that sometimes differs; both are kept."],
     ["Speculative decoding", CFG.allow_speculative_decoding ? "allowed" : "excluded", "Widely used in production serving."],
     ["Multi-node serving", CFG.allow_disaggregated_multinode ? "allowed" : "excluded", "Needed for DeepSeek-R1 on H100, which doesn't fit one 8×H100 node at fp8."],
+    ...(CFG.power ? [
+      ["Electricity price", (D.electricity || []).find(x => x.region === CFG.power.base_region)?.label || CFG.power.base_region, "Most rented GPU capacity is in the US; industrial is the tariff class closest to a large data centre. Other regions are in the Electricity section."],
+      ["PUE", String(CFG.power.pue_base), "Between SemiAnalysis's 1.2 for AI facilities and the Uptime Institute's global average just above 1.5."],
+      ["Average power draw", fmtPct(CFG.power.load_factor) + " of all-in", "Full load every hour: conservative, since measured GPU draw is lower and idle GPUs still draw some power."],
+    ] : []),
     ...MODELS.map(m => [`Precision · ${m.key}`, Object.entries(m.base_precision).map(([g, p]) => `${gpuName(g)} ${p}`).join(", ") + ((m.variants || []).length ? `; variant ${(m.variants).map(v => `${gpuName(v.gpu)} ${v.precision}`).join(", ")}` : ""), m.key === "gpt-oss-120b" ? "Released in 4-bit (MXFP4); served that way on both GPUs." : (!m.base_precision.h100 ? "No H100 benchmark on InferenceX; B200 only, at the precision providers serve where benchmarked." : "fp8 is what most providers report serving; fp4 on B200 shown separately.")]),
   ];
   $("assumptions-table").replaceChildren(h("thead", {}, h("tr", {}, ...["Assumption", "Base value", "Why"].map(c => h("th", { text: c })))),
@@ -1570,6 +1800,8 @@ function renderMethodTables() {
     ["API prices", "OpenRouter", "A few times a month per model, unannounced", "Current only", fmtDate(D.meta.prices_retrieved)],
     ["Rental index", "Silicon Data", "Daily", "Current only on the free page", fmtDate(D.meta.rental_retrieved)],
     ["Throughput", "InferenceX", "In steps, every few weeks per model and GPU", "Full history, every run dated and linked", `newest run ${fmtDate(D.meta.newest_benchmark)}`],
+    ["Electricity (US)", "EIA", "Monthly, about two months behind", "Yes, full history", ((D.electricity || []).find(x => x.cur === "USD") || {}).period || "–"],
+    ["Electricity (Europe)", "Eurostat", "Twice a year", "Yes, full history", ((D.electricity || []).find(x => x.cur === "EUR") || {}).period || "–"],
   ];
   $("cadence-table").replaceChildren(h("thead", {}, h("tr", {}, ...["Input", "Source", "Changes", "Source keeps history?", "This build"].map(c => h("th", { text: c })))),
     h("tbody", {}, ...cad.map(r => h("tr", {}, ...r.map(c => h("td", { text: c, style: "white-space:normal" }))))));
@@ -1587,7 +1819,13 @@ const DATASETS = [
     cols: [["m", "model"], ["lab", "lab"], ["weights", "weights"], ["reason", "why price-only"], ["linp", "list input $/M", "n"], ["lout", "list output $/M", "n"], ["lcache", "list cached input $/M", "n"], ["provider", "endpoint provider"], ["tag", "endpoint"], ["inp", "endpoint input $/M", "n"], ["out", "endpoint output $/M", "n"], ["ctx", "context", "n"], ["created", "model listed"], ["date", "retrieved"], ["url", "source", "url"]] },
   { id: "tput", label: "Throughput benchmarks", file: "data/throughput.csv", rows: () => D.tput,
     desc: "One row per InferenceX benchmark point (latest run of each configuration). Throughput is total input+output tokens/s divided by GPUs. Source links open the GitHub Actions run that measured it.",
-    cols: [["m", "model"], ["gpu", "GPU"], ["prec", "precision"], ["fw", "framework"], ["spec", "spec. decoding"], ["disagg", "multi-node"], ["isl", "input len", "n"], ["osl", "output len", "n"], ["conc", "concurrency", "n"], ["ngpu", "GPUs", "n"], ["tput", "tok/s per GPU", "n0"], ["intv", "tok/s per user", "n1"], ["ttft", "time to first token (s)", "n"], ["date", "run date"], ["url", "source", "url"]] },
+    cols: [["m", "model"], ["gpu", "GPU"], ["prec", "precision"], ["fw", "framework"], ["spec", "spec. decoding"], ["disagg", "multi-node"], ["isl", "input len", "n"], ["osl", "output len", "n"], ["conc", "concurrency", "n"], ["ngpu", "GPUs", "n"], ["tput", "tok/s per GPU", "n0"], ["intv", "tok/s per user", "n1"], ["ttft", "time to first token (s)", "n"], ["pw", "measured GPU W", "n0"], ["date", "run date"], ["url", "source", "url"]] },
+  { id: "elec", label: "Electricity prices", file: "data/electricity_prices.csv", rows: () => D.electricity || [],
+    desc: "Average electricity price per kWh by region. US: EIA Electric Power Monthly table 5.6.A (latest month, by sector). Europe: Eurostat non-household prices (70–150 GWh/yr band, excluding VAT), converted to USD at the ECB reference rate.",
+    cols: [["region", "region"], ["label", "label"], ["sector", "sector"], ["price", "USD/kWh", "n"], ["local", "local price", "n"], ["cur", "currency"], ["fx", "USD per EUR", "n"], ["period", "period"], ["date", "retrieved"], ["notes", "notes"], ["url", "source", "url"]] },
+  { id: "gpupower", label: "GPU power and cost", file: "data/gpu_power.csv", rows: () => D.gpu_power || [],
+    desc: "Per-GPU power and cost assumptions from SemiAnalysis's AI Cloud TCO model as published in InferenceX's open-source code. All-in kW includes the GPU's share of host CPU, memory and network, at full load, before PUE.",
+    cols: [["gpu", "GPU"], ["tdp", "chip TDP (W)", "n"], ["kw", "all-in kW", "n"], ["tco", "owner cost $/h", "n"], ["retail", "retail $/h", "n"], ["date", "retrieved"], ["notes", "notes"], ["url", "source", "url"]] },
   { id: "rental", label: "GPU rental", file: "data/gpu_rental.csv", rows: () => D.rental,
     desc: "Rental and cost series per GPU. Silicon Data values are scraped from the public index pages; InferenceX values are SemiAnalysis model assumptions (estimate = true).",
     cols: [["gpu", "GPU"], ["series", "series"], ["price", "$/GPU-hour", "n"], ["method", "method"], ["estimate", "estimate"], ["date", "retrieved"], ["notes", "notes"], ["url", "source", "url"]] },
@@ -1700,6 +1938,10 @@ function renderGaps() {
   }
   let edge = 0, nPts = 0;
   for (const c of CASES.filter(c => c.kind === "base")) { const e = sweepEdges(c, BASE); edge += e.edge; nPts += e.n; }
+  if ((D.electricity || []).length) {
+    const measured = CASES.filter(c => c.kind === "base").filter(c => isFinite(ENGINE.measuredPower(ENGINE.evaluate(c, BASE).tf))).length;
+    out.push(["Measured power:", ` ${measured} of ${CASES.filter(c => c.kind === "base").length} base cases have measured GPU power (newer InferenceX runs only). Electricity cost always uses the all-in nameplate figure.`]);
+  }
   if (nPts) out.push(["Sweep edges:", ` ${edge} of ${nPts} chosen benchmark points are the last point of their concurrency sweep and still well above the speed floor. The test stopped early, so throughput there is a lower bound.`]);
   for (const c of CLOSED.filter(c => c.weights === "open")) out.push([`${c.key}`, ` (open-weight): ${c.reason}, so it is shown as price-only.`]);
   const unk = MODELS.map(m => [m.key, D.prices.filter(p => p.m === m.key && p.q === "unknown").length]).filter(x => x[1]);
@@ -1718,7 +1960,7 @@ function update() {
   raf = requestAnimationFrame(() => {
     computeAll();
     renderControls(); renderSpreadChart(); renderResultsTable(); renderAudit(); renderRelChart(); renderTimeseries();
-    renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed();
+    renderPower(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed();
     if (ds.id === "results") renderData();
   });
 }
@@ -1726,7 +1968,7 @@ function boot() {
   renderStatic(); renderMethodTables(); renderGaps();
   computeAll();
   renderControls(); renderSpreadChart(); renderResultsTable(); renderAudit(); renderRelChart(); renderTimeseries();
-  renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed(); renderData();
+  renderPower(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed(); renderData();
   let lastW = 0;
   new ResizeObserver(() => { const w = document.body.clientWidth; if (Math.abs(w - lastW) > 8) { lastW = w; update(); } }).observe(document.body);
 }

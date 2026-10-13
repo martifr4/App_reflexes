@@ -137,3 +137,39 @@ price_only_open_models:
   - {key: glm-5.2,             openrouter_id: z-ai/glm-5.2,                 lab: Zhipu,    tier: open, reason: agentic benchmarks only}
   - {key: qwen3.8-flash-next,  openrouter_id: qwen/qwen3.8-flash,           lab: Qwen,     tier: open, reason: agentic benchmarks only}
   - {key: qwen3.8-27b,         openrouter_id: qwen/qwen3.8-27b,             lab: Qwen,     tier: open, reason: no benchmark runs yet}
+
+# --- Electricity (power price -> GPU-hour cost -> rent -> tokens) -------------
+# power_cost_per_gpu_hour = allin_kw x load_factor x PUE x price_per_kWh
+#   allin_kw   per-GPU IT power incl. its share of host CPU/RAM/NICs (SemiAnalysis
+#              AI Cloud TCO model, from InferenceX's open-source constants)
+#   PUE        facility overhead (cooling, power conversion). SemiAnalysis uses 1.2
+#              for AI facilities; Uptime Institute's 2025 survey puts the global
+#              average just above 1.5. 1.3 is an assumption between the two.
+#   load_factor share of all-in nameplate power drawn on average. 1.0 = full load
+#              every hour (conservative upper bound; idle GPUs still draw power).
+power:
+  pue_base: 1.3
+  pue_sensitivity: [1.1, 1.2, 1.3, 1.4, 1.5, 1.6]
+  load_factor: 1.0
+  base_region: us_industrial
+  eurostat_band: MWH70000-149999   # 70-150 GWh/yr non-household band, excl. VAT
+  regions:
+    # US: EIA Electric Power Monthly table 5.6.A, latest month, by sector
+    - {key: us_industrial, label: U.S. average (industrial), source: eia, state: U.S. Total, sector: industrial}
+    - {key: us_commercial, label: U.S. average (commercial), source: eia, state: U.S. Total, sector: commercial}
+    - {key: virginia,   label: Virginia,   source: eia, state: Virginia,   sector: industrial}
+    - {key: texas,      label: Texas,      source: eia, state: Texas,      sector: industrial}
+    - {key: georgia,    label: Georgia,    source: eia, state: Georgia,    sector: industrial}
+    - {key: ohio,       label: Ohio,       source: eia, state: Ohio,       sector: industrial}
+    - {key: arizona,    label: Arizona,    source: eia, state: Arizona,    sector: industrial}
+    - {key: oregon,     label: Oregon,     source: eia, state: Oregon,     sector: industrial}
+    - {key: washington, label: Washington, source: eia, state: Washington, sector: industrial}
+    # Europe: Eurostat nrg_pc_205 (non-household, bi-annual), converted at the ECB rate
+    - {key: ireland,     label: Ireland,     source: eurostat, geo: IE}
+    - {key: netherlands, label: Netherlands, source: eurostat, geo: NL}
+    - {key: germany,     label: Germany,     source: eurostat, geo: DE}
+    - {key: france,      label: France,      source: eurostat, geo: FR}
+    - {key: spain,       label: Spain,       source: eurostat, geo: ES}
+    - {key: sweden,      label: Sweden,      source: eurostat, geo: SE}
+    - {key: finland,     label: Finland,     source: eurostat, geo: FI}
+    - {key: norway,      label: Norway,      source: eurostat, geo: "NO"}  # quoted: bare NO is YAML for false
