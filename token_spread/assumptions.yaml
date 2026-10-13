@@ -1,0 +1,79 @@
+# Token Spread v0 — every modelling assumption lives here.
+# Change a value, re-run `python compute.py && python report.py`.
+
+# --- Models -----------------------------------------------------------------
+# key:               short name used in outputs
+# openrouter_id:     model id on OpenRouter (prices)
+# inferencex_model:  display name on InferenceX (throughput)
+# base_precision:    precision of the base-case throughput, per GPU.
+#                    fp8 is the base case because it is what most OpenRouter
+#                    providers report serving. gpt-oss-120b ships natively in
+#                    MXFP4, so its base case is fp4 on both GPUs.
+# variants:          extra (gpu, precision) cases reported alongside the base.
+models:
+  - key: llama-3.3-70b
+    openrouter_id: meta-llama/llama-3.3-70b-instruct
+    inferencex_model: Llama-3.3-70B-Instruct-FP8
+    kind: dense 70B
+    base_precision: {h100: fp8, b200: fp8}
+    variants: [{gpu: b200, precision: fp4}]
+  - key: gpt-oss-120b
+    openrouter_id: openai/gpt-oss-120b
+    inferencex_model: gpt-oss-120b
+    kind: MoE 117B (5.1B active)
+    base_precision: {h100: fp4, b200: fp4}
+    variants: []
+  - key: qwen3.5-397b
+    openrouter_id: qwen/qwen3.5-397b-a17b
+    inferencex_model: Qwen-3.5-397B-A17B
+    kind: MoE 397B (17B active)
+    base_precision: {h100: fp8, b200: fp8}
+    variants: [{gpu: b200, precision: fp4}]
+  - key: minimax-m3
+    openrouter_id: minimax/minimax-m3
+    inferencex_model: MiniMax-M3
+    kind: MoE (large)
+    base_precision: {h100: fp8, b200: fp8}
+    variants: [{gpu: b200, precision: fp4}]
+  - key: deepseek-r1
+    openrouter_id: deepseek/deepseek-r1-0528
+    inferencex_model: DeepSeek-R1-0528
+    kind: MoE 671B (37B active)
+    base_precision: {h100: fp8, b200: fp8}
+    variants: [{gpu: b200, precision: fp4}]
+
+gpus: [h100, b200]
+
+# --- Throughput operating point ---------------------------------------------
+# InferenceX sweeps concurrency, giving a throughput-vs-interactivity curve.
+# We take the highest per-GPU throughput whose median interactivity
+# (tokens/s seen by one user) is at least this floor. 30 tok/s ≈ a usable
+# chat/API stream. The max-throughput point (no floor) is reported as an
+# upper bound.
+interactivity_floor_tok_s_per_user: 30
+
+# Which benchmark configurations may be used.
+allow_speculative_decoding: true   # MTP/EAGLE — common in production serving
+allow_disaggregated_multinode: true # needed e.g. for DeepSeek-R1 on H100 (doesn't fit 8xH100 at fp8)
+
+# --- Utilization -------------------------------------------------------------
+# Fraction of rented hours spent serving at the chosen operating point.
+utilization_base: 0.60
+utilization_sensitivity: [0.30, 0.40, 0.50, 0.60, 0.70, 0.80]
+
+# --- Input:output token ratio -----------------------------------------------
+# Ratio of input (prompt) tokens to output tokens in the traffic mix.
+# Benchmarks only measure 1:1 (1k/1k) and 8:1 (8k/1k) [and 1:8].
+# Other ratios: throughput is interpolated linearly in log(ratio) between the
+# measured points and held flat beyond them — those rows are estimate=true.
+io_ratio_base: 3
+io_ratio_sensitivity: [1, 3, 10]
+
+# --- Prices ------------------------------------------------------------------
+# How to collapse many OpenRouter providers into one price for the headline.
+price_statistic: median            # median | min | max
+exclude_providers: []              # e.g. [Cloudflare] to drop outliers
+
+# --- Rental ------------------------------------------------------------------
+# Which gpu_rental.csv series is the headline rental price.
+rental_base_series: silicondata_index_faq
