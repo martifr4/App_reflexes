@@ -1,8 +1,9 @@
 """API prices from OpenRouter.
 
 -> data/api_prices.csv         open-weight models, one row per provider endpoint
--> data/api_prices_closed.csv  closed models (Claude, GPT, Grok), one row per endpoint,
-                               plus the model-level list price on every row
+-> data/api_prices_price_only.csv  closed models (Claude, GPT, Grok) and open-weight models
+                               without comparable benchmarks, one row per endpoint, plus
+                               the model-level list price on every row
 
 Endpoints: GET https://openrouter.ai/api/v1/models/{id}/endpoints and
 GET https://openrouter.ai/api/v1/models (public, no key).
@@ -50,11 +51,13 @@ def fetch() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def fetch_closed() -> pd.DataFrame:
+def fetch_price_only() -> pd.DataFrame:
     cfg = load_config()
     listing = {m["id"]: m for m in http_get(LIST_URL).json()["data"]}
     rows = []
-    for m in cfg.get("closed_models", []):
+    models = [{**m, "weights": "closed", "reason": "closed model"} for m in cfg.get("closed_models", [])] + \
+             [{**m, "weights": "open"} for m in cfg.get("price_only_open_models", [])]
+    for m in models:
         lm = listing.get(m["openrouter_id"])
         if lm is None:
             print(f"WARNING: {m['openrouter_id']} not listed on OpenRouter; skipped")
@@ -67,6 +70,8 @@ def fetch_closed() -> pd.DataFrame:
                 "openrouter_id": m["openrouter_id"],
                 "lab": m["lab"],
                 "tier": m["tier"],
+                "weights": m["weights"],
+                "reason": m["reason"],
                 "list_input_price_per_Mtok": per_mtok(lm["pricing"].get("prompt")),
                 "list_output_price_per_Mtok": per_mtok(lm["pricing"].get("completion")),
                 "list_cache_read_price_per_Mtok": per_mtok(lm["pricing"].get("input_cache_read")),
@@ -81,7 +86,7 @@ def fetch_closed() -> pd.DataFrame:
                 "list_source_url": LIST_URL,
                 "retrieved_date": today(),
                 "estimate": False,
-                "notes": "Closed model: list price = OpenRouter model-level price (lab's standard tier); "
+                "notes": "Price-only model: list price = OpenRouter model-level price; "
                          "endpoint rows include regional/priority/flex tiers. Tier label is a price grouping, not a disclosed size.",
             })
     return pd.DataFrame(rows)
@@ -91,9 +96,9 @@ def main():
     df = fetch()
     df.to_csv(DATA / "api_prices.csv", index=False)
     print(f"api_prices.csv: {len(df)} provider endpoints for {df.model_key.nunique()} models")
-    closed = fetch_closed()
-    closed.to_csv(DATA / "api_prices_closed.csv", index=False)
-    print(f"api_prices_closed.csv: {len(closed)} endpoints for {closed.model_key.nunique()} closed models")
+    po = fetch_price_only()
+    po.to_csv(DATA / "api_prices_price_only.csv", index=False)
+    print(f"api_prices_price_only.csv: {len(po)} endpoints for {po.model_key.nunique()} price-only models")
 
 
 if __name__ == "__main__":

@@ -47,7 +47,7 @@ def build() -> dict:
     summary = pd.read_csv(OUT / "spread_summary.csv")
     ts_path = SNAP / "timeseries.csv"
     ts = pd.read_csv(ts_path) if ts_path.exists() else pd.DataFrame()
-    closed_path, be_path = DATA / "api_prices_closed.csv", OUT / "breakeven_throughput.csv"
+    closed_path, be_path = DATA / "api_prices_price_only.csv", OUT / "breakeven_throughput.csv"
     closed = pd.read_csv(closed_path) if closed_path.exists() else pd.DataFrame()
     be = pd.read_csv(be_path) if be_path.exists() else pd.DataFrame()
 
@@ -84,6 +84,7 @@ def build() -> dict:
             "notes": "notes"}),
         "closed": records(closed, {
             "model_key": "m", "openrouter_id": "id", "lab": "lab", "tier": "tier",
+            "weights": "weights", "reason": "reason",
             "list_input_price_per_Mtok": "linp", "list_output_price_per_Mtok": "lout",
             "list_cache_read_price_per_Mtok": "lcache", "provider": "provider",
             "endpoint_tag": "tag", "input_price_per_Mtok": "inp",

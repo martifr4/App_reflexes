@@ -168,7 +168,7 @@ def chart_relative(s: pd.DataFrame, rental: pd.DataFrame, path: Path):
 
 def chart_breakeven(be: pd.DataFrame, path: Path, cfg):
     """Tokens/s per GPU needed to cover rent (hollow) vs measured (filled, open-weight only)."""
-    order = be[be.gpu == "h100"].sort_values("breakeven_tput_per_gpu").model.tolist()
+    order = be[be.gpu == "b200"].sort_values("breakeven_tput_per_gpu").model.tolist()
     fig, axes = plt.subplots(1, 2, figsize=(11, 0.36 * len(order) + 1.9), sharey=True)
     for ax, gpu in zip(axes, ("h100", "b200")):
         color = SERIES[(gpu, "base")][0]
@@ -181,15 +181,19 @@ def chart_breakeven(be: pd.DataFrame, path: Path, cfg):
             ax.scatter(r.breakeven_tput_per_gpu, yy, s=46, facecolor=SURFACE, edgecolor=color, lw=1.8, zorder=4)
         ax.set_xscale("log")
         ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:,.0f}"))
-        ax.set_title(f"{gpu.upper()} · rent ${d.rental.iloc[0]:.2f}/h", loc="left")
+        ax.set_title(f"{gpu.upper()} · rent ${d.rental.dropna().iloc[0]:.2f}/h", loc="left")
         ax.grid(axis="y", visible=False)
         ax.set_xlabel("tokens/s per GPU (log scale)")
-    labels = [f"{m}  ({be[be.model == m].lab.iloc[0]})" if be[be.model == m].weights.iloc[0] == "closed" else m
-              for m in order]
+    def label(m):
+        r = be[be.model == m].iloc[0]
+        if r.analysis != "price-only":
+            return m
+        return f"{m}  ({r.lab}{', open' if r.weights == 'open' else ''})"
+    labels = [label(m) for m in order]
     axes[0].set_yticks(range(len(order)), labels)
     axes[0].invert_yaxis()
     handles = [plt.Line2D([], [], ls="", marker="o", mfc=SURFACE, mec=INK2, mew=1.8, label="needed to cover rent"),
-               plt.Line2D([], [], ls="", marker="o", color=INK2, label="measured (open-weight only)")]
+               plt.Line2D([], [], ls="", marker="o", color=INK2, label="measured (benchmarked open-weight)")]
     fig.legend(handles=handles, loc="lower center", ncol=2, fontsize=8)
     fig.suptitle(f"Breakeven throughput at list price · {cfg['io_ratio_base']}:1 in:out · "
                  f"{cfg['utilization_base']:.0%} utilization", x=0.01, ha="left", fontweight="bold")
@@ -259,39 +263,42 @@ def build():
     if be_path.exists() and pc_path.exists():
         be, pc = pd.read_csv(be_path), pd.read_csv(pc_path)
         chart_breakeven(be, CHARTS / "breakeven_throughput.png", cfg)
-        cb = be[be.weights == "closed"].pivot_table(index=["model", "lab"], columns="gpu",
+        po = be[be.analysis == "price-only"]
+        cb = po.pivot_table(index=["model", "lab", "weights"], columns="gpu",
                                                      values="breakeven_tput_per_gpu").reset_index()
         cb = cb.merge(pc[["model", "blended_price"]], on="model")
-        n_open = int(be[(be.weights == "closed")].open_models_compared.max())
-        cnt = be[be.weights == "closed"].pivot_table(index="model", columns="gpu",
+        n_open = po.groupby("gpu").open_models_compared.max().to_dict()
+        cnt = po.pivot_table(index="model", columns="gpu",
                                                       values="open_models_at_or_above").reset_index()
         cb = cb.merge(cnt, on="model", suffixes=("", "_n")).sort_values("blended_price", ascending=False)
         closed_t = pd.DataFrame({
-            "model": cb.model, "lab": cb.lab, "blended $/Mtok": cb.blended_price.map(lambda v: f"${v:.2f}"),
+            "model": cb.model, "lab": cb.lab, "weights": cb.weights,
+            "blended $/Mtok": cb.blended_price.map(lambda v: f"${v:.2f}"),
             "needed tok/s per H100": cb.h100.map(lambda v: f"{v:,.0f}"),
             "needed tok/s per B200": cb.b200.map(lambda v: f"{v:,.0f}"),
-            f"open models above (H100, of {n_open})": cb.h100_n.astype(int),
-            f"open models above (B200, of {n_open})": cb.b200_n.astype(int)})
+            f"benchmarked models above (H100, of {n_open.get('h100', 0)})": cb.h100_n.astype(int),
+            f"benchmarked models above (B200, of {n_open.get('b200', 0)})": cb.b200_n.astype(int)})
         pc_t = pd.DataFrame({
-            "model": pc.model, "weights": pc.weights, "lab": pc.lab,
+            "model": pc.model, "weights": pc.weights, "analysis": pc.analysis, "lab": pc.lab,
             "blended $/Mtok": pc.blended_price.map(lambda v: f"${v:.3f}"),
             "endpoint range": [f"${a:.3f}–${b:.3f}" for a, b in zip(pc.endpoint_blended_min, pc.endpoint_blended_max)],
             "basis": pc.price_basis})
-        op_max = be[be.weights == "open"].groupby("gpu").measured_tput_per_gpu.min()
+        op_max = be[be.analysis == "spread"].groupby("gpu").measured_tput_per_gpu.min()
         hi = cb.iloc[0]
         lo = cb.iloc[-1]
-        closed_md = f"""## 6. Closed models: breakeven throughput and price comparison
+        closed_md = f"""## 6. Price-only models: breakeven throughput and price comparison
 
-Closed models (Claude, GPT, Grok) publish prices but not their hardware or throughput, so no
-spread is computed. Instead: how many tokens/s per GPU would a model need for its **list
-price** to cover the GPU's rent at {cfg['utilization_base']:.0%} utilization?
+Closed models (Claude, GPT, Grok) publish prices but not their hardware or throughput, and some
+open-weight models have no comparable benchmark yet (only agentic traces, or no runs). No
+spread is computed for them. Instead: how many tokens/s per GPU would a model need for its
+**list price** to cover the GPU's rent at {cfg['utilization_base']:.0%} utilization?
 `needed = rent ÷ (3600 × utilization × blended price / 1e6)`. For open-weight models this is
 the same breakeven, and spread ratio = measured ÷ needed.
 
 - **{hi.model}** at ${hi.blended_price:.2f}/Mtok needs only **{hi.h100:,.0f} tok/s per H100**.
   The slowest open-weight model measured here manages {op_max.get('h100', float('nan')):,.0f}.
 - **{lo.model}** at ${lo.blended_price:.2f}/Mtok needs **{lo.h100:,.0f} tok/s per H100**
-  ({lo.b200:,.0f} per B200). {int(lo.h100_n)} of {n_open} open-weight models {'reaches' if int(lo.h100_n) == 1 else 'reach'} that on H100.
+  ({lo.b200:,.0f} per B200). {int(lo.h100_n)} of {n_open.get('h100', 0)} benchmarked models {'reaches' if int(lo.h100_n) == 1 else 'reach'} that on H100.
 - These are thresholds, not estimates of closed-model throughput or margin. Closed labs may
   run other hardware (TPUs, Trainium, own clusters), bill hidden reasoning tokens as output,
   and discount cached input heavily.
@@ -300,8 +307,8 @@ the same breakeven, and spread ratio = measured ÷ needed.
 
 {md_table(closed_t)}
 
-**Price comparison** (blended at {cfg['io_ratio_base']}:1; closed = OpenRouter list price,
-open = median provider):
+**Price comparison** (blended at {cfg['io_ratio_base']}:1; price-only = OpenRouter list price,
+benchmarked open-weight = median provider):
 
 {md_table(pc_t)}
 
@@ -343,6 +350,10 @@ open = median provider):
     gaps = []
     for m in cfg["models"]:
         for gpu in cfg["gpus"]:
+            if gpu not in m["base_precision"]:
+                gaps.append(f"- **{m['key']} on {gpu.upper()}**: no InferenceX benchmark on this GPU; "
+                            "the model appears on the other GPU only.")
+                continue
             o = ops[(ops.model_key == m["key"]) & (ops.gpu == gpu) & (ops.op_point == "floor")
                     & (ops.precision == m["base_precision"][gpu])]
             have = {f"{int(a)}/{int(b)}" for a, b in zip(o.isl, o.osl)}
@@ -355,6 +366,22 @@ open = median provider):
             if dates and dates[-1] < (pd.Timestamp(date) - pd.Timedelta(days=180)).date().isoformat():
                 gaps.append(f"- **{m['key']} on {gpu.upper()}**: newest benchmark is {dates[-1]} "
                             "(>6 months old; software has improved since, so throughput is likely understated).")
+        # base precision vs what providers report serving
+        for gpu, prec in m["base_precision"].items():
+            q = prices[(prices.model_key == m["key"]) & (prices.quantization != "unknown")].quantization
+            if len(q) and q.mode().iloc[0] != prec and (q == prec).sum() < len(q) / 2:
+                gaps.append(f"- **{m['key']} on {gpu.upper()}**: benchmarked at {prec}, but most providers "
+                            f"report serving {q.mode().iloc[0]}.")
+    base_ops = ops[(ops.op_point == "floor") & ops.apply(
+        lambda r: any(m["key"] == r.model_key and m["base_precision"].get(r.gpu) == r.precision
+                      for m in cfg["models"]), axis=1) & (ops.isl >= ops.osl)]
+    if "sweep_edge" in base_ops and len(base_ops):
+        n_edge = int(base_ops.sweep_edge.sum())
+        gaps.append(f"- **Sweep edges:** {n_edge} of {len(base_ops)} chosen benchmark points are the last point "
+                    "of their concurrency sweep and still well above the speed floor. The benchmark stopped "
+                    "before reaching the floor, so throughput there is a lower bound.")
+    for m in cfg.get("price_only_open_models", []):
+        gaps.append(f"- **{m['key']}** (open-weight): {m['reason']}; shown as price-only.")
     unk = prices[prices.quantization == "unknown"].groupby("model_key").provider.count()
     rd = rental.pivot_table(index="gpu", columns="series", values="price_per_gpu_hour")
 
@@ -424,8 +451,6 @@ Full table: `outputs/provider_spread.csv`.
 
 {chr(10).join(gaps) if gaps else "- none"}
 - **No 8B-class model**: InferenceX doesn't benchmark one, so there is no comparable throughput.
-- **Newest frontier open models** (DeepSeek-V4, Kimi-K3, GLM-5.2) have B200 but no H100 data
-  on InferenceX, so they are left out of v0.
 - Providers with **unknown quantization** on OpenRouter: {", ".join(f"{k} {v}" for k, v in unk.items()) or "none"}.
   They are included in the price statistics regardless of precision.
 

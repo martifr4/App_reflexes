@@ -36,27 +36,39 @@ rows have `estimate=True`.
 
 All assumptions live in [`assumptions.yaml`](assumptions.yaml).
 
-## Closed models (Claude, GPT, Grok)
+## Models
 
-Closed models publish prices but not hardware or throughput, so no spread is computed for them.
-Instead `compute.py` writes:
+**Spread (benchmarked open-weight models):** every model InferenceX benchmarks at fixed
+sequence lengths: Llama 3.3 70B, gpt-oss-120b, Qwen3.5-397B, MiniMax-M3, MiniMax-M2.5,
+DeepSeek-R1, DeepSeek-V4-Pro, GLM-5 and Kimi-K2.5. The last three have B200 benchmarks only,
+so they appear on B200 only. The list is `models` in `assumptions.yaml`. `inferencex_key`
+picks one variant when an InferenceX name groups several (e.g. GLM-5 vs GLM-5.1).
+
+**Price-only models:** closed models (Claude, GPT, Grok; `closed_models`) publish prices but
+not hardware or throughput. Some open-weight models (`price_only_open_models`) have only
+InferenceX *agentic* benchmarks, about 100:1 input:output with ~90% prefix-cache hits, whose
+revenue depends on cached-input pricing and isn't comparable to the fixed-length tests, or no
+runs yet. No spread is computed for either. Instead `compute.py` writes:
 
 - `outputs/breakeven_throughput.csv`: the tokens/s per GPU each model needs for its price to
-  cover the GPU's rent, `rent ÷ (3600 × utilization × blended price / 1e6)`. Closed models get
-  only this threshold. Open-weight models also get their measured throughput, and
+  cover the GPU's rent, `rent ÷ (3600 × utilization × blended price / 1e6)`. Price-only models
+  get only this threshold. Benchmarked models also get their measured throughput, and
   measured ÷ needed = spread ratio.
-- `outputs/price_comparison.csv`: blended prices of every model, open and closed.
+- `outputs/price_comparison.csv`: blended prices of every model.
 
-Closed-model prices use OpenRouter's model-level list price (the lab's standard tier). Endpoint
-tiers (regional, priority, flex) are kept as a range in `data/api_prices_closed.csv`. The model
-list is `closed_models` in `assumptions.yaml`.
+Price-only models use OpenRouter's model-level list price. Endpoint tiers (regional, priority,
+flex) are kept as a range in `data/api_prices_price_only.csv`.
+
+**Sweep edges.** InferenceX often stops a concurrency sweep while streams are still faster
+than the speed floor. `outputs/operating_points.csv` marks such points `sweep_edge=True`;
+their throughput at the floor is a lower bound.
 
 ## Data sources
 
 | File | Source | Fetch |
 |---|---|---|
 | `data/api_prices.csv` | [OpenRouter](https://openrouter.ai) `GET /api/v1/models/{id}/endpoints`: per-provider list prices and quantization | `fetch/fetch_openrouter.py` |
-| `data/api_prices_closed.csv` | OpenRouter `GET /api/v1/models` (list price) and `/models/{id}/endpoints` for each closed model | `fetch/fetch_openrouter.py` |
+| `data/api_prices_price_only.csv` | OpenRouter `GET /api/v1/models` (list price) and `/models/{id}/endpoints` for each price-only model | `fetch/fetch_openrouter.py` |
 | `data/throughput.csv` | [SemiAnalysis InferenceX](https://inferencex.semianalysis.com) `GET /api/v1/benchmarks?model=…`: per-GPU throughput across framework, precision, ISL/OSL and concurrency. Each row links its GitHub Actions run (`source_url`). Only the latest run date per configuration is kept. | `fetch/fetch_inferencex.py` |
 | `data/gpu_rental.csv` | [Silicon Data](https://www.silicondata.com/products/silicon-index/h100) H100/B200 rental index pages (SDH100RT / SDB200RT, the indices underlying CME GPU1/GPU2 futures). Two readings per page (FAQ text and widget) are both recorded. Also includes InferenceX's retail and owner-TCO $/GPU-hr assumptions (`estimate=True`). Rows with `method=manual` are preserved across fetches, so you can add your own. | `fetch/fetch_silicondata.py` |
 
