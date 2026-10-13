@@ -54,6 +54,10 @@ def build() -> dict:
     elec = pd.read_csv(elec_path) if elec_path.exists() else pd.DataFrame()
     gpw = pd.read_csv(gp_path) if gp_path.exists() else pd.DataFrame()
     chain = pd.read_csv(ch_path) if ch_path.exists() else pd.DataFrame()
+    fsrc_path, fe_path, vs_path = DATA / "rental_firm_sources.csv", OUT / "firm_economics.csv", OUT / "value_split.csv"
+    fsrc = pd.read_csv(fsrc_path) if fsrc_path.exists() else pd.DataFrame()
+    fe = pd.read_csv(fe_path) if fe_path.exists() else pd.DataFrame()
+    vs = pd.read_csv(vs_path) if vs_path.exists() else pd.DataFrame()
     if "avg_power_w" not in tput:
         tput["avg_power_w"] = None
 
@@ -110,6 +114,15 @@ def build() -> dict:
         "python_power": records(chain, {
             "model": "m", "gpu": "gpu", "precision": "prec", "power_cost": "power",
             "revenue_per_kwh": "rpk", "measured_gpu_w": "mw"}) if len(chain) else [],
+        "firm_sources": records(fsrc, {
+            "item": "item", "gpu": "gpu", "value": "value", "unit": "unit", "low": "low", "high": "high",
+            "used_in_model": "used", "source_url": "url", "retrieved_date": "date", "estimate": "estimate",
+            "notes": "notes"}) if len(fsrc) else [],
+        "python_firm": records(fe[fe.base], {
+            "gpu": "gpu", "full_cost": "full", "profit": "profit", "ebitda_margin": "ebitda"}) if len(fe) else [],
+        "python_split": records(vs, {
+            "model": "m", "gpu": "gpu", "precision": "prec", "landlord_profit": "landlord",
+            "integrated_profit": "integrated"}) if len(vs) else [],
         "timeseries": json.loads(ts.to_json(orient="records")) if len(ts) else [],
         "python_summary": records(summary, {
             "model": "m", "gpu": "gpu", "precision": "prec", "case": "case",

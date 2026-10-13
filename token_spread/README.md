@@ -87,6 +87,27 @@ revenue_per_kWh        = implied_revenue_per_gpu_hour ÷ kwh_per_gpu_hour
   `outputs/power_chain.csv` (per model and GPU: power, owner cost, rent, revenue, tokens and
   revenue per kWh).
 
+## GPU rental firm economics
+
+What does a firm that owns GPUs and rents them out (a neocloud) earn? Per calendar hour,
+rented or idle:
+
+```
+capital_cost = capex × r ÷ (1 − (1 + r)^−years) ÷ 8760      # depreciation + financing
+space_cost   = all_in_kW × colocation_$/kW-month × 12 ÷ 8760
+full_cost    = capital_cost + space_cost + power_cost + operations
+firm_profit  = rent × share_of_hours_rented − full_cost
+```
+
+Inputs are in `assumptions.yaml` → `rental_firm`; every published figure behind them (server
+prices, depreciation life, cost of capital, CBRE colocation rates, operations, and CoreWeave's
+Q2 2026 results as a reality check) is in `data/rental_firm_sources.csv` with a link.
+Outputs: `outputs/firm_economics.csv` (cost stack, revenue, profit, margins, breakeven
+occupancy, payback, across occupancy and depreciation-life sensitivities) and
+`outputs/value_split.csv` (how one rented GPU-hour of token revenue splits between electricity,
+space, operations, depreciation, financing, the landlord's profit and the inference provider's
+profit, plus an owner that serves its own tokens).
+
 ## Data sources
 
 | File | Source | Fetch |

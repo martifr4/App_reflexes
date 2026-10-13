@@ -31,25 +31,25 @@ OpenRouter provider, rental = `silicondata_index_faq`.
 | qwen3.5-397b | H100 fp8 | base | 10 | 0.88–1.29–1.69 | 1640 | 1983 | $4.56 | $2.53 | $2.03 | 1.80× | 33% | 2026-07-05,2026-09-13 |
 | qwen3.5-397b | B200 fp8 | base | 10 | 0.88–1.29–1.69 | 7905 | 9141 | $21.98 | $5.45 | $16.53 | 4.03× | 15% | 2026-03-20,2026-07-05,2026-09-18 |
 | qwen3.5-397b | B200 fp4 | variant | 10 | 0.88–1.29–1.69 | 11735 | 16027 | $32.63 | $5.45 | $27.18 | 5.99× | 10% | 2026-06-24,2026-09-01 |
-| minimax-m3 | H100 fp8 | base | 13 | 0.41–0.52–1.31 | 1096 | 1096 | $1.24 | $2.53 | $-1.29 | 0.49× | 122% | 2026-06-13 |
+| minimax-m3 | H100 fp8 | base | 13 | 0.41–0.52–1.31 | 1096 | 1096 | $1.24 | $2.53 | −$1.29 | 0.49× | 122% | 2026-06-13 |
 | minimax-m3 | B200 fp8 | base | 13 | 0.41–0.52–1.31 | 6218 | 6735 | $7.05 | $5.45 | $1.60 | 1.29× | 46% | 2026-06-23,2026-07-29 |
 | minimax-m3 | B200 fp4 | variant | 13 | 0.41–0.52–1.31 | 8648 | 10557 | $9.81 | $5.45 | $4.36 | 1.80× | 33% | 2026-07-06,2026-08-04 |
-| deepseek-r1 | H100 fp8 | base | 4 | 0.91–0.96–1.15 | 569 | 1098 | $1.18 | $2.53 | $-1.35 | 0.47× | 129% | 2026-02-08,2026-02-13 |
+| deepseek-r1 | H100 fp8 | base | 4 | 0.91–0.96–1.15 | 569 | 1098 | $1.18 | $2.53 | −$1.35 | 0.47× | 129% | 2026-02-08,2026-02-13 |
 | deepseek-r1 | B200 fp8 | base | 4 | 0.91–0.96–1.15 | 4778 | 6046 | $9.91 | $5.45 | $4.46 | 1.82× | 33% | 2026-02-05,2026-03-23 |
 | deepseek-r1 | B200 fp4 | variant | 4 | 0.91–0.96–1.15 | 10974 | 13259 | $22.75 | $5.45 | $17.30 | 4.17× | 14% | 2026-01-29,2026-02-06 |
-| minimax-m2.5 | H100 fp8 | base | 9 | 0.44–0.52–1.05 | 1824 | 2160 | $2.07 | $2.53 | $-0.46 | 0.82× | 73% | 2026-03-28,2026-06-04 |
+| minimax-m2.5 | H100 fp8 | base | 9 | 0.44–0.52–1.05 | 1824 | 2160 | $2.07 | $2.53 | −$0.46 | 0.82× | 73% | 2026-03-28,2026-06-04 |
 | minimax-m2.5 | B200 fp8 | base | 9 | 0.44–0.52–1.05 | 10290 | 11917 | $11.67 | $5.45 | $6.22 | 2.14× | 28% | 2026-03-28,2026-05-31,2026-06-03 |
 | minimax-m2.5 | B200 fp4 | variant | 9 | 0.44–0.52–1.05 | 19251 | 20532 | $21.83 | $5.45 | $16.38 | 4.01× | 15% | 2026-06-03 |
 | deepseek-v4-pro | B200 fp4 | base | 15 | 0.55–1.77–3.41 | 5489 | 8544 | $20.99 | $5.45 | $15.54 | 3.85× | 16% | 2026-06-12,2026-08-12 |
-| glm-5 | B200 fp8 | base | 8 | 0.93–1.45–1.55 | 1161 | 3572 | $3.64 | $5.45 | $-1.81 | 0.67× | 90% | 2026-03-20,2026-05-18,2026-06-12 |
+| glm-5 | B200 fp8 | base | 8 | 0.93–1.45–1.55 | 1161 | 3572 | $3.64 | $5.45 | −$1.81 | 0.67× | 90% | 2026-03-20,2026-05-18,2026-06-12 |
 | glm-5 | B200 fp4 | variant | 8 | 0.93–1.45–1.55 | 2195 | 3486 | $6.88 | $5.45 | $1.43 | 1.26× | 48% | 2026-06-12 |
-| kimi-k2.5 | B200 int4 | base | 5 | 0.99–1.14–1.23 | 1112 | 1484 | $2.74 | $5.45 | $-2.71 | 0.50× | 119% | 2026-03-24,2026-07-05,2026-07-18 |
+| kimi-k2.5 | B200 int4 | base | 5 | 0.99–1.14–1.23 | 1112 | 1484 | $2.74 | $5.45 | −$2.71 | 0.50× | 119% | 2026-03-24,2026-07-05,2026-07-18 |
 | kimi-k2.5 | B200 fp4 | variant | 5 | 0.99–1.14–1.23 | 8572 | 9752 | $21.11 | $5.45 | $15.66 | 3.87× | 15% | 2026-03-27,2026-06-07,2026-07-22 |
 
 `tok/s/GPU` = total (input+output) tokens/s per GPU at the base in:out ratio, interactivity-floor
 point; `(max)` = highest throughput with no latency floor. Breakeven util = utilization at
 which revenue = rental. Rows with `estimate=True` in `outputs/spread_summary.csv` use
-interpolated throughput (see section 9).
+interpolated throughput (see section 10).
 
 ![spread by model and GPU](charts/spread_by_model_gpu.png)
 
@@ -230,11 +230,95 @@ MWH70000-149999 kWh/yr band, excl. VAT, converted at the ECB rate):
 | Germany | $0.154 | 2026-S1 | $0.27 | $0.34 | 10.9% | 6.3% |
 | Ireland | $0.201 | 2026-S1 | $0.36 | $0.45 | 14.2% | 8.2% |
 
-## 8. Over time
+## 8. Who makes the money: the GPU rental firm
+
+Electricity is not most of a GPU rental firm's cost. Owning a GPU for one hour costs:
+`hardware (depreciation + financing) + data-centre space + electricity + operations`.
+Hardware and its financing are 59%–65% of the total.
+The firm collects rent only for the share of hours a customer is using the GPU (occupancy,
+80% here).
+
+![firm economics](charts/firm_economics.png)
+
+| per GPU-hour | H100 | B200 |
+|---|---|---|
+| Hardware depreciation | $0.68 | $1.07 |
+| Financing | $0.23 | $0.36 |
+| Data-centre space | $0.37 | $0.46 |
+| Electricity | $0.17 | $0.22 |
+| Operations | $0.10 | $0.10 |
+| **Full cost** | $1.55 | $2.21 |
+| Revenue (rent × 80%) | $2.02 | $4.36 |
+| **Profit** | $0.48 | $2.15 |
+| Margin before depreciation & interest (EBITDA) | 68% | 82% |
+| Operating margin | 35% | 58% |
+| Net margin | 23% | 49% |
+| Occupancy needed to break even | 61% | 41% |
+| Payback on hardware (years) | 2.9 | 1.8 |
+| SemiAnalysis owner cost (cross-check) | $1.17 | $1.73 |
+
+Assumptions (`assumptions.yaml` → `rental_firm`): capex per GPU = 8-GPU server ÷ 8, straight-line
+over 6 years, financed at 9% (annuity), colocation
+$196.25/kW-month on all-in kW, operations $0.10/GPU-hour.
+
+**Profit by occupancy** (6-year depreciation):
+
+| occupancy | H100 profit $/h | B200 profit $/h |
+|---|---|---|
+| 50% | −$0.28 | $0.52 |
+| 60% | −$0.03 | $1.06 |
+| 70% | $0.22 | $1.61 |
+| 80% | $0.48 | $2.15 |
+| 90% | $0.73 | $2.70 |
+| 100% | $0.98 | $3.24 |
+
+**Reality check: CoreWeave, Q2 2026.** Revenue $2,575M; adjusted EBITDA
+margin 59%; depreciation 54%
+and interest 25% of revenue; operating margin
+-2%. The model's EBITDA margins are in the same range, but its
+operating margins are far higher. A fast-growing firm pays depreciation and interest on capacity
+before it earns revenue, sells mostly on multi-year contracts below on-demand prices, and carries
+overheads (sales, R&D, stock compensation) that this per-GPU model leaves out.
+
+**Where one rented GPU-hour of token revenue goes** (base cases): the GPU landlord's costs and
+profit add up to the rent; the inference provider keeps token revenue minus rent (the token
+spread). An operator that owns its GPUs and sells tokens keeps token revenue minus full cost.
+
+| model | GPU | landlord costs $/h | landlord profit $/h | rent $/h | token revenue $/h | inference provider profit $/h | own-and-serve profit $/h | full cost per M tokens | price per M tokens |
+|---|---|---|---|---|---|---|---|---|---|
+| llama-3.3-70b | H100 | $1.94 | $0.59 | $2.53 | $2.56 | $0.03 | $1.01 | $0.388 | $0.640 |
+| llama-3.3-70b | B200 | $2.76 | $2.69 | $5.45 | $9.75 | $4.30 | $7.54 | $0.145 | $0.640 |
+| gpt-oss-120b | H100 | $1.94 | $0.59 | $2.53 | $3.69 | $1.16 | $2.15 | $0.097 | $0.231 |
+| gpt-oss-120b | B200 | $2.76 | $2.69 | $5.45 | $20.38 | $14.93 | $18.17 | $0.025 | $0.231 |
+| qwen3.5-397b | H100 | $1.94 | $0.59 | $2.53 | $4.56 | $2.03 | $3.01 | $0.437 | $1.288 |
+| qwen3.5-397b | B200 | $2.76 | $2.69 | $5.45 | $21.98 | $16.53 | $19.78 | $0.129 | $1.288 |
+| minimax-m3 | H100 | $1.94 | $0.59 | $2.53 | $1.24 | −$1.29 | −$0.31 | $0.654 | $0.525 |
+| minimax-m3 | B200 | $2.76 | $2.69 | $5.45 | $7.05 | $1.60 | $4.84 | $0.164 | $0.525 |
+| deepseek-r1 | H100 | $1.94 | $0.59 | $2.53 | $1.18 | −$1.35 | −$0.37 | $1.260 | $0.960 |
+| deepseek-r1 | B200 | $2.76 | $2.69 | $5.45 | $9.91 | $4.46 | $7.70 | $0.214 | $0.960 |
+| minimax-m2.5 | H100 | $1.94 | $0.59 | $2.53 | $2.07 | −$0.46 | $0.52 | $0.393 | $0.525 |
+| minimax-m2.5 | B200 | $2.76 | $2.69 | $5.45 | $11.67 | $6.22 | $9.46 | $0.099 | $0.525 |
+| deepseek-v4-pro | B200 | $2.76 | $2.69 | $5.45 | $20.99 | $15.54 | $18.78 | $0.186 | $1.770 |
+| glm-5 | B200 | $2.76 | $2.69 | $5.45 | $3.64 | −$1.81 | $1.43 | $0.881 | $1.450 |
+| kimi-k2.5 | B200 | $2.76 | $2.69 | $5.45 | $2.74 | −$2.71 | $0.53 | $0.920 | $1.140 |
+
+**Sources used in the firm model:**
+
+| item | gpu | value | unit | low | high | estimate | source |
+|---|---|---|---|---|---|---|---|
+| server_price_8gpu | h100 | 285000.0 | USD per 8-GPU server | 250000.0 | 320000.0 | True | [link](https://www.mercatus-ai.com/blog/h100-server-price) |
+| server_price_8gpu | b200 | 450000.0 | USD per 8-GPU server | 400000.0 | 500000.0 | True | [link](https://www.mercatus-ai.com/blog/b200-server-price) |
+| depreciation_years | all | 6.0 | years | 4.0 | 6.0 | True | [link](https://capefearadvisors.substack.com/p/the-second-contract) |
+| cost_of_capital | all | 0.09 | annual rate | 0.059 | 0.15 | True | [link](https://longyield.substack.com/p/coreweave-can-its-gpus-repay-the) |
+| colocation_per_kw_month | all | 196.25 | USD per kW-month | 165.0 | 235.0 | False | [link](https://www.cbre.com/insights/books/north-america-data-center-trends-h2-2025) |
+| ops_per_gpu_hour | all | 0.1 | USD per GPU-hour | 0.07 | 0.15 | True | [link](https://www.mercatus-ai.com/blog/h100-server-price) |
+| occupancy | all | 0.8 | share of hours rented | 0.5 | 1.0 | True | [link](https://www.mercatus-ai.com/blog/h100-server-price) |
+
+## 9. Over time
 
 Only one snapshot so far; the time-series chart appears after the second daily run.
 
-## 9. Data gaps and caveats
+## 10. Data gaps and caveats
 
 **Gaps found this run**
 
@@ -278,5 +362,8 @@ Only one snapshot so far; the time-series chart appears after the second daily r
 - **Electricity is modelled, not metered.** Power cost uses SemiAnalysis all-in kW per GPU at
   full load, an assumed PUE and average published tariffs. Large operators buy power through
   contracts (PPAs) whose prices are not public, and pay demand charges not captured here.
+- **The rental-firm model is generic.** Server prices are vendor estimates (NVIDIA publishes no
+  list price), depreciation life and financing cost vary by firm, and real fleets mix contract
+  and on-demand prices. It leaves out sales, R&D and corporate overheads.
 - **Revenue ≠ margin.** The spread excludes networking, storage, CPU hosts, engineering,
   idle capacity reserved for peaks, and OpenRouter's fee.

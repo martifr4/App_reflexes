@@ -173,3 +173,21 @@ power:
     - {key: sweden,      label: Sweden,      source: eurostat, geo: SE}
     - {key: finland,     label: Finland,     source: eurostat, geo: FI}
     - {key: norway,      label: Norway,      source: eurostat, geo: "NO"}  # quoted: bare NO is YAML for false
+
+# --- GPU rental firm (neocloud) economics --------------------------------------
+# Full cost of owning one GPU for one calendar hour, whether rented or idle:
+#   capital  = capex x r / (1 - (1+r)^-n) / 8760   (annuity: depreciation + financing)
+#   hosting  = all-in kW x colocation $/kW-month x 12 / 8760
+#   power    = from the electricity layer above
+#   ops      = staff, maintenance, support per GPU-hour
+# Revenue = rent x occupancy (share of hours actually rented out).
+# Every figure is sourced in data/rental_firm_sources.csv.
+rental_firm:
+  capex_usd_per_gpu: {h100: 35625, b200: 56250}   # 8-GPU HGX server / 8 (Mercatus: $285k, $450k typical)
+  depreciation_years: 6                           # CoreWeave's useful life for GPU equipment
+  depreciation_sensitivity: [4, 5, 6]
+  cost_of_capital: 0.09                           # between CoreWeave's 5.9% IG tranche (2026) and ~15% early facilities
+  colocation_usd_per_kw_month: 196.25             # CBRE H2 2025, 250-500 kW primary markets
+  ops_usd_per_gpu_hour: 0.10                      # Mercatus: ~$0.80 per 8-GPU server-hour
+  occupancy_base: 0.80                            # assumption; long-term contracts run higher, spot fleets lower
+  occupancy_sensitivity: [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
