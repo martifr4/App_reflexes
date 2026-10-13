@@ -47,6 +47,9 @@ def build() -> dict:
     summary = pd.read_csv(OUT / "spread_summary.csv")
     ts_path = SNAP / "timeseries.csv"
     ts = pd.read_csv(ts_path) if ts_path.exists() else pd.DataFrame()
+    closed_path, be_path = DATA / "api_prices_closed.csv", OUT / "breakeven_throughput.csv"
+    closed = pd.read_csv(closed_path) if closed_path.exists() else pd.DataFrame()
+    be = pd.read_csv(be_path) if be_path.exists() else pd.DataFrame()
 
     b = branch()
     return {
@@ -79,6 +82,16 @@ def build() -> dict:
             "gpu": "gpu", "series": "series", "price_per_gpu_hour": "price", "method": "method",
             "source_url": "url", "retrieved_date": "date", "estimate": "estimate",
             "notes": "notes"}),
+        "closed": records(closed, {
+            "model_key": "m", "openrouter_id": "id", "lab": "lab", "tier": "tier",
+            "list_input_price_per_Mtok": "linp", "list_output_price_per_Mtok": "lout",
+            "list_cache_read_price_per_Mtok": "lcache", "provider": "provider",
+            "endpoint_tag": "tag", "input_price_per_Mtok": "inp",
+            "output_price_per_Mtok": "out", "cache_read_price_per_Mtok": "cache",
+            "context_length": "ctx", "model_created": "created", "source_url": "url",
+            "list_source_url": "list_url", "retrieved_date": "date"}) if len(closed) else [],
+        "python_breakeven": records(be, {
+            "model": "m", "gpu": "gpu", "breakeven_tput_per_gpu": "be"}) if len(be) else [],
         "timeseries": json.loads(ts.to_json(orient="records")) if len(ts) else [],
         "python_summary": records(summary, {
             "model": "m", "gpu": "gpu", "precision": "prec", "case": "case",

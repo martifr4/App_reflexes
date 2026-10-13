@@ -77,3 +77,21 @@ exclude_providers: []              # e.g. [Cloudflare] to drop outliers
 # --- Rental ------------------------------------------------------------------
 # Which gpu_rental.csv series is the headline rental price.
 rental_base_series: silicondata_index_faq
+
+# --- Closed models (price-only analysis) --------------------------------------
+# Their hardware and throughput are not public, so no spread is computed.
+# Instead: (1) breakeven throughput — tokens/s per GPU needed for the list price
+# to cover the GPU's rent at base utilization — and (2) price comparison with the
+# open-weight models above. Price basis: OpenRouter's model-level list price
+# (the lab's standard tier). Endpoint tiers (regional, priority, flex) are kept
+# in data/api_prices_closed.csv as a range. ':batch' variants are excluded.
+closed_models:
+  - {key: claude-fable-5.1,  openrouter_id: anthropic/claude-fable-5.1,  lab: Anthropic, tier: frontier}
+  - {key: claude-opus-5.5,   openrouter_id: anthropic/claude-opus-5.5,   lab: Anthropic, tier: large}
+  - {key: claude-sonnet-5.5, openrouter_id: anthropic/claude-sonnet-5.5, lab: Anthropic, tier: mid}
+  - {key: claude-haiku-5.5,  openrouter_id: anthropic/claude-haiku-5.5,  lab: Anthropic, tier: small}
+  - {key: gpt-6-astra,       openrouter_id: openai/gpt-6-astra,          lab: OpenAI,    tier: frontier}
+  - {key: gpt-6.1-sol,       openrouter_id: openai/gpt-6.1-sol,          lab: OpenAI,    tier: mid}
+  - {key: gpt-6-luna,        openrouter_id: openai/gpt-6-luna,           lab: OpenAI,    tier: small}
+  - {key: grok-4.7,          openrouter_id: x-ai/grok-4.7,               lab: xAI,       tier: large}
+  - {key: grok-build-0.1,    openrouter_id: x-ai/grok-build-0.1,         lab: xAI,       tier: mid}

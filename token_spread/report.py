@@ -166,6 +166,38 @@ def chart_relative(s: pd.DataFrame, rental: pd.DataFrame, path: Path):
     return rel
 
 
+def chart_breakeven(be: pd.DataFrame, path: Path, cfg):
+    """Tokens/s per GPU needed to cover rent (hollow) vs measured (filled, open-weight only)."""
+    order = be[be.gpu == "h100"].sort_values("breakeven_tput_per_gpu").model.tolist()
+    fig, axes = plt.subplots(1, 2, figsize=(11, 0.36 * len(order) + 1.9), sharey=True)
+    for ax, gpu in zip(axes, ("h100", "b200")):
+        color = SERIES[(gpu, "base")][0]
+        d = be[be.gpu == gpu].set_index("model").reindex(order)
+        y = np.arange(len(order))
+        for yy, (m, r) in zip(y, d.iterrows()):
+            if r.weights == "open" and np.isfinite(r.measured_tput_per_gpu):
+                ax.plot([r.breakeven_tput_per_gpu, r.measured_tput_per_gpu], [yy, yy], color=GRID, lw=2, zorder=1)
+                ax.scatter(r.measured_tput_per_gpu, yy, s=46, color=color, zorder=3, edgecolor=SURFACE, lw=1.5)
+            ax.scatter(r.breakeven_tput_per_gpu, yy, s=46, facecolor=SURFACE, edgecolor=color, lw=1.8, zorder=4)
+        ax.set_xscale("log")
+        ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:,.0f}"))
+        ax.set_title(f"{gpu.upper()} · rent ${d.rental.iloc[0]:.2f}/h", loc="left")
+        ax.grid(axis="y", visible=False)
+        ax.set_xlabel("tokens/s per GPU (log scale)")
+    labels = [f"{m}  ({be[be.model == m].lab.iloc[0]})" if be[be.model == m].weights.iloc[0] == "closed" else m
+              for m in order]
+    axes[0].set_yticks(range(len(order)), labels)
+    axes[0].invert_yaxis()
+    handles = [plt.Line2D([], [], ls="", marker="o", mfc=SURFACE, mec=INK2, mew=1.8, label="needed to cover rent"),
+               plt.Line2D([], [], ls="", marker="o", color=INK2, label="measured (open-weight only)")]
+    fig.legend(handles=handles, loc="lower center", ncol=2, fontsize=8)
+    fig.suptitle(f"Breakeven throughput at list price · {cfg['io_ratio_base']}:1 in:out · "
+                 f"{cfg['utilization_base']:.0%} utilization", x=0.01, ha="left", fontweight="bold")
+    fig.tight_layout(rect=(0, 0.05, 1, 0.97))
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+
+
 def chart_timeseries(ts: pd.DataFrame, path: Path) -> bool:
     if ts.date.nunique() < 2:
         return False
@@ -222,6 +254,58 @@ def build():
     chart_sensitivity(sens, CHARTS / "sensitivity.png", cfg)
     rel = chart_relative(s, rental, CHARTS / "b200_vs_h100.png")
     has_ts = chart_timeseries(ts, CHARTS / "timeseries.png")
+    be_path, pc_path = OUT / "breakeven_throughput.csv", OUT / "price_comparison.csv"
+    closed_md = ""
+    if be_path.exists() and pc_path.exists():
+        be, pc = pd.read_csv(be_path), pd.read_csv(pc_path)
+        chart_breakeven(be, CHARTS / "breakeven_throughput.png", cfg)
+        cb = be[be.weights == "closed"].pivot_table(index=["model", "lab"], columns="gpu",
+                                                     values="breakeven_tput_per_gpu").reset_index()
+        cb = cb.merge(pc[["model", "blended_price"]], on="model")
+        n_open = int(be[(be.weights == "closed")].open_models_compared.max())
+        cnt = be[be.weights == "closed"].pivot_table(index="model", columns="gpu",
+                                                      values="open_models_at_or_above").reset_index()
+        cb = cb.merge(cnt, on="model", suffixes=("", "_n")).sort_values("blended_price", ascending=False)
+        closed_t = pd.DataFrame({
+            "model": cb.model, "lab": cb.lab, "blended $/Mtok": cb.blended_price.map(lambda v: f"${v:.2f}"),
+            "needed tok/s per H100": cb.h100.map(lambda v: f"{v:,.0f}"),
+            "needed tok/s per B200": cb.b200.map(lambda v: f"{v:,.0f}"),
+            f"open models above (H100, of {n_open})": cb.h100_n.astype(int),
+            f"open models above (B200, of {n_open})": cb.b200_n.astype(int)})
+        pc_t = pd.DataFrame({
+            "model": pc.model, "weights": pc.weights, "lab": pc.lab,
+            "blended $/Mtok": pc.blended_price.map(lambda v: f"${v:.3f}"),
+            "endpoint range": [f"${a:.3f}–${b:.3f}" for a, b in zip(pc.endpoint_blended_min, pc.endpoint_blended_max)],
+            "basis": pc.price_basis})
+        op_max = be[be.weights == "open"].groupby("gpu").measured_tput_per_gpu.min()
+        hi = cb.iloc[0]
+        lo = cb.iloc[-1]
+        closed_md = f"""## 6. Closed models: breakeven throughput and price comparison
+
+Closed models (Claude, GPT, Grok) publish prices but not their hardware or throughput, so no
+spread is computed. Instead: how many tokens/s per GPU would a model need for its **list
+price** to cover the GPU's rent at {cfg['utilization_base']:.0%} utilization?
+`needed = rent ÷ (3600 × utilization × blended price / 1e6)`. For open-weight models this is
+the same breakeven, and spread ratio = measured ÷ needed.
+
+- **{hi.model}** at ${hi.blended_price:.2f}/Mtok needs only **{hi.h100:,.0f} tok/s per H100**.
+  The slowest open-weight model measured here manages {op_max.get('h100', float('nan')):,.0f}.
+- **{lo.model}** at ${lo.blended_price:.2f}/Mtok needs **{lo.h100:,.0f} tok/s per H100**
+  ({lo.b200:,.0f} per B200). {int(lo.h100_n)} of {n_open} open-weight models {'reaches' if int(lo.h100_n) == 1 else 'reach'} that on H100.
+- These are thresholds, not estimates of closed-model throughput or margin. Closed labs may
+  run other hardware (TPUs, Trainium, own clusters), bill hidden reasoning tokens as output,
+  and discount cached input heavily.
+
+![breakeven throughput](charts/breakeven_throughput.png)
+
+{md_table(closed_t)}
+
+**Price comparison** (blended at {cfg['io_ratio_base']}:1; closed = OpenRouter list price,
+open = median provider):
+
+{md_table(pc_t)}
+
+"""
 
     # summary table
     t = s.assign(
@@ -306,7 +390,7 @@ OpenRouter provider, rental = `{cfg['rental_base_series']}`.
 `tok/s/GPU` = total (input+output) tokens/s per GPU at the base in:out ratio, interactivity-floor
 point; `(max)` = highest throughput with no latency floor. Breakeven util = utilization at
 which revenue = rental. Rows with `estimate=True` in `outputs/spread_summary.csv` use
-interpolated throughput (see section 7).
+interpolated throughput (see section 8).
 
 ![spread by model and GPU](charts/spread_by_model_gpu.png)
 
@@ -333,8 +417,8 @@ Full table: `outputs/provider_spread.csv`.
 
 {md_table(rt)}
 
-{"## 6. Over time\n\n![time series](charts/timeseries.png)\n" if has_ts else "## 6. Over time\n\nOnly one snapshot so far; the time-series chart appears after the second daily run.\n"}
-## 7. Data gaps and caveats
+{closed_md}{"## 7. Over time\n\n![time series](charts/timeseries.png)\n" if has_ts else "## 7. Over time\n\nOnly one snapshot so far; the time-series chart appears after the second daily run.\n"}
+## 8. Data gaps and caveats
 
 **Gaps found this run**
 

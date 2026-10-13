@@ -41,7 +41,7 @@ OpenRouter provider, rental = `silicondata_index_faq`.
 `tok/s/GPU` = total (input+output) tokens/s per GPU at the base in:out ratio, interactivity-floor
 point; `(max)` = highest throughput with no latency floor. Breakeven util = utilization at
 which revenue = rental. Rows with `estimate=True` in `outputs/spread_summary.csv` use
-interpolated throughput (see section 7).
+interpolated throughput (see section 8).
 
 ![spread by model and GPU](charts/spread_by_model_gpu.png)
 
@@ -88,11 +88,61 @@ Full table: `outputs/provider_spread.csv`.
 | b200 | inferencex_retail | $3.70 | fetched | True | InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote |
 | b200 | inferencex_owner_tco | $1.73 | fetched | True | InferenceX 'owning at hyperscaler volume' $/GPU-hr (all-in TCO, not a rental price); modelled, not a market quote |
 
-## 6. Over time
+## 6. Closed models: breakeven throughput and price comparison
+
+Closed models (Claude, GPT, Grok) publish prices but not their hardware or throughput, so no
+spread is computed. Instead: how many tokens/s per GPU would a model need for its **list
+price** to cover the GPU's rent at 60% utilization?
+`needed = rent ÷ (3600 × utilization × blended price / 1e6)`. For open-weight models this is
+the same breakeven, and spread ratio = measured ÷ needed.
+
+- **claude-fable-5.1** at $20.00/Mtok needs only **59 tok/s per H100**.
+  The slowest open-weight model measured here manages 569.
+- **gpt-6-luna** at $0.20/Mtok needs **5,856 tok/s per H100**
+  (12,616 per B200). 1 of 5 open-weight models reaches that on H100.
+- These are thresholds, not estimates of closed-model throughput or margin. Closed labs may
+  run other hardware (TPUs, Trainium, own clusters), bill hidden reasoning tokens as output,
+  and discount cached input heavily.
+
+![breakeven throughput](charts/breakeven_throughput.png)
+
+| model | lab | blended $/Mtok | needed tok/s per H100 | needed tok/s per B200 | open models above (H100, of 5) | open models above (B200, of 5) |
+|---|---|---|---|---|---|---|
+| claude-fable-5.1 | Anthropic | $20.00 | 59 | 126 | 5 | 5 |
+| gpt-6-astra | OpenAI | $20.00 | 59 | 126 | 5 | 5 |
+| claude-opus-5.5 | Anthropic | $8.00 | 146 | 315 | 5 | 5 |
+| claude-sonnet-5.5 | Anthropic | $4.00 | 293 | 631 | 5 | 5 |
+| gpt-6.1-sol | OpenAI | $4.00 | 293 | 631 | 5 | 5 |
+| grok-4.7 | xAI | $3.00 | 390 | 841 | 5 | 5 |
+| grok-build-0.1 | xAI | $1.25 | 937 | 2,019 | 4 | 5 |
+| claude-haiku-5.5 | Anthropic | $0.20 | 5,856 | 12,616 | 1 | 1 |
+| gpt-6-luna | OpenAI | $0.20 | 5,856 | 12,616 | 1 | 1 |
+
+**Price comparison** (blended at 3:1; closed = OpenRouter list price,
+open = median provider):
+
+| model | weights | lab | blended $/Mtok | endpoint range | basis |
+|---|---|---|---|---|---|
+| claude-fable-5.1 | closed | Anthropic | $20.000 | $20.000–$20.000 | OpenRouter list price |
+| gpt-6-astra | closed | OpenAI | $20.000 | $10.000–$120.000 | OpenRouter list price |
+| claude-opus-5.5 | closed | Anthropic | $8.000 | $8.000–$16.000 | OpenRouter list price |
+| claude-sonnet-5.5 | closed | Anthropic | $4.000 | $4.000–$4.400 | OpenRouter list price |
+| gpt-6.1-sol | closed | OpenAI | $4.000 | $2.000–$24.000 | OpenRouter list price |
+| grok-4.7 | closed | xAI | $3.000 | $3.000–$6.000 | OpenRouter list price |
+| qwen3.5-397b | open | open-weight | $1.288 | $0.877–$1.688 | median OpenRouter provider |
+| grok-build-0.1 | closed | xAI | $1.250 | $1.250–$2.500 | OpenRouter list price |
+| deepseek-r1 | open | open-weight | $0.960 | $0.912–$1.150 | median OpenRouter provider |
+| llama-3.3-70b | open | open-weight | $0.640 | $0.155–$1.040 | median OpenRouter provider |
+| minimax-m3 | open | open-weight | $0.525 | $0.412–$1.312 | median OpenRouter provider |
+| gpt-oss-120b | open | open-weight | $0.231 | $0.060–$0.450 | median OpenRouter provider |
+| claude-haiku-5.5 | closed | Anthropic | $0.200 | $0.200–$0.220 | OpenRouter list price |
+| gpt-6-luna | closed | OpenAI | $0.200 | $0.100–$0.400 | OpenRouter list price |
+
+## 7. Over time
 
 Only one snapshot so far; the time-series chart appears after the second daily run.
 
-## 7. Data gaps and caveats
+## 8. Data gaps and caveats
 
 **Gaps found this run**
 

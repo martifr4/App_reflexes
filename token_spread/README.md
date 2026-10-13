@@ -36,11 +36,27 @@ rows have `estimate=True`.
 
 All assumptions live in [`assumptions.yaml`](assumptions.yaml).
 
+## Closed models (Claude, GPT, Grok)
+
+Closed models publish prices but not hardware or throughput, so no spread is computed for them.
+Instead `compute.py` writes:
+
+- `outputs/breakeven_throughput.csv`: the tokens/s per GPU each model needs for its price to
+  cover the GPU's rent, `rent ÷ (3600 × utilization × blended price / 1e6)`. Closed models get
+  only this threshold. Open-weight models also get their measured throughput, and
+  measured ÷ needed = spread ratio.
+- `outputs/price_comparison.csv`: blended prices of every model, open and closed.
+
+Closed-model prices use OpenRouter's model-level list price (the lab's standard tier). Endpoint
+tiers (regional, priority, flex) are kept as a range in `data/api_prices_closed.csv`. The model
+list is `closed_models` in `assumptions.yaml`.
+
 ## Data sources
 
 | File | Source | Fetch |
 |---|---|---|
 | `data/api_prices.csv` | [OpenRouter](https://openrouter.ai) `GET /api/v1/models/{id}/endpoints`: per-provider list prices and quantization | `fetch/fetch_openrouter.py` |
+| `data/api_prices_closed.csv` | OpenRouter `GET /api/v1/models` (list price) and `/models/{id}/endpoints` for each closed model | `fetch/fetch_openrouter.py` |
 | `data/throughput.csv` | [SemiAnalysis InferenceX](https://inferencex.semianalysis.com) `GET /api/v1/benchmarks?model=…`: per-GPU throughput across framework, precision, ISL/OSL and concurrency. Each row links its GitHub Actions run (`source_url`). Only the latest run date per configuration is kept. | `fetch/fetch_inferencex.py` |
 | `data/gpu_rental.csv` | [Silicon Data](https://www.silicondata.com/products/silicon-index/h100) H100/B200 rental index pages (SDH100RT / SDB200RT, the indices underlying CME GPU1/GPU2 futures). Two readings per page (FAQ text and widget) are both recorded. Also includes InferenceX's retail and owner-TCO $/GPU-hr assumptions (`estimate=True`). Rows with `method=manual` are preserved across fetches, so you can add your own. | `fetch/fetch_silicondata.py` |
 
