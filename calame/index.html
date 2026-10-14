@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="fr-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calame — L'IA au service des fiduciaires genevoises</title>
+<meta name="description" content="Calame met en place l'intelligence artificielle dans les petites fiduciaires genevoises : réponses aux clients, relances de documents, courriers, résumés, traductions. Diagnostic gratuit sur place, confidentialité conforme à la nLPD.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --paper: #faf8f3;
+    --paper-2: #f2eee4;
+    --ink: #1c2733;
+    --ink-soft: #4a5562;
+    --line: #ddd6c6;
+    --accent: #1f4e5f;
+    --accent-ink: #ffffff;
+    --accent-soft: #e3ecee;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 17px/1.6 var(--sans);
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; line-height: 1.2; margin: 0 0 .5em; }
+  h2 { font-size: clamp(1.6rem, 3.5vw, 2.1rem); }
+  h3 { font-size: 1.2rem; }
+  p { margin: 0 0 1em; }
+  a { color: var(--accent); }
+  section { padding: 64px 0; border-top: 1px solid var(--line); }
+  .kicker { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: .6em; }
+  .lead { font-size: 1.15rem; color: var(--ink-soft); max-width: 40em; }
+
+  /* Header */
+  header { padding: 18px 0; }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-family: var(--serif); font-size: 1.45rem; font-weight: 600; }
+  .logo svg { width: 28px; height: 28px; }
+  nav a { color: var(--ink-soft); text-decoration: none; margin-left: 20px; font-size: .95rem; }
+  nav a:hover { color: var(--accent); }
+  @media (max-width: 720px) { nav { display: none; } }
+
+  /* Buttons */
+  .btn {
+    display: inline-block; background: var(--accent); color: var(--accent-ink);
+    padding: 14px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;
+  }
+  .btn:hover { background: #163a47; }
+  .btn-small { padding: 9px 16px; font-size: .95rem; }
+
+  /* Hero */
+  .hero { padding: 56px 0 72px; border-top: 0; }
+  .hero h1 { font-size: clamp(2.1rem, 6vw, 3.4rem); max-width: 14em; }
+  .hero .lead { margin-bottom: 1.6em; }
+  .hero .note { font-size: .92rem; color: var(--ink-soft); margin-top: 1em; }
+
+  /* Cards / grids */
+  .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 22px; }
+  .card p:last-child { margin-bottom: 0; }
+
+  /* Before / after */
+  .tasks { display: grid; gap: 16px; margin-top: 28px; }
+  .task { background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .task h3 { margin: 0; padding: 16px 20px; background: var(--paper-2); border-bottom: 1px solid var(--line); font-size: 1.1rem; }
+  .ba { display: grid; grid-template-columns: 1fr 1fr; }
+  .ba > div { padding: 16px 20px; }
+  .ba > div + div { border-left: 1px solid var(--line); background: var(--accent-soft); }
+  .ba .tag { display: block; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--ink-soft); margin-bottom: 4px; }
+  .ba > div + div .tag { color: var(--accent); }
+  .ba p { margin: 0; font-size: .97rem; }
+  @media (max-width: 640px) {
+    .ba { grid-template-columns: 1fr; }
+    .ba > div + div { border-left: 0; border-top: 1px solid var(--line); }
+  }
+  .reassure { margin-top: 24px; font-size: .97rem; color: var(--ink-soft); }
+
+  /* Confidentiality */
+  .confid { background: var(--ink); color: #e9edf1; border-top: 0; }
+  .confid h2, .confid .kicker { color: #fff; }
+  .confid .lead { color: #c3ccd5; }
+  .checks { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .checks li { padding-left: 34px; position: relative; }
+  .checks li::before {
+    content: ""; position: absolute; left: 0; top: 3px; width: 20px; height: 20px; border-radius: 50%;
+    background: #3c7d91 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3 3 7-7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat;
+  }
+  .checks strong { color: #fff; }
+
+  /* Steps */
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .steps li { counter-increment: step; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 22px; }
+  .steps li::before {
+    content: counter(step); display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff;
+    font-family: var(--serif); font-weight: 600; margin-bottom: 12px;
+  }
+  .steps p { margin: 0; color: var(--ink-soft); }
+
+  /* Positioning */
+  .after { background: var(--paper-2); }
+
+  /* Contact */
+  .contact { text-align: center; }
+  .contact .lead { margin-left: auto; margin-right: auto; }
+  .contact .mail { display: block; margin-top: 14px; font-size: 1.05rem; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--line); padding: 40px 0 56px; font-size: .9rem; color: var(--ink-soft); }
+  footer h2 { font-size: 1.1rem; color: var(--ink); }
+  footer dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0 0 1.4em; }
+  footer dt { font-weight: 600; color: var(--ink); }
+  footer dd { margin: 0; }
+  @media (max-width: 520px) { footer dl { grid-template-columns: 1fr; } footer dd { margin-bottom: 8px; } }
+  .placeholder { background: #fff3c4; padding: 0 4px; border-radius: 3px; }
+</style>
+</head>
+<body id="top">
+
+<header>
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Calame, retour en haut de page">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1f4e5f"/><path d="M10 23 L21 9 L23.5 11 L12.5 24.5 Z" fill="#faf8f3"/><path d="M10 23 L9 26 L12.5 24.5 Z" fill="#faf8f3"/></svg>
+      Calame
+    </a>
+    <nav aria-label="Navigation principale">
+      <a href="#taches">Ce que je fais</a>
+      <a href="#confidentialite">Confidentialité</a>
+      <a href="#demarrer">Comment démarrer</a>
+      <a class="btn btn-small" href="#contact" style="color:#fff">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="kicker">Genève · Fiduciaires de 1 à 15 personnes</p>
+    <h1>L'IA au service des fiduciaires genevoises</h1>
+    <p class="lead">Je viens dans vos bureaux, je repère les tâches répétitives qui vous prennent du temps, et je mets en place l'intelligence artificielle pour s'en charger. Vous gardez toujours la main&nbsp;: rien n'est envoyé sans votre relecture.</p>
+    <a class="btn" href="mailto:marti@calame-ia.ch?subject=Diagnostic%20gratuit%20Calame">Réserver un diagnostic gratuit</a>
+    <p class="note">45 minutes, sur place, sans engagement.</p>
+  </div>
+</section>
+
+<section id="constat">
+  <div class="wrap">
+    <p class="kicker">Le constat</p>
+    <h2>Votre métier, c'est le conseil. Pas les relances.</h2>
+    <div class="grid" style="margin-top:24px">
+      <div class="card">
+        <h3>Des tâches qui reviennent sans cesse</h3>
+        <p>Répondre aux mêmes questions des clients, réclamer les pièces manquantes, rédiger des courriers presque identiques&nbsp;: autant de temps qui ne sert ni à conseiller, ni à facturer.</p>
+      </div>
+      <div class="card">
+        <h3>L'IA peut aider, mais par où commencer&nbsp;?</h3>
+        <p>Les outils existent. Encore faut-il choisir les bonnes tâches, les configurer pour votre cabinet et fixer des règles claires sur ce qui peut passer par l'IA.</p>
+      </div>
+      <div class="card">
+        <h3>Le secret professionnel n'est pas négociable</h3>
+        <p>Une fiduciaire ne peut pas confier les données de ses clients à n'importe quel outil, de n'importe quelle manière. La mise en place doit être faite avec soin.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="taches">
+  <div class="wrap">
+    <p class="kicker">Ce que Calame fait</p>
+    <h2>Des tâches concrètes, prises en charge par l'IA</h2>
+    <p class="lead">Quelques exemples de ce qui peut être automatisé dans une fiduciaire. Le diagnostic sert à trouver ce qui compte le plus chez vous.</p>
+
+    <div class="tasks">
+      <article class="task">
+        <h3>Réponses aux e-mails des clients</h3>
+        <div class="ba">
+          <div><span class="tag">Avant</span><p>Chaque question courante («&nbsp;Où en est ma déclaration&nbsp;?&nbsp;», «&nbsp;Quels documents dois-je fournir&nbsp;?&nbsp;») demande une réponse écrite à la main.</p></div>
+          <div><span class="tag">Avec Calame</span><p>Un brouillon de réponse est préparé dans votre ton. Vous relisez, ajustez si besoin, et envoyez.</p></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <h3>Relance des documents manquants</h3>
+        <div class="ba">
+          <div><span class="tag">Avant</span><p>On vérifie qui n'a pas encore envoyé ses pièces, puis on écrit les relances une par une.</p></div>
+          <div><span class="tag">Avec Calame</span><p>Les relances sont préparées à partir de votre liste, personnalisées pour chaque client, prêtes à relire.</p></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <h3>Courriers et lettres de mission</h3>
+        <div class="ba">
+          <div><span class="tag">Avant</span><p>On repart d'un ancien document, on adapte les noms, les montants, les conditions, en espérant ne rien oublier.</p></div>
+          <div><span class="tag">Avec Calame</span><p>Un premier jet complet est rédigé à partir de vos modèles et des informations du dossier.</p></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <h3>Résumés de documents</h3>
+        <div class="ba">
+          <div><span class="tag">Avant</span><p>Lire en entier un contrat, une décision de taxation ou un long échange d'e-mails pour en tirer l'essentiel.</p></div>
+          <div><span class="tag">Avec Calame</span><p>Un résumé clair des points importants, pour savoir rapidement où porter votre attention.</p></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <h3>Traductions français · anglais · allemand</h3>
+        <div class="ba">
+          <div><span class="tag">Avant</span><p>Traduire soi-même un courrier pour un client anglophone ou alémanique, ou attendre un traducteur.</p></div>
+          <div><span class="tag">Avec Calame</span><p>Une traduction soignée en quelques instants, que vous relisez avant l'envoi.</p></div>
+        </div>
+      </article>
+    </div>
+
+    <p class="reassure"><strong>Vous relisez toujours avant l'envoi.</strong> L'IA prépare, vous décidez. Et si vous préférez ne rien installer&nbsp;: envoyez-moi une tâche par e-mail, je vous la renvoie prête et relue.</p>
+  </div>
+</section>
+
+<section id="confidentialite" class="confid">
+  <div class="wrap">
+    <p class="kicker">Confidentialité</p>
+    <h2>Le secret professionnel, pris au sérieux</h2>
+    <p class="lead">Vous êtes tenus au secret professionnel. Calame travaille dans le respect de la loi fédérale sur la protection des données (nLPD).</p>
+    <ul class="checks">
+      <li><strong>Un accord signé avant tout travail.</strong> Accord de confidentialité et de traitement des données, signé avant de commencer.</li>
+      <li><strong>Des règles claires.</strong> Nous définissons ensemble ce qui peut passer par l'IA, et ce qui ne le peut pas.</li>
+      <li><strong>Anonymisation si nécessaire.</strong> Les données sensibles sont anonymisées avant tout traitement lorsque c'est nécessaire.</li>
+      <li><strong>Messagerie hébergée en Suisse.</strong> Les échanges par e-mail avec Calame passent par un hébergeur suisse.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="demarrer">
+  <div class="wrap">
+    <p class="kicker">Comment on démarre</p>
+    <h2>Trois étapes, à votre rythme</h2>
+    <ol class="steps">
+      <li>
+        <h3>Diagnostic gratuit</h3>
+        <p>45 minutes dans vos bureaux pour identifier les 2 ou 3 tâches où l'IA vous fera gagner le plus de temps.</p>
+      </li>
+      <li>
+        <h3>Projet pilote à prix fixe</h3>
+        <p>Pendant 2 à 4 semaines, j'automatise une tâche. Nous mesurons ensemble le temps gagné.</p>
+      </li>
+      <li>
+        <h3>Accompagnement mensuel (optionnel)</h3>
+        <p>Formation de l'équipe, nouvelles tâches, et quelqu'un à appeler quand vous en avez besoin.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="after">
+  <div class="wrap">
+    <p class="kicker">Après la formation</p>
+    <h2>Vous avez vu ce que l'IA peut faire. Je la mets en place dans vos bureaux.</h2>
+    <p class="lead">Le Canton de Genève et l'Université de Genève proposent aux PME genevoises une journée de formation gratuite à l'IA. Calame prend le relais&nbsp;: un interlocuteur local, qui connaît le quotidien des fiduciaires et s'occupe de la mise en place, concrètement, chez vous.</p>
+  </div>
+</section>
+
+<section id="contact" class="contact">
+  <div class="wrap">
+    <p class="kicker">Contact</p>
+    <h2>Parlons de votre cabinet</h2>
+    <p class="lead">Écrivez-moi pour fixer un diagnostic gratuit. Je vous réponds personnellement.</p>
+    <a class="btn" href="mailto:marti@calame-ia.ch?subject=Diagnostic%20gratuit%20Calame">Réserver un diagnostic gratuit</a>
+    <a class="mail" href="mailto:marti@calame-ia.ch">marti@calame-ia.ch</a>
+  </div>
+</section>
+
+</main>
+
+<footer id="mentions-legales">
+  <div class="wrap">
+    <h2>Mentions légales</h2>
+    <dl>
+      <dt>Responsable du site</dt>
+      <dd><span class="placeholder">[Prénom Nom]</span>, Calame</dd>
+      <dt>Adresse</dt>
+      <dd><span class="placeholder">[Rue et numéro], [NPA] Genève</span></dd>
+      <dt>E-mail</dt>
+      <dd><a href="mailto:marti@calame-ia.ch">marti@calame-ia.ch</a></dd>
+      <dt>Numéro IDE</dt>
+      <dd><span class="placeholder">[CHE-xxx.xxx.xxx, ou ligne à supprimer]</span></dd>
+      <dt>Hébergement</dt>
+      <dd>Infomaniak Network SA, Genève, Suisse</dd>
+    </dl>
+    <p><strong>Protection des données.</strong> Ce site ne dépose aucun cookie, n'utilise aucun outil de mesure d'audience et ne charge aucune ressource externe. Les e-mails que vous m'envoyez sont utilisés uniquement pour vous répondre.</p>
+    <p>© 2026 Calame · Genève</p>
+  </div>
+</footer>
+
+</body>
+</html>
