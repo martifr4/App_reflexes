@@ -18,7 +18,7 @@ Download all four files into the same folder and double-click `index.html`. It o
 
 ## Publish on Infomaniak (Web Starter)
 
-### 1. Download the two files
+### 1. Download the four files
 
 1. On GitHub, open the repository and switch to the branch that holds the site.
 2. Open the `calame` folder.
