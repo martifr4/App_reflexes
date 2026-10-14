@@ -18,8 +18,8 @@ llama-3.3-70b,open,spread,open-weight,dense 70B,,,0.64,0.15500000000000003,1.04,
 qwen3.8-27b,open,price-only,Qwen,open,0.04,2.3,0.605,0.34175,1.1375000000000002,19,OpenRouter list price,https://openrouter.ai/api/v1/models
 minimax-m3,open,spread,open-weight,MoE (large),,,0.5249999999999999,0.4125,1.0499999999999998,13,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
 minimax-m2.5,open,spread,open-weight,MoE,,,0.5249999999999999,0.44,1.0499999999999998,9,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
+deepseek-v4.1-flash,open,price-only,DeepSeek,open,0.02088,0.891,0.23841,0.1125,1.0499999999999998,32,OpenRouter list price,https://openrouter.ai/api/v1/models
 gpt-oss-120b,open,spread,open-weight,MoE 117B (5.1B active),,,0.23124999999999998,0.06,0.44999999999999996,24,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
 qwen3.8-flash-next,open,price-only,Qwen,open,0.15,0.47,0.22999999999999998,0.22999999999999998,0.22999999999999998,2,OpenRouter list price,https://openrouter.ai/api/v1/models
-deepseek-v4.1-flash,open,price-only,DeepSeek,open,0.00117,0.891,0.2236275,0.1125,1.0499999999999998,32,OpenRouter list price,https://openrouter.ai/api/v1/models
 gpt-6-luna,closed,price-only,OpenAI,small,0.1,0.5,0.2,0.1,0.4,7,OpenRouter list price,https://openrouter.ai/api/v1/models
 claude-haiku-5.5,closed,price-only,Anthropic,small,0.1,0.5,0.2,0.2,0.22000000000000003,10,OpenRouter list price,https://openrouter.ai/api/v1/models

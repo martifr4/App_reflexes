@@ -133,8 +133,8 @@ the same breakeven, and spread ratio = measured ÷ needed.
 | glm-5.2 | Zhipu | open | $1.79 | 655 | 1,412 | 5 | 7 |
 | grok-build-0.1 | xAI | closed | $1.25 | 937 | 2,019 | 5 | 7 |
 | qwen3.8-27b | Qwen | open | $0.60 | 1,936 | 4,170 | 1 | 7 |
+| deepseek-v4.1-flash | DeepSeek | open | $0.24 | 4,913 | 10,583 | 1 | 1 |
 | qwen3.8-flash-next | Qwen | open | $0.23 | 5,093 | 10,970 | 1 | 1 |
-| deepseek-v4.1-flash | DeepSeek | open | $0.22 | 5,238 | 11,283 | 1 | 1 |
 | claude-haiku-5.5 | Anthropic | closed | $0.20 | 5,856 | 12,616 | 1 | 1 |
 | gpt-6-luna | OpenAI | closed | $0.20 | 5,856 | 12,616 | 1 | 1 |
 
@@ -162,9 +162,9 @@ benchmarked open-weight = median provider):
 | qwen3.8-27b | open | price-only | Qwen | $0.605 | $0.342–$1.138 | OpenRouter list price |
 | minimax-m3 | open | spread | open-weight | $0.525 | $0.412–$1.050 | median OpenRouter provider |
 | minimax-m2.5 | open | spread | open-weight | $0.525 | $0.440–$1.050 | median OpenRouter provider |
+| deepseek-v4.1-flash | open | price-only | DeepSeek | $0.238 | $0.113–$1.050 | OpenRouter list price |
 | gpt-oss-120b | open | spread | open-weight | $0.231 | $0.060–$0.450 | median OpenRouter provider |
 | qwen3.8-flash-next | open | price-only | Qwen | $0.230 | $0.230–$0.230 | OpenRouter list price |
-| deepseek-v4.1-flash | open | price-only | DeepSeek | $0.224 | $0.113–$1.050 | OpenRouter list price |
 | gpt-6-luna | closed | price-only | OpenAI | $0.200 | $0.100–$0.400 | OpenRouter list price |
 | claude-haiku-5.5 | closed | price-only | Anthropic | $0.200 | $0.200–$0.220 | OpenRouter list price |
 
