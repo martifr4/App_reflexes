@@ -126,6 +126,7 @@ closed_models:
   - {key: gpt-6-luna,        openrouter_id: openai/gpt-6-luna,           lab: OpenAI,    tier: small}
   - {key: grok-4.7,          openrouter_id: x-ai/grok-4.7,               lab: xAI,       tier: large}
   - {key: grok-build-0.1,    openrouter_id: x-ai/grok-build-0.1,         lab: xAI,       tier: mid}
+  - {key: muse-wonder,       openrouter_id: meta/muse-wonder,            lab: Meta,      tier: frontier}  # Meta's newest (Oct 2026); no InferenceX benchmark for any Muse model
 
 # --- Closed models: estimated profit (ranking at the top of the website) ------
 # A rough, clearly-labelled estimate so closed models can sit in the same ranking
@@ -142,6 +143,8 @@ closed_infrastructure:
               source_url: "https://www.anthropic.com/news/anthropic-amazon-compute"}
   OpenAI:    {gpu: b200, hardware: "NVIDIA GB200 (Stargate, Oracle and Azure)",
               source_url: "https://intuitionlabs.ai/articles/openai-stargate-datacenter-details"}
+  Meta:      {gpu: b200, hardware: "NVIDIA GB300 (Blackwell), modelled as B200",
+              source_url: "https://investor.nvidia.com/news/press-release-details/2026/Meta-Builds-AI-Infrastructure-With-NVIDIA/default.aspx"}
   xAI:       {gpu: h100, hardware: "NVIDIA H100/H200 (Colossus 1), modelled as H100",
               source_url: "https://www.tomshardware.com/tech-industry/artificial-intelligence/elon-musk-says-xai-is-targeting-50-million-h100-equivalent-ai-gpus-in-five-years-230k-gpus-including-30k-gb200s-already-reportedly-operational-for-training-grok"}
 # Open-weight models are ranked on this GPU (every benchmarked model has it).

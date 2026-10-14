@@ -363,7 +363,7 @@ def build():
         lo = cb.iloc[-1]
         closed_md = f"""## 6. Price-only models: breakeven throughput and price comparison
 
-Closed models (Claude, GPT, Grok) publish prices but not their hardware or throughput, and some
+Closed models (Claude, GPT, Grok, Meta Muse) publish prices but not their hardware or throughput, and some
 open-weight models have no comparable benchmark yet (only agentic traces, or no runs). No
 spread is computed for them. Instead: how many tokens/s per GPU would a model need for its
 **list price** to cover the GPU's rent at {cfg['utilization_base']:.0%} utilization?
