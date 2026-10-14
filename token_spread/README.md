@@ -126,6 +126,23 @@ similar size tier. Revenue uses the closed model's list price. These rows are es
 models are probably larger and slower than their proxies, so they read as upper bounds.
 Output: `outputs/profit_ranking.csv`.
 
+## Bitcoin mining comparison
+
+For perspective, the site shows what the same GPU would earn mining bitcoin:
+
+```
+BTC per hour  = hash rate (TH/s) × 10^12 ÷ (difficulty × 2^32) × 3,600 × (block subsidy + fees per block)
+revenue / h   = BTC per hour × BTC price
+electricity/h = all-in kW (full load) × PUE × $/kWh
+```
+
+`fetch/fetch_bitcoin.py` pulls price, difficulty, hash rate and the last 144 blocks' fees from
+mempool.space into `data/bitcoin_network.csv`; the subsidy follows the halving schedule.
+Device hash rates are in `data/mining_hardware.csv`: H100 SXM ≈ 8.1 GH/s SHA-256d (half its
+hashcat SHA-256 speed of 16.2 GH/s), B200 ≈ 9.0 GH/s (scaled by FP32 compute; no public
+benchmark), and Bitmain's Antminer S23 (318 TH/s at 3.5 kW) as the ASIC reference. Output:
+`outputs/bitcoin_mining.csv`. A GPU earns roughly 10^5–10^6 times more serving tokens than mining.
+
 ## Data sources
 
 | File | Source | Fetch |

@@ -451,6 +451,45 @@ def ranking_analysis(cfg, summary: pd.DataFrame, closed: pd.DataFrame):
     return pd.DataFrame(rows).sort_values("profit", ascending=False)
 
 
+# --- bitcoin mining comparison ---------------------------------------------------
+
+def btc_per_hour(ths: float, net: dict) -> float:
+    """Expected BTC per hour for a hash rate in TH/s (SHA-256d)."""
+    return ths * 1e12 / (net["difficulty"] * 2 ** 32) * 3600 * (net["block_subsidy_btc"] + net["fees_per_block_btc"])
+
+
+def bitcoin_analysis(cfg, summary: pd.DataFrame):
+    """Mining revenue and costs per device vs token revenue on the same GPU."""
+    net = pd.read_csv(DATA / "bitcoin_network.csv").iloc[0].to_dict()
+    hw = pd.read_csv(DATA / "mining_hardware.csv")
+    gpus = pd.read_csv(DATA / "gpu_power.csv").set_index("gpu")
+    price = pd.read_csv(DATA / "electricity_prices.csv").set_index("region").loc[
+        cfg["power"]["base_region"], "price_usd_per_kwh"]
+    pue = cfg["power"]["pue_base"]
+    base = summary[summary.case == "base"]
+    rows = []
+    for _, d in hw.iterrows():
+        gpu = d.kind == "gpu"
+        kw = gpus.loc[d.device, "allin_kw"] if gpu else d.power_kw   # flat out: no load factor
+        kwh = kw * pue
+        btc = btc_per_hour(d.sha256d_ths, net)
+        rev = btc * net["btc_price_usd"]
+        power = kwh * price
+        row = {"device": d.device, "label": d.label, "kind": d.kind, "sha256d_ths": d.sha256d_ths,
+               "kw": kw, "kwh_per_hour": kwh, "j_per_th": kw * 1000 / d.sha256d_ths,
+               "btc_per_day": btc * 24, "revenue": rev, "power_cost": power, "mining_margin": rev - power,
+               "revenue_per_kwh": rev / kwh, "estimate": bool(d.estimate)}
+        if gpu:
+            c = firm_costs(d.device, cfg, gpus, price)
+            full = c["depreciation"] + c["financing"] + c["hosting"] + c["ops"] + power
+            tok = base[base.gpu == d.device].revenue
+            row.update({"full_cost": full, "profit": rev - full,
+                        "token_revenue_median": float(tok.median()), "token_revenue_max": float(tok.max()),
+                        "token_vs_mining": float(tok.median()) / rev})
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 # --- snapshots ---------------------------------------------------------------
 
 def _digest(p: Path) -> str:
@@ -473,11 +512,12 @@ def snapshot(summary: pd.DataFrame, date: str):
     day.mkdir(exist_ok=True)
     files = [DATA / f for f in ("api_prices.csv", "api_prices_price_only.csv", "throughput.csv",
                                 "gpu_rental.csv", "electricity_prices.csv", "gpu_power.csv",
-                                "rental_firm_sources.csv")] + \
+                                "rental_firm_sources.csv", "bitcoin_network.csv", "mining_hardware.csv")] + \
             [OUT / f for f in ("spread_summary.csv", "sensitivity.csv", "provider_spread.csv",
                                "operating_points.csv", "breakeven_throughput.csv",
                                "price_comparison.csv", "power_costs.csv", "power_chain.csv",
-                               "firm_economics.csv", "value_split.csv", "profit_ranking.csv")]
+                               "firm_economics.csv", "value_split.csv", "profit_ranking.csv",
+                               "bitcoin_mining.csv")]
     files = [f for f in files if f.exists()]
     written = []
     for f in files:
@@ -525,6 +565,8 @@ def main():
             econ, split = firm_analysis(cfg, summary, rental)
             econ.to_csv(OUT / "firm_economics.csv", index=False)
             split.to_csv(OUT / "value_split.csv", index=False)
+            if "bitcoin" in cfg and (DATA / "bitcoin_network.csv").exists():
+                bitcoin_analysis(cfg, summary).to_csv(OUT / "bitcoin_mining.csv", index=False)
             if closed_path.exists() and "closed_infrastructure" in cfg:
                 rank = ranking_analysis(cfg, summary, pd.read_csv(closed_path))
                 rank.to_csv(OUT / "profit_ranking.csv", index=False)

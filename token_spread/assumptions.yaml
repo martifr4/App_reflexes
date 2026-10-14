@@ -236,3 +236,15 @@ rental_firm:
   ops_usd_per_gpu_hour: 0.10                      # Mercatus: ~$0.80 per 8-GPU server-hour
   occupancy_base: 0.80                            # assumption; long-term contracts run higher, spot fleets lower
   occupancy_sensitivity: [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+
+# --- Bitcoin mining comparison ---------------------------------------------------
+# What the same GPU would earn mining bitcoin, for perspective.
+#   expected BTC per hour = hashrate / (difficulty x 2^32) x 3600 x (subsidy + fees per block)
+#   revenue per hour      = BTC per hour x BTC price
+# Network data: data/bitcoin_network.csv (mempool.space, daily). Device hash rates:
+# data/mining_hardware.csv (sourced; GPU rates are SHA-256d estimates from hashcat).
+# Mining runs flat out, so mining power uses all-in kW at full load (no load factor) x PUE.
+# An ASIC's power_kw is its wall power; GPUs use gpu_power.csv all-in kW.
+bitcoin:
+  fee_window_blocks: 144            # ~1 day of blocks for the average fee
+  reference_asic: antminer_s23

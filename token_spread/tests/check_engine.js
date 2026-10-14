@@ -38,6 +38,8 @@ if (F) {
     check(rk.length === D.python_ranking.length, `ranking length ${rk.length} vs ${D.python_ranking.length}`);
     for (const p of D.python_ranking) { const r = rk.find(x => x.key === p.m);
       check(r && r.gpu === p.gpu && close(r.rev, p.revenue) && close(r.profit, p.profit), `ranking ${p.m}`); } }
+  for (const p of D.python_bitcoin || []) { const dev = (D.mining_hw || []).find(d => d.device === p.device), m = dev && ENGINE.mining(dev, F, P);
+    check(m && close(m.rev, p.revenue) && close(m.power, p.power) && (p.full == null || close(m.full, p.full)), `bitcoin ${p.device}`); }
 }
 console.log(`${n - bad}/${n} checks match compute.py`);
 process.exit(bad ? 1 : 0);

@@ -4,12 +4,12 @@ gpt-6-astra,closed,price-only,OpenAI,frontier,10.0,50.0,14.444444444444445,7.222
 claude-opus-5.5,closed,price-only,Anthropic,large,4.0,20.0,5.777777777777778,5.777777777777778,11.555555555555555,11,OpenRouter list price,https://openrouter.ai/api/v1/models
 muse-wonder,closed,price-only,Meta,frontier,4.0,20.0,5.777777777777778,5.777777777777778,5.777777777777778,1,OpenRouter list price,https://openrouter.ai/api/v1/models
 claude-sonnet-5.5,closed,price-only,Anthropic,mid,2.0,10.0,2.888888888888889,2.888888888888889,3.177777777777778,8,OpenRouter list price,https://openrouter.ai/api/v1/models
-gemini-4-argon,closed,price-only,Google,frontier,2.0,10.0,2.888888888888889,1.4444444444444444,5.199999999999999,5,OpenRouter list price,https://openrouter.ai/api/v1/models
+gemini-4-argon,closed,price-only,Google,frontier,2.0,10.0,2.888888888888889,1.4444444444444444,5.199999999999999,6,OpenRouter list price,https://openrouter.ai/api/v1/models
 gpt-6.1-sol,closed,price-only,OpenAI,mid,2.0,10.0,2.888888888888889,1.4444444444444444,17.333333333333332,8,OpenRouter list price,https://openrouter.ai/api/v1/models
 grok-4.7,closed,price-only,xAI,frontier,2.0,6.0,2.4444444444444446,2.4444444444444446,4.888888888888889,5,OpenRouter list price,https://openrouter.ai/api/v1/models
-kimi-k3,open,price-only,Moonshot,open,0.62,15.0,2.217777777777778,1.7333333333333334,6.5,25,OpenRouter list price,https://openrouter.ai/api/v1/models
-deepseek-v4-pro,open,spread,open-weight,MoE,,,1.6831066666666665,0.7866666666666666,2.123333333333333,15,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
+kimi-k3,open,price-only,Moonshot,open,0.7,15.0,2.288888888888889,2.032,6.5,25,OpenRouter list price,https://openrouter.ai/api/v1/models
 muse-spark-1.3,closed,price-only,Meta,mid,1.25,4.25,1.5833333333333333,1.5833333333333333,1.5833333333333333,1,OpenRouter list price,https://openrouter.ai/api/v1/models
+deepseek-v4-pro,open,spread,open-weight,MoE,,,1.5733333333333333,0.4863444444444444,2.123333333333333,15,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
 glm-5,open,spread,open-weight,MoE,,,1.186111111111111,0.7466666666666666,1.2444444444444445,8,median OpenRouter provider,https://openrouter.ai/api/v1/models/{id}/endpoints
 grok-build-0.1,closed,price-only,xAI,mid,1.0,2.0,1.1111111111111112,1.1111111111111112,2.2222222222222223,4,OpenRouter list price,https://openrouter.ai/api/v1/models
 gemini-3.8-flash,closed,price-only,Google,mid,0.75,3.75,1.0833333333333333,0.5416666666666666,1.9500000000000002,6,OpenRouter list price,https://openrouter.ai/api/v1/models

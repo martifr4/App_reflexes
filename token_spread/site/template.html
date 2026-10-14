@@ -296,6 +296,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <a href="#start">Start here</a>
       <a href="#findings">Findings</a>
       <a href="#dashboard">Dashboard</a>
+      <a href="#bitcoin">Bitcoin</a>
       <a href="#power">Electricity</a>
       <a href="#firm">Who profits</a>
       <a href="#explore">Model explorer</a>
@@ -393,6 +394,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
     <div class="section-head"><h3>What you'll find on this page</h3></div>
     <ul class="guide">
       <li><a href="#findings">Findings <span>→</span></a><p>The main conclusions in plain sentences, rewritten automatically when the data changes. Start here if you have a minute.</p></li>
+      <li><a href="#bitcoin">Tokens vs bitcoin <span>→</span></a><p>What the same GPU would earn mining bitcoin at today's price and difficulty, and how far a GPU is from a purpose-built mining machine.</p></li>
       <li><a href="#dashboard">Dashboard <span>→</span></a><p>The results for every model and chip. Move the sliders to try your own assumptions, and click any result to see the full calculation.</p></li>
       <li><a href="#power">Electricity <span>→</span></a><p>The full chain of a GPU-hour: what its power costs, what it costs its owner, what it rents for and what its tokens sell for, by region.</p></li>
       <li><a href="#firm">Who makes the money <span>→</span></a><p>The full cost of owning a GPU (hardware, financing, space, power, staff), the rental firm's profit, and how token revenue is shared.</p></li>
@@ -414,6 +416,26 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
     <div class="findings" id="findings-list"></div>
     <p class="note">These sentences are generated from the data on every rebuild, at the base assumptions in
       <code>assumptions.yaml</code>. Move the controls in the dashboard to test how robust each one is.</p>
+  </section>
+
+  <section id="bitcoin">
+    <div class="section-head">
+      <div class="eyebrow">Perspective</div>
+      <h2>Tokens vs bitcoin: the same GPU, two ways to earn</h2>
+      <p class="lede" id="btc-lede"></p>
+    </div>
+    <div class="kpis" id="btc-kpis"></div>
+    <div class="panel">
+      <div class="panel-head"><div><h3>Revenue per kWh of electricity</h3><div class="panel-sub" id="btc-sub"></div></div></div>
+      <div class="legend" id="btc-legend"></div>
+      <div class="chart" id="chart-btc"></div>
+    </div>
+    <div class="table-wrap"><table id="btc-table"></table></div>
+    <div class="formula" id="btc-formula"></div>
+    <div class="prose">
+      <h3>Reading these numbers</h3>
+      <ul class="list" id="btc-notes"></ul>
+    </div>
   </section>
 
   <section id="dashboard">
@@ -982,8 +1004,27 @@ const ENGINE = (() => {
     }
     return out.sort((a, b) => b.profit - a.profit);
   }
+  // bitcoin mining on the same device: expected BTC/hour = TH/s x 1e12 / (difficulty x 2^32) x 3600 x (subsidy + fees)
+  function btcPerHour(ths) {
+    const n = (D.btc_network || [])[0];
+    return n ? ths * 1e12 / (n.difficulty * Math.pow(2, 32)) * 3600 * (n.subsidy + n.fees) : NaN;
+  }
+  function mining(dev, fs, ps) {
+    const n = (D.btc_network || [])[0], gpu = dev.kind === "gpu";
+    const kw = gpu ? gpuPower(dev.device).kw : dev.kw;                // mining runs flat out: no load factor
+    const kwh = kw * ps.pue, rev = btcPerHour(dev.ths) * n.price, power = kwh * elecPrice(ps.region);
+    const out = { dev, kw, kwh, jPerTh: kw * 1000 / dev.ths, btcDay: btcPerHour(dev.ths) * 24, rev, power,
+                  margin: rev - power, revPerKwh: rev / kwh };
+    if (gpu) {
+      const c = firmCosts(dev.device, fs, ps);
+      out.full = c.depreciation + c.financing + c.hosting + c.ops + power;
+      out.profit = rev - out.full;
+    }
+    return out;
+  }
   return { cases, evaluate, prices, priceStats, rows, opPoints, tputAt, rental, median, blend, closedPrice, breakeven,
-           gpuPower, kwhPerHour, elecPrice, measuredPower, firmCosts, firmPnl, fullCost, closedProxy, closedEstimate, ranking };
+           gpuPower, kwhPerHour, elecPrice, measuredPower, firmCosts, firmPnl, fullCost, closedProxy, closedEstimate, ranking,
+           btcPerHour, mining };
 })();
 /* ===================== ENGINE END ===================== */
 
@@ -1132,6 +1173,7 @@ function renderStatic() {
     ["Benchmarks", fmtInt(D.tput.length), `newest ${fmtDate(D.meta.newest_benchmark)}`],
     ["Price-only", String(CLOSED.length), "closed + unbenchmarked open"],
   ];
+  if ((D.btc_network || []).length) cells.push(["Bitcoin", fmtUSD(D.btc_network[0].price, 0), `difficulty ${nf(1).format(D.btc_network[0].difficulty / 1e12)} T`]);
   if ((D.electricity || []).length && (D.gpu_power || []).length) {
     const ep = ENGINE.elecPrice(PBASE.region), el0 = D.electricity.find(x => x.region === PBASE.region);
     cells.splice(2, 0, ["Electricity", `${nf(1).format(ep * 100)}¢/kWh`, `${el0.label}`]);
@@ -1239,6 +1281,18 @@ function renderStatic() {
       href: "#firm",
     });
   }
+  const bms = btcRows();
+  if (bms) {
+    const g0 = CFG.profit_ranking_open_gpu, mB = bms.find(m => m.dev.device === g0), asic = bms.find(m => m.dev.kind === "asic");
+    const tok = ENGINE.median(base.filter(r => r.c.gpu === g0 && r.c.kind === "base" && isFinite(r.rev)).map(r => r.rev));
+    if (mB) F.push({
+      stat: `${fmtCompact(Math.round(tok / mB.rev))}×`,
+      title: `Tokens beat bitcoin mining by a factor of ${fmtCompact(Math.round(tok / mB.rev))}`,
+      text: `Mining bitcoin, a ${mB.dev.label} would earn ${fmtUSD(mB.rev, 6)} an hour at ${fmtUSD(D.btc_network[0].price, 0)} per BTC, while burning ${fmtUSD(mB.power)} of electricity. Serving a median open model it earns ${fmtUSD(tok)}. ` +
+        (asic ? `Even a purpose-built ${asic.dev.label} earns only ${fmtUSD(asic.revPerKwh, 3)} per kWh, against ${fmtUSD(tok / ENGINE.kwhPerHour(g0, PBASE), 2)} per kWh for the GPU serving tokens.` : ""),
+      href: "#bitcoin",
+    });
+  }
   $("findings-list").replaceChildren(...F.map(f => h("article", { class: "finding" },
     h("div", { class: "stat", text: f.stat }), h("h3", { text: f.title }), h("p", { text: f.text }),
     h("a", { class: "more", href: f.href, text: "See the data →" }))));
@@ -1298,8 +1352,17 @@ function renderStatic() {
       if (r && r.gpu === p.gpu && Math.abs(r.profit - p.profit) <= 1e-6 * Math.max(1, Math.abs(p.profit))) ok++;
     }
   }
+  if (FBASE && D.python_bitcoin) {
+    for (const p of D.python_bitcoin) {
+      const dev = (D.mining_hw || []).find(d => d.device === p.device);
+      if (!dev) continue;
+      n++;
+      const m = ENGINE.mining(dev, FBASE, PBASE);
+      if (Math.abs(m.rev - p.revenue) <= 1e-9 + 1e-6 * p.revenue && Math.abs(m.power - p.power) < 1e-9 && (p.full == null || Math.abs(m.full - p.full) < 1e-9)) ok++;
+    }
+  }
   $("verify").replaceChildren(h("span", { class: "chip " + (ok === n ? "good" : "bad"), text: ok === n ? "✓ verified" : "✗ mismatch" }),
-    ` The in-browser engine reproduces compute.py for ${ok} of ${n} base-case results (spreads, breakeven throughputs, electricity costs, rental-firm economics and the profit ranking).`);
+    ` The in-browser engine reproduces compute.py for ${ok} of ${n} base-case results (spreads, breakeven throughputs, electricity costs, rental-firm economics, the profit ranking and bitcoin mining).`);
   $("footer-meta").textContent = `Prices retrieved ${fmtDate(D.meta.prices_retrieved)} · rental retrieved ${fmtDate(D.meta.rental_retrieved)} · benchmarks retrieved ${fmtDate(D.meta.throughput_retrieved)} (newest run ${fmtDate(D.meta.newest_benchmark)}).`;
   const repo = $("repo-link"); repo.href = D.meta.tree_url;
   return base;
@@ -1862,11 +1925,18 @@ function renderRanking() {
   const hatch = g => `url(#rk-hatch-${g})`;
   $("rank-legend").replaceChildren(
     ...[...new Set(rows.filter(r => !r.est).map(r => r.gpu))].map(g => h("span", {}, h("i", { class: "bg-" + g }), `open-weight, measured on ${gpuName(g)}`)),
-    ...[...new Set(rows.filter(r => r.est).map(r => r.gpu))].map(g => h("span", {}, h("i", { style: `background:repeating-linear-gradient(135deg, var(--s-${g}) 0 2px, transparent 2px 5px);border:1px solid var(--s-${g})` }), `closed, estimated on ${gpuName(g)}-class hardware`)));
+    ...[...new Set(rows.filter(r => r.est).map(r => r.gpu))].map(g => h("span", {}, h("i", { style: `background:repeating-linear-gradient(135deg, var(--s-${g}) 0 2px, transparent 2px 5px);border:1px solid var(--s-${g})` }), `closed, estimated on ${gpuName(g)}-class hardware`)),
+    ...((D.btc_network || []).length ? [h("span", {}, h("i", { style: "border:1.5px dashed var(--muted);background:none" }), "reference: the same GPU mining bitcoin")] : []));
+  // reference: the same GPU mining bitcoin instead of serving tokens
+  const btcDev = (D.mining_hw || []).find(d => d.device === g0);
+  const btc = btcDev && (D.btc_network || []).length ? ENGINE.mining(btcDev, FBASE, PBASE) : null;
+  const chartRows = [...rows];
+  if (btc) chartRows.push({ key: `bitcoin mining (${gpuName(g0)})`, ref: true, gpu: g0, rev: btc.rev, cost: btc.full, profit: btc.profit, m: btc });
+  chartRows.sort((a, b) => b.profit - a.profit);
   const el = $("chart-rank"), W = widthOf(el), narrow = W < 560;
   const L = narrow ? 4 : 200, R = narrow ? 4 : 96, top = 6, rowH = narrow ? 36 : 24, barH = narrow ? 12 : 14;
-  const H = top + rows.length * rowH + 26;
-  const lo = Math.min(0, ...rows.map(r => r.profit)), hi = Math.max(...rows.map(r => r.profit));
+  const H = top + chartRows.length * rowH + 26;
+  const lo = Math.min(0, ...chartRows.map(r => r.profit)), hi = Math.max(...chartRows.map(r => r.profit));
   const ticks = linTicks(lo, hi * 1.02, narrow ? 4 : 6);
   const d0 = Math.min(lo, ticks[0]), d1 = Math.max(hi, ticks[ticks.length - 1]);
   const vW = narrow ? 64 : 0;
@@ -1880,16 +1950,31 @@ function renderRanking() {
   }
   const ax = s("g", { class: "ax" }, svg);
   for (const t of ticks) { s("line", { x1: x(t), x2: x(t), y1: top, y2: H - 22, class: t === 0 ? "zero" : null }, ax); st(ax, x(t), H - 8, fmtUSD(t, 0), { "text-anchor": "middle" }); }
-  rows.forEach((r, i) => {
+  let rank = 0;
+  chartRows.forEach((r, i) => {
     const y0 = top + i * rowH, cy = narrow ? y0 + rowH - barH / 2 - 4 : y0 + rowH / 2;
-    const name = st(svg, narrow ? L : L - 10, narrow ? y0 + 12 : cy + 4, `${i + 1}. ${r.key}`, { "text-anchor": narrow ? "start" : "end", class: r.est ? "lab-strong" : "lab-ink" });
+    if (r.ref) {
+      st(svg, narrow ? L : L - 10, narrow ? y0 + 12 : cy + 4, r.key, { "text-anchor": narrow ? "start" : "end", class: "lab-strong", style: "fill:var(--muted)" });
+      const xa = x(Math.min(0, r.profit)), xb = x(Math.max(0, r.profit));
+      s("rect", { x: xa, y: cy - barH / 2, width: Math.max(1, xb - xa), height: barH, rx: 2, style: "fill:none;stroke:var(--muted);stroke-width:1.25;stroke-dasharray:3 2" }, svg);
+      st(svg, r.profit < 0 ? xb + 6 : xb + 6, cy + 4, `${fmtUSD(r.profit)}/h · earns ${fmtUSD(r.rev, 5)}`, { class: "lab-ink" });
+      const hit = s("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit", tabindex: 0, role: "button", "aria-label": `${r.key}: ${fmtUSD(r.profit)} per GPU-hour` }, svg);
+      bindTip(hit, () => [`Reference: a ${gpuName(r.gpu)} mining bitcoin`, [["bitcoin earned / h", fmtUSD(r.rev, 6)], ["electricity / h", fmtUSD(r.m.power)], ["full cost / h", fmtUSD(r.cost)], ["profit / h", fmtUSD(r.profit)]], "Click for the bitcoin comparison"]);
+      const goB = () => $("bitcoin").scrollIntoView({ behavior: "smooth", block: "start" });
+      hit.addEventListener("click", goB);
+      hit.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goB(); } });
+      return;
+    }
+    rank++;
+    const name = st(svg, narrow ? L : L - 10, narrow ? y0 + 12 : cy + 4, `${rank}. ${r.key}`, { "text-anchor": narrow ? "start" : "end", class: r.est ? "lab-strong" : "lab-ink" });
     const tag = s("tspan", { class: "lab", dx: 6 }, name); tag.textContent = r.est ? r.lab : "open";
     const xa = x(Math.min(0, r.profit)), xb = x(Math.max(0, r.profit));
     s("rect", { x: xa, y: cy - barH / 2, width: Math.max(1, xb - xa), height: barH, rx: 2,
       style: r.est ? `fill:${hatch(r.gpu)};stroke:var(--s-${r.gpu});stroke-width:1` : null, class: r.est ? null : "f-" + r.gpu }, svg);
     st(svg, xb + 6, cy + 4, `${fmtUSD(r.profit)}/h${r.est ? " est." : ""}`, { class: "lab-ink" });
     const hit = s("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit", tabindex: 0, role: "button", "aria-label": `${r.key}: ${fmtUSD(r.profit)} per GPU-hour` }, svg);
-    bindTip(hit, () => [`${i + 1}. ${r.key}${r.est ? ` (${r.lab}, estimate)` : ""}`, [
+    const rk0 = rank;
+    bindTip(hit, () => [`${rk0}. ${r.key}${r.est ? ` (${r.lab}, estimate)` : ""}`, [
       ["hardware", r.est ? `${r.hardware}` : `${gpuName(r.gpu)}, measured`],
       ["tokens/s per GPU", `${fmtInt(r.tput)}${r.est ? ` (as ${r.proxy})` : ""}`],
       ["price per M tokens", fmtUSD(r.price, 3)],
@@ -1961,6 +2046,100 @@ function renderWhy(rows) {
       (low.length ? ` Price is still a choice: ${low.map(r => `${r.key} (${fmtUSD(r.price, 2)}/M on ${gpuName(r.gpu)})`).join(", ")} ${low.length > 1 ? "earn" : "earns"} less than the best open model.` : "") });
   $("why-list").replaceChildren(...F.map(f => h("article", { class: "finding" },
     h("div", { class: "stat", text: f.stat }), h("h3", { text: f.title }), h("p", { text: f.text }))));
+}
+
+/* ================= bitcoin comparison (base assumptions) ================= */
+function btcRows() {
+  if (!FBASE || !(D.btc_network || []).length || !(D.mining_hw || []).length) return null;
+  return (D.mining_hw).map(dev => ENGINE.mining(dev, FBASE, PBASE));
+}
+function renderBitcoin() {
+  const ms = btcRows();
+  if (!ms) { $("bitcoin").hidden = true; return; }
+  const n = D.btc_network[0], g0 = CFG.profit_ranking_open_gpu;
+  const base = CASES.filter(c => c.kind === "base").map(c => ENGINE.evaluate(c, BASE));
+  const tokFor = g => { const r = base.filter(x => x.c.gpu === g && isFinite(x.rev)); return { med: ENGINE.median(r.map(x => x.rev)), max: Math.max(...r.map(x => x.rev)), best: r.reduce((a, b) => b.rev > a.rev ? b : a, r[0]) }; };
+  const gpuM = ms.filter(m => m.dev.kind === "gpu"), asic = ms.find(m => m.dev.device === (CFG.bitcoin || {}).reference_asic) || ms.find(m => m.dev.kind === "asic");
+  const mB = gpuM.find(m => m.dev.device === g0) || gpuM[0], tB = tokFor(mB.dev.device);
+  const ep = ENGINE.elecPrice(PBASE.region);
+  const hashprice = ENGINE.btcPerHour(1000) * 24 * n.price;   // $ per PH/s per day
+  $("btc-lede").textContent = `A GPU can also mine bitcoin. At today's price and difficulty, a ${mB.dev.label} would earn ${fmtUSD(mB.rev, 6)} an hour mining, ` +
+    `about ${fmtCompact(Math.round(tB.med / mB.rev))} times less than it earns serving a typical open model (${fmtUSD(tB.med)}), and it would burn ${fmtUSD(mB.power)} of electricity doing it. ` +
+    `Bitcoin is mined by purpose-built chips (ASICs) that hash about ${fmtCompact(Math.round(mB.jPerTh / asic.jPerTh))} times more efficiently than a GPU.`;
+  const kp = [
+    ["Bitcoin price", fmtUSD(n.price, 0), `mempool.space, ${fmtDate(n.date)}`],
+    ["Network difficulty", `${nf(1).format(n.difficulty / 1e12)} T`, `${fmtInt(n.ehs)} EH/s of hashing worldwide`],
+    ["Reward per block", `${nf(4).format(n.subsidy + n.fees)} BTC`, `${n.subsidy} subsidy + ${nf(4).format(n.fees)} fees (last ${n.window} blocks)`],
+    ["Hashprice", `${fmtUSD(hashprice, 2)}`, "per PH/s per day"],
+    [`${mB.dev.label} mining`, `${fmtUSD(mB.rev, 6)}/h`, `vs ${fmtUSD(mB.power)}/h of electricity`],
+    [`${mB.dev.label} serving tokens`, `${fmtUSD(tB.med)}/h`, "median open model, base assumptions"],
+  ];
+  $("btc-kpis").replaceChildren(...kp.map(([k, v, d]) => h("div", { class: "kpi" }, h("span", { class: "k", text: k }), h("span", { class: "v", text: v }), h("span", { class: "d", text: d }))));
+  // chart: revenue per kWh, log scale
+  const items = [];
+  for (const m of gpuM) {
+    const t = tokFor(m.dev.device), kwhT = ENGINE.kwhPerHour(m.dev.device, PBASE);
+    items.push({ lab: `${m.dev.label} serving tokens (best open model: ${t.best.c.m.key})`, v: t.max / kwhT, cls: "f-" + m.dev.device, kind: "tok" });
+    items.push({ lab: `${m.dev.label} serving tokens (median open model)`, v: t.med / kwhT, cls: "f-" + m.dev.device, kind: "tok" });
+  }
+  items.push({ lab: `${asic.dev.label} mining bitcoin`, v: asic.revPerKwh, cls: "", kind: "asic" });
+  for (const m of gpuM) items.push({ lab: `${m.dev.label} mining bitcoin`, v: m.revPerKwh, cls: "", kind: "gpu-btc" });
+  items.sort((a, b) => b.v - a.v);
+  $("btc-sub").textContent = `Dollars earned per kWh the device and its building draw (PUE ${PBASE.pue}). Log scale. The dashed line is what that kWh costs: ${nf(1).format(ep * 100)}¢ (${(D.electricity.find(x => x.region === PBASE.region) || {}).label}).`;
+  $("btc-legend").replaceChildren(
+    h("span", {}, h("i", { class: "bg-" + g0 }), "GPU serving tokens"),
+    h("span", {}, h("i", { style: "background:var(--ink)" }), "Bitcoin ASIC mining"),
+    h("span", {}, h("i", { style: "background:var(--muted)" }), "GPU mining bitcoin"),
+    h("span", {}, h("i", { class: "line", style: "border-top:2px dashed var(--bad);background:none" }), "cost of 1 kWh"));
+  const el = $("chart-btc"), W = widthOf(el), narrow = W < 560;
+  const L = narrow ? 4 : 330, R = 70, top = 8, rowH = narrow ? 36 : 26, barH = 14;
+  const H = top + items.length * rowH + 28;
+  const vals = [...items.map(i => i.v), ep].filter(v => v > 0);
+  const lo = Math.pow(10, Math.floor(Math.log10(Math.min(...vals)))), hi = Math.pow(10, Math.ceil(Math.log10(Math.max(...vals))));
+  const x = v => L + (Math.log10(v) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo)) * (W - L - R);
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Revenue per kWh: tokens vs bitcoin mining" });
+  const ax = s("g", { class: "ax" }, svg);
+  for (let e = Math.log10(lo); e <= Math.log10(hi) + 1e-9; e++) {
+    if (narrow && (e - Math.log10(lo)) % 2) continue;
+    const t = Math.pow(10, e);
+    s("line", { x1: x(t), x2: x(t), y1: top, y2: H - 22 }, ax);
+    const sup = String(e).replace("-", "⁻").replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[d]);
+    st(ax, x(t), H - 8, t >= 1 ? fmtUSD(t, 0) : t >= 0.01 ? fmtUSD(t, 2) : `$10${sup}`, { "text-anchor": "middle" });
+  }
+  items.forEach((it, i) => {
+    const y0 = top + i * rowH, cy = narrow ? y0 + rowH - barH / 2 - 4 : y0 + rowH / 2;
+    st(svg, narrow ? L : L - 10, narrow ? y0 + 12 : cy + 4, it.lab, { "text-anchor": narrow ? "start" : "end", class: it.kind === "tok" ? "lab-ink" : "lab-strong" });
+    s("rect", { x: L, y: cy - barH / 2, width: Math.max(1, x(it.v) - L), height: barH, rx: 2, class: it.cls || null,
+      style: it.kind === "asic" ? "fill:var(--ink)" : it.kind === "gpu-btc" ? "fill:var(--muted)" : null }, svg);
+    st(svg, x(it.v) + 6, cy + 4, it.v >= 0.01 ? fmtUSD(it.v, 2) : fmtUSD(it.v, 6), { class: "lab-ink" });
+    const hit = s("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit", tabindex: 0 }, svg);
+    bindTip(hit, () => [it.lab, [["revenue per kWh", fmtUSD(it.v, it.v >= 0.01 ? 3 : 7)], ["electricity per kWh", fmtUSD(ep, 3)], ["revenue ÷ power cost", fmtX(it.v / ep, it.v / ep >= 10 ? 0 : 2)]]]);
+  });
+  s("line", { x1: x(ep), x2: x(ep), y1: top - 4, y2: H - 22, style: "stroke:var(--bad);stroke-width:1.5;stroke-dasharray:4 3" }, svg);
+  el.replaceChildren(svg);
+  // table
+  const cols = ["Device", "SHA-256d hash rate", "J per TH", "BTC per day", "Mining $/h", "Electricity $/h", "Mining − electricity", "Full cost $/h", "Mining profit $/h", "Tokens $/h (median open)", "Tokens ÷ mining", "Source"];
+  $("btc-table").replaceChildren(h("thead", {}, h("tr", {}, ...cols.map((c, i) => h("th", { class: i > 0 && i < cols.length - 1 ? "n" : null, text: c })))),
+    h("tbody", {}, ...ms.map(m => { const t = m.dev.kind === "gpu" ? tokFor(m.dev.device) : null;
+      const hr = m.dev.ths >= 1 ? `${fmtInt(m.dev.ths)} TH/s` : `${nf(2).format(m.dev.ths * 1000)} GH/s`;
+      return h("tr", {}, h("td", { text: `${m.dev.label}${m.dev.estimate ? " (est.)" : ""}` }), h("td", { class: "n", text: hr }),
+        h("td", { class: "n", text: fmtInt(m.jPerTh) }), h("td", { class: "n", text: m.btcDay < 1e-4 ? m.btcDay.toExponential(2) : nf(5).format(m.btcDay) }),
+        h("td", { class: "n", text: fmtUSD(m.rev, m.rev < 0.01 ? 6 : 2) }), h("td", { class: "n", text: fmtUSD(m.power) }), h("td", { class: "n", text: fmtUSD(m.margin) }),
+        h("td", { class: "n", text: m.full != null ? fmtUSD(m.full) : "–" }), h("td", { class: "n", text: m.profit != null ? fmtUSD(m.profit) : "–" }),
+        h("td", { class: "n", text: t ? fmtUSD(t.med) : "–" }), h("td", { class: "n", text: t ? fmtX(t.med / m.rev, 0) : "–" }),
+        h("td", {}, link(m.dev.url, "source ↗"))); })));
+  $("btc-formula").textContent =
+`BTC per hour   = hash rate (TH/s) × 10^12 ÷ (difficulty × 2^32) × 3,600 × (block subsidy + fees per block)
+               = ${nf(2).format(mB.dev.ths * 1000)} GH/s × 10^12 ÷ (${n.difficulty.toExponential(4)} × 2^32) × 3,600 × ${nf(4).format(n.subsidy + n.fees)} BTC
+revenue / hour = BTC per hour × ${fmtUSD(n.price, 0)} = ${fmtUSD(mB.rev, 6)}  (${mB.dev.label})
+electricity    = ${nf(2).format(mB.kw)} kW all-in × PUE ${PBASE.pue} × ${fmtUSD(ep, 3)}/kWh = ${fmtUSD(mB.power)}  (mining runs flat out)`;
+  $("btc-notes").replaceChildren(...[
+    ["Why the network math works.", " Every ~10 minutes one miner wins the block reward. A device's expected share is its hash rate divided by the whole network's, which the difficulty encodes: on average difficulty × 2³² hashes are needed per block."],
+    ["GPU hash rates are estimates.", ` Nobody mines bitcoin on data-centre GPUs, so there is no mining benchmark. The H100 figure is half its measured hashcat SHA-256 speed (bitcoin hashes twice); the B200 is scaled from it by compute. Even a 10× error would not change the conclusion.`],
+    ["ASICs set the price of hashing.", ` The network's ${fmtInt(n.ehs)} EH/s comes almost entirely from ASICs like the ${asic.dev.label} (${nf(1).format(asic.jPerTh)} J/TH). At ${nf(1).format(ep * 100)}¢/kWh it earns ${fmtUSD(asic.rev)} an hour against ${fmtUSD(asic.power)} of power: ${asic.margin >= 0 ? "a thin margin before paying for the machine" : "a loss even before paying for the machine"}.`],
+    ["The same kWh is worth far more as tokens.", ` A kWh through a ${mB.dev.label} serving a median open model earns ${fmtUSD(tB.med / ENGINE.kwhPerHour(mB.dev.device, PBASE), 2)}; through the ASIC mining bitcoin, ${fmtUSD(asic.revPerKwh, 3)}. That gap is why bitcoin miners with cheap power and sites have been converting to AI hosting.`],
+    ["Price and difficulty move daily.", ` Network data is refreshed every day from mempool.space; fees are the average over the last ${n.window} blocks.`],
+  ].map(([b, t]) => h("li", {}, h("strong", { text: b }), t)));
 }
 
 /* ================= money flow (spark-spread style) ================= */
@@ -2465,6 +2644,12 @@ const DATASETS = [
   { id: "firm", label: "Rental-firm inputs", file: "data/rental_firm_sources.csv", rows: () => D.firm_sources || [],
     desc: "Every published figure behind the rental-firm model: server prices, depreciation life, cost of capital, data-centre rent, operations, occupancy, and CoreWeave's Q2 2026 results as a reality check.",
     cols: [["item", "item"], ["gpu", "GPU"], ["value", "value", "n"], ["unit", "unit"], ["low", "low", "n"], ["high", "high", "n"], ["used", "used in model"], ["estimate", "estimate"], ["notes", "notes"], ["url", "source", "url"]] },
+  { id: "btc", label: "Bitcoin network", file: "data/bitcoin_network.csv", rows: () => D.btc_network || [],
+    desc: "Bitcoin price, current difficulty and network hash rate, and the average block reward (halving-schedule subsidy plus fees over the last day of blocks), from mempool.space.",
+    cols: [["price", "BTC/USD", "n"], ["difficulty", "difficulty", "n"], ["ehs", "hash rate EH/s", "n"], ["subsidy", "subsidy BTC", "n"], ["fees", "fees/block BTC", "n"], ["window", "blocks", "n"], ["height", "tip height", "n"], ["date", "retrieved"], ["notes", "notes"], ["url", "source", "url"]] },
+  { id: "mining", label: "Mining hardware", file: "data/mining_hardware.csv", rows: () => D.mining_hw || [],
+    desc: "SHA-256d hash rates used for the bitcoin comparison. GPU rates are estimates from hashcat benchmarks; GPU power comes from the all-in kW in GPU power and cost.",
+    cols: [["device", "device"], ["label", "label"], ["kind", "kind"], ["ths", "TH/s", "n"], ["kw", "power kW", "n"], ["estimate", "estimate"], ["date", "retrieved"], ["notes", "notes"], ["url", "source", "url"]] },
   { id: "rental", label: "GPU rental", file: "data/gpu_rental.csv", rows: () => D.rental,
     desc: "Rental and cost series per GPU. Silicon Data values are scraped from the public index pages; InferenceX values are SemiAnalysis model assumptions (estimate = true).",
     cols: [["gpu", "GPU"], ["series", "series"], ["price", "$/GPU-hour", "n"], ["method", "method"], ["estimate", "estimate"], ["date", "retrieved"], ["notes", "notes"], ["url", "source", "url"]] },
@@ -2605,7 +2790,7 @@ function update() {
   raf = requestAnimationFrame(() => {
     computeAll();
     renderControls(); renderSpreadChart(); renderResultsTable(); renderAudit(); renderRelChart(); renderTimeseries();
-    renderRanking(); renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed();
+    renderRanking(); renderBitcoin(); renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed();
     if (ds.id === "results") renderData();
   });
 }
@@ -2613,7 +2798,7 @@ function boot() {
   renderStatic(); renderMethodTables(); renderGaps();
   computeAll();
   renderControls(); renderSpreadChart(); renderResultsTable(); renderAudit(); renderRelChart(); renderTimeseries();
-  renderRanking(); renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed(); renderData();
+  renderRanking(); renderBitcoin(); renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed(); renderData();
   let lastW = 0;
   new ResizeObserver(() => { const w = document.body.clientWidth; if (Math.abs(w - lastW) > 8) { lastW = w; update(); } }).observe(document.body);
 }
