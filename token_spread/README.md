@@ -44,7 +44,7 @@ DeepSeek-R1, DeepSeek-V4-Pro, GLM-5 and Kimi-K2.5. The last three have B200 benc
 so they appear on B200 only. The list is `models` in `assumptions.yaml`. `inferencex_key`
 picks one variant when an InferenceX name groups several (e.g. GLM-5 vs GLM-5.1).
 
-**Price-only models:** closed models (Claude, GPT, Grok, Meta Muse; `closed_models`) publish prices but
+**Price-only models:** closed models (Claude, GPT, Grok, Gemini, Meta Muse; `closed_models`) publish prices but
 not hardware or throughput. Some open-weight models (`price_only_open_models`) have only
 InferenceX *agentic* benchmarks, about 100:1 input:output with ~90% prefix-cache hits, whose
 revenue depends on cached-input pricing and isn't comparable to the fixed-length tests, or no

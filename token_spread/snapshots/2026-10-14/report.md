@@ -103,7 +103,7 @@ Full table: `outputs/provider_spread.csv`.
 
 ## 6. Price-only models: breakeven throughput and price comparison
 
-Closed models (Claude, GPT, Grok, Meta Muse) publish prices but not their hardware or throughput, and some
+Closed models (Claude, GPT, Grok, Gemini, Meta Muse) publish prices but not their hardware or throughput, and some
 open-weight models have no comparable benchmark yet (only agentic traces, or no runs). No
 spread is computed for them. Instead: how many tokens/s per GPU would a model need for its
 **list price** to cover the GPU's rent at 60% utilization?
@@ -124,14 +124,17 @@ the same breakeven, and spread ratio = measured ÷ needed.
 |---|---|---|---|---|---|---|---|
 | claude-fable-5.1 | Anthropic | closed | $20.00 | 59 | 126 | 6 | 9 |
 | gpt-6-astra | OpenAI | closed | $20.00 | 59 | 126 | 6 | 9 |
-| claude-opus-5.5 | Anthropic | closed | $8.00 | 146 | 315 | 6 | 9 |
 | muse-wonder | Meta | closed | $8.00 | 146 | 315 | 6 | 9 |
-| kimi-k3 | Moonshot | open | $4.28 | 274 | 590 | 6 | 9 |
+| claude-opus-5.5 | Anthropic | closed | $8.00 | 146 | 315 | 6 | 9 |
+| kimi-k3 | Moonshot | open | $4.21 | 278 | 599 | 6 | 9 |
+| gemini-4-argon | Google | closed | $4.00 | 293 | 631 | 6 | 9 |
 | claude-sonnet-5.5 | Anthropic | closed | $4.00 | 293 | 631 | 6 | 9 |
 | gpt-6.1-sol | OpenAI | closed | $4.00 | 293 | 631 | 6 | 9 |
 | grok-4.7 | xAI | closed | $3.00 | 390 | 841 | 6 | 9 |
 | glm-5.2 | Zhipu | open | $1.79 | 655 | 1,412 | 5 | 7 |
+| gemini-3.8-flash | Google | closed | $1.50 | 781 | 1,682 | 5 | 7 |
 | grok-build-0.1 | xAI | closed | $1.25 | 937 | 2,019 | 5 | 7 |
+| gemini-3.5-flash-lite | Google | closed | $0.85 | 1,378 | 2,968 | 4 | 7 |
 | qwen3.8-27b | Qwen | open | $0.60 | 1,936 | 4,170 | 1 | 7 |
 | deepseek-v4.1-flash | DeepSeek | open | $0.24 | 4,913 | 10,583 | 1 | 1 |
 | qwen3.8-flash-next | Qwen | open | $0.23 | 5,093 | 10,970 | 1 | 1 |
@@ -147,17 +150,20 @@ benchmarked open-weight = median provider):
 | gpt-6-astra | closed | price-only | OpenAI | $20.000 | $10.000–$120.000 | OpenRouter list price |
 | claude-opus-5.5 | closed | price-only | Anthropic | $8.000 | $8.000–$16.000 | OpenRouter list price |
 | muse-wonder | closed | price-only | Meta | $8.000 | $8.000–$8.000 | OpenRouter list price |
-| kimi-k3 | open | price-only | Moonshot | $4.275 | $3.763–$9.000 | OpenRouter list price |
+| kimi-k3 | open | price-only | Moonshot | $4.215 | $3.763–$9.000 | OpenRouter list price |
 | claude-sonnet-5.5 | closed | price-only | Anthropic | $4.000 | $4.000–$4.400 | OpenRouter list price |
 | gpt-6.1-sol | closed | price-only | OpenAI | $4.000 | $2.000–$24.000 | OpenRouter list price |
+| gemini-4-argon | closed | price-only | Google | $4.000 | $2.000–$7.200 | OpenRouter list price |
 | grok-4.7 | closed | price-only | xAI | $3.000 | $3.000–$6.000 | OpenRouter list price |
 | deepseek-v4-pro | open | spread | open-weight | $1.910 | $1.194–$3.413 | median OpenRouter provider |
 | glm-5.2 | open | price-only | Zhipu | $1.788 | $0.818–$4.125 | OpenRouter list price |
+| gemini-3.8-flash | closed | price-only | Google | $1.500 | $0.750–$2.700 | OpenRouter list price |
 | glm-5 | open | spread | open-weight | $1.450 | $0.930–$1.550 | median OpenRouter provider |
 | qwen3.5-397b | open | spread | open-weight | $1.288 | $0.877–$1.688 | median OpenRouter provider |
 | grok-build-0.1 | closed | price-only | xAI | $1.250 | $1.250–$2.500 | OpenRouter list price |
 | kimi-k2.5 | open | spread | open-weight | $1.140 | $0.993–$1.230 | median OpenRouter provider |
 | deepseek-r1 | open | spread | open-weight | $0.960 | $0.912–$1.150 | median OpenRouter provider |
+| gemini-3.5-flash-lite | closed | price-only | Google | $0.850 | $0.425–$1.530 | OpenRouter list price |
 | llama-3.3-70b | open | spread | open-weight | $0.640 | $0.155–$1.040 | median OpenRouter provider |
 | qwen3.8-27b | open | price-only | Qwen | $0.605 | $0.342–$1.138 | OpenRouter list price |
 | minimax-m3 | open | spread | open-weight | $0.525 | $0.412–$1.050 | median OpenRouter provider |
@@ -165,8 +171,8 @@ benchmarked open-weight = median provider):
 | deepseek-v4.1-flash | open | price-only | DeepSeek | $0.238 | $0.113–$1.050 | OpenRouter list price |
 | gpt-oss-120b | open | spread | open-weight | $0.231 | $0.060–$0.450 | median OpenRouter provider |
 | qwen3.8-flash-next | open | price-only | Qwen | $0.230 | $0.230–$0.230 | OpenRouter list price |
-| gpt-6-luna | closed | price-only | OpenAI | $0.200 | $0.100–$0.400 | OpenRouter list price |
 | claude-haiku-5.5 | closed | price-only | Anthropic | $0.200 | $0.200–$0.220 | OpenRouter list price |
+| gpt-6-luna | closed | price-only | OpenAI | $0.200 | $0.100–$0.400 | OpenRouter list price |
 
 ## 7. From electricity to tokens
 

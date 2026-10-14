@@ -126,6 +126,9 @@ closed_models:
   - {key: gpt-6-luna,        openrouter_id: openai/gpt-6-luna,           lab: OpenAI,    tier: small}
   - {key: grok-4.7,          openrouter_id: x-ai/grok-4.7,               lab: xAI,       tier: large}
   - {key: grok-build-0.1,    openrouter_id: x-ai/grok-build-0.1,         lab: xAI,       tier: mid}
+  - {key: gemini-4-argon,        openrouter_id: google/gemini-4-argon,        lab: Google, tier: frontier}  # Google's flagship (Oct 2026)
+  - {key: gemini-3.8-flash,      openrouter_id: google/gemini-3.8-flash,      lab: Google, tier: mid}
+  - {key: gemini-3.5-flash-lite, openrouter_id: google/gemini-3.5-flash-lite, lab: Google, tier: small}
   - {key: muse-wonder,       openrouter_id: meta/muse-wonder,            lab: Meta,      tier: frontier}  # Meta's newest (Oct 2026); no InferenceX benchmark for any Muse model
 
 # --- Closed models: estimated profit (ranking at the top of the website) ------
@@ -143,6 +146,8 @@ closed_infrastructure:
               source_url: "https://www.anthropic.com/news/anthropic-amazon-compute"}
   OpenAI:    {gpu: b200, hardware: "NVIDIA GB200 (Stargate, Oracle and Azure)",
               source_url: "https://intuitionlabs.ai/articles/openai-stargate-datacenter-details"}
+  Google:    {gpu: b200, hardware: "Google TPUs (Ironwood), modelled as B200-class",
+              source_url: "https://cloud.google.com/blog/products/compute/ironwood-tpus-and-new-axion-based-vms-for-your-ai-workloads"}
   Meta:      {gpu: b200, hardware: "NVIDIA GB300 (Blackwell), modelled as B200",
               source_url: "https://investor.nvidia.com/news/press-release-details/2026/Meta-Builds-AI-Infrastructure-With-NVIDIA/default.aspx"}
   xAI:       {gpu: h100, hardware: "NVIDIA H100/H200 (Colossus 1), modelled as H100",
