@@ -544,7 +544,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <ul class="list">
         <li><strong>Power per GPU includes its server.</strong> SemiAnalysis's "all-in" figure adds the GPU's share of host CPUs, memory and network cards to the chip itself: <span id="allin-txt"></span>.</li>
         <li><strong>PUE covers the building.</strong> Cooling and power conversion add 10–60% on top. SemiAnalysis uses 1.2 for AI facilities; the Uptime Institute's 2025 survey puts the global average just above 1.5.</li>
-        <li><strong>Full load is the conservative case.</strong> Where InferenceX measured it, GPUs drew <span id="meas-txt"></span> of their rated power at the operating points used here. Lower the average power draw to see the effect.</li>
+        <li><strong>Average draw is below the rating.</strong> Where InferenceX measured it, GPUs drew <span id="meas-txt"></span> of their rated power at the operating points used here. The base case assumes <span id="lf-txt"></span> of all-in power on average, because host CPUs and memory draw close to constant power and idle GPUs still draw some. Move the slider to 100% for the full-load upper bound.</li>
         <li><strong>Published tariffs, not contracts.</strong> Prices are average industrial or large non-household tariffs. Big operators sign long-term power contracts whose prices are not public, and pay demand charges not included here.</li>
       </ul>
     </div>
@@ -689,7 +689,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <div class="node"><span class="k">Input · InferenceX</span><span class="t">Throughput per GPU</span><span class="d">Tokens per second one GPU processes at the chosen speed-per-user floor.</span></div>
       <div class="node"><span class="k">Step</span><span class="t">Tokens per GPU-hour</span><span class="d">Throughput × 3,600 seconds × utilization.</span></div>
       <div class="node out"><span class="k">Result</span><span class="t">Implied revenue per GPU-hour</span><span class="d">Tokens per hour ÷ 1,000,000 × blended price.</span></div>
-      <div class="node"><span class="k">Input · Silicon Data</span><span class="t">Rental price per GPU-hour</span><span class="d">Neocloud on-demand index, the basis of CME's GPU futures.</span></div>
+      <div class="node"><span class="k">Input · Silicon Data</span><span class="t">Rental price per GPU-hour</span><span class="d">Silicon Data's standardized hourly rental index, the basis of CME's GPU futures.</span></div>
       <div class="node out"><span class="k">Result</span><span class="t">Token spread and ratio</span><span class="d">Revenue minus rental, and revenue divided by rental.</span></div>
     </div>
 <div class="formula" aria-label="Formulas"><span class="c"># r = input tokens per output token</span>
@@ -713,7 +713,7 @@ firm_profit    = rent × share_of_hours_rented − full_cost</div>
     <dl class="glossary">
       <div><dt>Token</dt><dd>The unit LLMs read and write, roughly ¾ of an English word. APIs charge per million tokens.</dd></div>
       <div><dt>Input vs output tokens</dt><dd>Input (prompt) tokens are processed in parallel and are cheap to serve. Output tokens are generated one at a time and cost more, so providers price them 2–6× higher.</dd></div>
-      <div><dt>Blended price</dt><dd>One price per million tokens that mixes input and output prices in the proportions real traffic has. Chat and coding traffic is input-heavy, often 3:1 to 10:1.</dd></div>
+      <div><dt>Blended price</dt><dd>One price per million tokens that mixes input and output prices in the proportions real traffic has. Real traffic is input-heavy: about 7:1 for people chatting and far more for coding agents.</dd></div>
       <div><dt>Open-weight model</dt><dd>A model whose weights are published, so anyone can serve it and anyone can benchmark it. Closed models hide their hardware, so they are left out.</dd></div>
       <div><dt>Dense vs mixture-of-experts (MoE)</dt><dd>A dense model uses all its weights for every token. An MoE model routes each token through a few "experts", so a 397B-parameter model may only use 17B per token, which makes it cheaper to run than its size suggests.</dd></div>
       <div><dt>Throughput per GPU</dt><dd>Total tokens (input + output) a GPU processes per second, divided across every GPU in the serving setup.</dd></div>
@@ -723,7 +723,7 @@ firm_profit    = rent × share_of_hours_rented − full_cost</div>
       <div><dt>Precision (bf16, fp8, fp4)</dt><dd>How many bits each weight uses. Fewer bits mean more throughput but can cost a little quality. B200 has hardware fp4 support; H100 does not.</dd></div>
       <div><dt>Speculative decoding (MTP)</dt><dd>A small draft model or extra prediction heads guess several tokens ahead, and the main model verifies them in one pass. Common in production, and it raises throughput at a given speed per user.</dd></div>
       <div><dt>Disaggregated, multi-node serving</dt><dd>Splitting prompt processing and token generation onto different GPUs, sometimes across machines. Needed for very large models such as DeepSeek-R1 on H100.</dd></div>
-      <div><dt>GPU rental index</dt><dd>Silicon Data publishes daily H100 (SDH100RT) and B200 (SDB200RT) on-demand rental indices from neoclouds. CME launched cash-settled futures on them (GPU1, GPU2) on 5 October 2026.</dd></div>
+      <div><dt>GPU rental index</dt><dd>Silicon Data publishes daily H100 (SDH100RT) and B200 (SDB200RT) rental indices, built mainly from neocloud prices (plus hyperscalers and rental platforms) and standardized for machine specs, rental terms and region. CME launched cash-settled futures on them (GPU1, GPU2) on 5 October 2026.</dd></div>
       <div><dt>Owner TCO</dt><dd>What a GPU-hour costs someone who owns the hardware at hyperscaler scale: depreciation, power, hosting. SemiAnalysis estimates this for InferenceX. It is a floor under rental prices.</dd></div>
       <div><dt>Token spread and spread ratio</dt><dd>Spread = implied revenue − rental, in dollars per GPU-hour. Ratio = revenue ÷ rental. A ratio of 2× means a GPU-hour earns twice its rent at list API prices.</dd></div>
       <div><dt>Breakeven throughput</dt><dd>Tokens per second one GPU must produce for a model's price to cover the GPU's rent at a given utilization: rent ÷ (3,600 × utilization × price per token). For open-weight models, measured throughput ÷ breakeven throughput = spread ratio.</dd></div>
@@ -734,7 +734,7 @@ firm_profit    = rent × share_of_hours_rented − full_cost</div>
       <div><dt>PUE (power usage effectiveness)</dt><dd>Total building power divided by IT power. A PUE of 1.3 means every kW of servers needs 0.3 kW more for cooling and power conversion.</dd></div>
       <div><dt>Neocloud</dt><dd>A company that buys GPUs and rents them out by the hour or on multi-year contracts, such as CoreWeave, Lambda or Nebius. Silicon Data's rental index tracks their prices.</dd></div>
       <div><dt>Depreciation</dt><dd>Spreading a machine's purchase price over its useful life. A $56,000 B200 depreciated over 6 years costs about $1.07 per hour, rented or not.</dd></div>
-      <div><dt>Cost of capital</dt><dd>The interest (or return investors demand) on the money used to buy the hardware. Neoclouds borrowed at around 15% early on; CoreWeave's 2026 investment-grade debt priced at 5.9%.</dd></div>
+      <div><dt>Cost of capital</dt><dd>The interest (or return investors demand) on the money used to buy the hardware. Neoclouds borrowed at around 15% early on; in 2026 CoreWeave's secured investment-grade debt priced at 5.9% and its unsecured notes at 8.5–9.6%.</dd></div>
       <div><dt>Colocation</dt><dd>Renting space, power delivery and cooling in someone else's data centre, priced per kW of capacity per month. North American wholesale space averaged $196 per kW-month in late 2025 (CBRE).</dd></div>
       <div><dt>Occupancy</dt><dd>The share of hours a GPU is actually rented out. Idle hours still cost depreciation, interest and space, so profit falls fast when occupancy drops.</dd></div>
       <div><dt>EBITDA</dt><dd>Earnings before interest, taxes, depreciation and amortization: revenue minus cash running costs. GPU firms report high EBITDA margins because their biggest costs, hardware and interest, sit below that line.</dd></div>
@@ -781,8 +781,9 @@ firm_profit    = rent × share_of_hours_rented − full_cost</div>
           <li><strong>Which point on the throughput curve.</strong> Dropping the speed floor can double throughput per GPU. Benchmarks use random data at fixed lengths; production traffic has prefix-cache hits, bursts and long-context tails.</li>
           <li><strong>Configurations differ across GPUs.</strong> The best published point may use speculative decoding on one GPU and not the other, or multi-node serving. Part of the B200 advantage may be better-tuned software, not silicon.</li>
           <li><strong>Stale benchmarks.</strong> Some model and GPU pairs have not been re-run for months; inference software improves fast, so their throughput is likely understated.</li>
-          <li><strong>Unmeasured mixes.</strong> 3:1 is interpolated between the measured 1:1 and 8:1 points; 10:1 is held at 8:1.</li>
-          <li><strong>List prices and on-demand rents.</strong> OpenRouter shows public per-token prices without volume or cache discounts. Rental is the neocloud on-demand index; term contracts are cheaper.</li>
+          <li><strong>Unmeasured mixes.</strong> The base 8:1 mix is measured. 3:1 is interpolated between the measured 1:1 and 8:1 points; 10:1 is held at 8:1.</li>
+          <li><strong>Cached input is not priced.</strong> Agent traffic (most tokens on OpenRouter) is around 100:1 input:output with about 90% of prompt tokens served from cache at a steep discount, and caching also makes the GPU faster. Neither effect is modelled, so revenue for agent-heavy traffic is uncertain in both directions.</li>
+          <li><strong>List prices and on-demand rents.</strong> OpenRouter shows public per-token prices without volume or cache discounts. Rental is Silicon Data's standardized index, not a term-contract quote; long contracts are usually cheaper.</li>
           <li><strong>Closed models are price-only.</strong> Their breakeven throughput is exact arithmetic, but nothing here says what throughput they actually reach or on which hardware.</li>
           <li><strong>Revenue is not margin.</strong> The spread leaves out CPU hosts, networking, storage, staff, idle peak capacity and the API marketplace's fee.</li>
         </ul>
@@ -1842,6 +1843,7 @@ function renderPower() {
   const gp = D.gpu_power;
   $("allin-txt").textContent = gp.map(g => `${gpuName(g.gpu)} ${g.kw} kW all-in vs ${g.tdp} W for the chip alone`).join(", ");
   const mp = rows.map(x0 => x0.mwPct).filter(isFinite);
+  $("lf-txt").textContent = fmtPct(PBASE.lf);
   $("meas-txt").textContent = mp.length ? `${fmtPct(Math.min(...mp))}–${fmtPct(Math.max(...mp))} (${mp.length} of ${rows.length} cases measured)` : "no measured cases yet";
 }
 $("p-region").addEventListener("change", e => { pstate.region = e.target.value; renderPower(); renderFirm(); renderFlow(); });
@@ -1892,7 +1894,7 @@ function renderRanking() {
       ["tokens/s per GPU", `${fmtInt(r.tput)}${r.est ? ` (as ${r.proxy})` : ""}`],
       ["price per M tokens", fmtUSD(r.price, 3)],
       ["token revenue / h", fmtUSD(r.rev)], ["full cost / h", fmtUSD(r.cost)], ["profit / h", fmtUSD(r.profit)]],
-      "Click to see its money flow"]);
+      (CFG.closed_models || []).find(c => c.key === r.key)?.price_note || "Click to see its money flow"]);
     const go = () => { flowState.gpu = r.gpu; flowState.model = r.key; renderFlow(); $("flow-panel").scrollIntoView({ behavior: "smooth", block: "start" }); };
     hit.addEventListener("click", go);
     hit.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
@@ -1938,11 +1940,13 @@ function renderWhy(rows) {
   const eps = closed.flatMap(r => ENGINE.closedPrice(r.key, BASE.ratio).rows.filter(x => x.inp != null && x.linp).map(x => ({ ...x, rel: x.inp / x.linp })));
   const flex = eps.filter(x => /flex/i.test(x.tag || "")), other = eps.filter(x => !/flex/i.test(x.tag || ""));
   const minOther = other.length ? Math.min(...other.map(x => x.rel)) : 1;
+  const pricier = other.filter(x => x.rel > 1.001), maxOther = pricier.length ? Math.max(...pricier.map(x => x.rel)) : 1;
   const sellers = [...new Set(other.map(x => x.provider))];
   F.push({ stat: `${fmtInt(nProv)} vs 1`, title: "Many sellers vs one",
     text: `Anyone can download open weights, so each open model is sold by a median of ${fmtInt(nProv)} providers competing on the same product. That pushes price toward cost: open models sell at a median ${fmtX(mkO, 1)} their full GPU cost per token. ` +
-      `A closed model has one owner that sets the price. The ${sellers.length} places selling closed models here (${sellers.slice(0, 4).join(", ")}${sellers.length > 4 ? "…" : ""}) ${minOther >= 0.999 ? "all charge the list price" : `charge at least ${fmtPct(minOther)} of list`}` +
-      `${flex.length ? `; the only discounts are the labs' own slower "flex" tiers (${fmtPct(Math.min(...flex.map(x => x.rel)))} of list)` : ""}. Closed prices sit at a median ${fmtX(mkC, 0)} their GPU cost.` });
+      `A closed model has one owner that sets the price. The ${sellers.length} places selling closed models here (${sellers.slice(0, 4).join(", ")}${sellers.length > 4 ? "…" : ""}) ${minOther >= 0.999 ? "never sell below list" : `sell at no less than ${fmtPct(minOther)} of list`}` +
+      `${pricier.length ? `; regional and priority endpoints charge more (up to ${fmtX(maxOther, 1)} list)` : ""}` +
+      `${flex.length ? `, and the only discounts are the labs' own slower "flex" tiers (${fmtPct(Math.min(...flex.map(x => x.rel)))} of list)` : ""}. Closed prices sit at a median ${fmtX(mkC, 0)} their GPU cost.` });
   // 3. hardware is not the explanation
   const share = med(closedB.map(r => r.cost / r.rev));
   const head = closed.map(r => ({ r, x: r.rev / r.cost })).sort((a, b) => a.x - b.x);
@@ -1953,7 +1957,7 @@ function renderWhy(rows) {
   // 4. what the spread pays for
   const low = closed.filter(r => r.profit < bestOpen.profit);
   F.push({ stat: "Not all profit", title: "The spread pays for the model itself",
-    text: `Open-model hosts get the weights for free. Closed labs pay for training runs, research staff, safety work and free users, none of which is counted here. Their token spread is what recovers those costs, so it is the return on building the model, not just on serving it.` +
+    text: `Open-model hosts get the weights for free (licences vary). Closed labs pay for training runs, research staff, safety work and free users, none of which is counted here. Their token spread is what recovers those costs, so it is the return on building the model, not just on serving it.` +
       (low.length ? ` Price is still a choice: ${low.map(r => `${r.key} (${fmtUSD(r.price, 2)}/M on ${gpuName(r.gpu)})`).join(", ")} ${low.length > 1 ? "earn" : "earns"} less than the best open model.` : "") });
   $("why-list").replaceChildren(...F.map(f => h("article", { class: "finding" },
     h("div", { class: "stat", text: f.stat }), h("h3", { text: f.title }), h("p", { text: f.text }))));
@@ -2118,7 +2122,7 @@ function renderFlow() {
       h("td", { class: "mono", text: `per ${gpuName(flowState.gpu)}-hour, whether the GPU is busy or idle` }), h("td", {}, h("a", { href: "#firm-sources", text: "sources ↓" }))));
   $("flow-costs").replaceChildren(h("thead", {}, h("tr", {}, ...["Input", "$/GPU-hour", "Share", "How it is calculated", "Based on"].map((t, i) => h("th", { class: i === 1 || i === 2 ? "n" : null, text: t })))), tb);
   const perM = x => fmtUSD(x / mtok, 3);
-  $("flow-note").textContent = `Per million tokens: sold for ${fmtUSD(r.price, 3)}; electricity ${perM(c.power)} (the "clean spark" view, price minus fuel: ${perM(r.price * mtok - c.power)}); total input cost ${perM(cost)}. ` +
+  $("flow-note").textContent = `Per million tokens: sold for ${fmtUSD(r.price, 3)}; electricity ${perM(c.power)} (the spark-spread view, price minus fuel: ${perM(r.price * mtok - c.power)}); total input cost ${perM(cost)}. ` +
     `Assumes the owner also serves the tokens (at ${fmtPct(state.util)} utilization and the dashboard settings). Renting the GPU out instead earns rent × hours rented; see Who makes the money.` +
     (r.est ? ` ${r.key} is closed, so its throughput is an assumption: as many tokens per second as ${r.proxy} on ${gpuName(flowState.gpu)} (the lab's real hardware: ${r.hardware}).` : "");
 }
@@ -2395,7 +2399,7 @@ function renderClosed() {
     ["Rented NVIDIA GPUs are a yardstick here, not these labs' costs.", " Closed labs also run on TPUs, Trainium and their own clusters, at owner cost rather than neocloud rent."],
     ["Cached input is much cheaper.", cacheRatios.length ? ` These models bill cached input at ${fmtPct(Math.min(...cacheRatios))}–${fmtPct(Math.max(...cacheRatios))} of the input price. Agentic traffic with high cache-hit rates pays far less than the uncached list prices used here.` : " Agentic traffic with high cache-hit rates pays far less than list prices."],
     ["Reasoning tokens bill as output.", " Thinking models generate hidden tokens charged at the output price. That raises revenue per request, not per token, so the threshold is unchanged."],
-    ["Batch and flex tiers are about half price,", " and priority tiers cost 2–6× more. Endpoint tiers appear as whiskers; batch variants are excluded."],
+    ["Flex tiers are half price;", " regional endpoints on Bedrock, Vertex and Azure add about 10%, priority and \"fast\" tiers cost about 2×, and OpenAI's \"ultrafast\" tier more. Endpoint tiers appear as whiskers; batch variants are excluded."],
     ["Why some open models are price-only.", " InferenceX has tested them only on agentic workloads, where most input is re-read from cache and the mix is around 100 input tokens per output token. Revenue there depends on cached-input prices, so those runs aren't comparable with the fixed-length tests used for the spread."],
   ];
   $("closed-notes").replaceChildren(...notes.map(([b, t2]) => h("li", {}, h("strong", { text: b }), t2)));
@@ -2404,7 +2408,7 @@ function renderClosed() {
 /* ================= method tables ================= */
 function renderMethodTables() {
   const rows = [
-    ["Input:output ratio", `${CFG.io_ratio_base}:1`, "Typical chat and coding traffic is input-heavy. Sensitivity runs 1:1 to 10:1."],
+    ["Input:output ratio", `${CFG.io_ratio_base}:1`, "OpenRouter: ~7:1 for human traffic, ~15:1 per request on average; 8:1 is a measured benchmark point. Sensitivity runs 1:1 to 10:1."],
     ["Utilization", fmtPct(CFG.utilization_base), "Share of paid hours spent serving at the operating point. Sensitivity runs 30–80%."],
     ["Speed floor", `${CFG.interactivity_floor_tok_s_per_user} tok/s per user`, "Roughly the slowest stream a paying API customer accepts. The point with no floor is shown as an upper bound."],
     ["Price statistic", CFG.price_statistic, "Median across OpenRouter providers; the cheapest and priciest give the range."],
@@ -2414,12 +2418,12 @@ function renderMethodTables() {
     ...(CFG.power ? [
       ["Electricity price", (D.electricity || []).find(x => x.region === CFG.power.base_region)?.label || CFG.power.base_region, "Most rented GPU capacity is in the US; industrial is the tariff class closest to a large data centre. Other regions are in the Electricity section."],
       ["PUE", String(CFG.power.pue_base), "Between SemiAnalysis's 1.2 for AI facilities and the Uptime Institute's global average just above 1.5."],
-      ["Average power draw", fmtPct(CFG.power.load_factor) + " of all-in", "Full load every hour: conservative, since measured GPU draw is lower and idle GPUs still draw some power."],
+      ["Average power draw", fmtPct(CFG.power.load_factor) + " of all-in", "Measured GPU draw at the benchmark points is 60–72% of the chip rating; host parts draw near-constant power. 100% is the upper bound."],
     ] : []),
     ...(RF ? [
       ["Hardware price per GPU", GPUS.map(g => `${gpuName(g)} $${nf(0).format(RF.capex_usd_per_gpu[g])}`).join(", "), "Typical 8-GPU server price ÷ 8 (Mercatus estimates; NVIDIA publishes no list price)."],
       ["Depreciation", `${RF.depreciation_years} years, straight line`, "CoreWeave's accounting life for GPU equipment; peers use 4–5."],
-      ["Cost of capital", fmtPct(RF.cost_of_capital), "Between CoreWeave's 5.9% investment-grade debt (2026) and ~15% on early GPU-backed loans."],
+      ["Cost of capital", fmtPct(RF.cost_of_capital), "CoreWeave's 2026 debt: 5.9% secured investment-grade, 8.5–9.6% unsecured notes; early GPU-backed loans ~15%."],
       ["Data-centre space", `$${RF.colocation_usd_per_kw_month} per kW-month`, "CBRE H2 2025 wholesale average, 250–500 kW, primary North American markets."],
       ["Operations", `$${nf(2).format(RF.ops_usd_per_gpu_hour)} per GPU-hour`, "Staff, maintenance and support (Mercatus estimate)."],
       ["Hours rented out", fmtPct(RF.occupancy_base), "Assumption. Fleets on multi-year contracts run higher, spot fleets lower."],
@@ -2580,6 +2584,7 @@ function renderGaps() {
     const measured = CASES.filter(c => c.kind === "base").filter(c => isFinite(ENGINE.measuredPower(ENGINE.evaluate(c, BASE).tf))).length;
     out.push(["Measured power:", ` ${measured} of ${CASES.filter(c => c.kind === "base").length} base cases have measured GPU power (newer InferenceX runs only). Electricity cost always uses the all-in nameplate figure.`]);
   }
+  for (const c of (CFG.closed_models || []).filter(c => c.price_note)) out.push([`${c.key}:`, ` ${c.price_note}. The page uses today's price and will follow the change automatically.`]);
   if (CFG.closed_infrastructure) out.push(["Closed-model profit:", " the ranking's closed-model rows assume each lab's hardware and borrow the throughput of an open model of similar size. Labs don't publish either, so these are illustrative upper bounds, not measurements."]);
   if (RF) out.push(["Rental-firm model:", " server prices are vendor estimates and the firm model is generic: real fleets mix contract and on-demand prices, and sales, R&D and corporate costs are left out."]);
   if (nPts) out.push(["Sweep edges:", ` ${edge} of ${nPts} chosen benchmark points are the last point of their concurrency sweep and still well above the speed floor. The test stopped early, so throughput there is a lower bound.`]);

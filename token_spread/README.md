@@ -76,7 +76,7 @@ revenue_per_kWh        = implied_revenue_per_gpu_hour ÷ kwh_per_gpu_hour
 - **All-in kW** per GPU (H100 1.37, B200 1.71) and the owner's total cost per GPU-hour come from
   SemiAnalysis's AI Cloud TCO model as published in InferenceX's open-source constants
   (`data/gpu_power.csv`). All-in includes the GPU's share of host CPU, memory and network.
-- **PUE** (default 1.3) and **load factor** (default 1.0, full load) are in `assumptions.yaml`
+- **PUE** (default 1.3) and **load factor** (default 0.8; measured GPU draw is 60–72% of TDP, 1.0 is the full-load upper bound) are in `assumptions.yaml`
   under `power`. Measured GPU power from newer InferenceX runs (`avg_power_w`) is reported in
   `outputs/power_chain.csv` as a cross-check; it is not used in the cost.
 - **Electricity prices** (`data/electricity_prices.csv`): US states from EIA Electric Power
@@ -197,5 +197,28 @@ is merged into the default branch. It can also be started manually from the Acti
 ## Known limitations
 
 See the "Data gaps and caveats" section of `report.md`. In short: benchmark throughput ≠
-production throughput, 3:1 and 10:1 ratios are interpolated, configurations are not matched
-across GPUs, prices are list prices, and rental is neocloud on-demand.
+production throughput, the base 8:1 input:output mix is measured but 3:1 and 10:1 are
+interpolated or held flat, cached-input prices (and the speed-up from prefix caching) are not
+modelled although agent traffic is ~100:1 with ~90% cache hits, configurations are not matched
+across GPUs, prices are list prices, and rental is Silicon Data's standardized index rather
+than a term-contract price.
+
+## Assumption review (2026-10-14)
+
+Every assumption was re-checked against public sources. Changes made:
+
+- input:output base 3:1 → 8:1 (OpenRouter: ~7:1 human traffic, ~15:1 average per request).
+- load factor 1.0 → 0.8 (measured GPU draw 60–72% of TDP; host draw near constant). PUE 1.15 added
+  to the sensitivity.
+- cost of capital 9% → 10% (CoreWeave's Jun 2026 unsecured notes at 9.625% / 8.5%).
+- xAI hardware H100 (Colossus 1) → B200-class (Colossus 2); Colossus 1 went to Anthropic in May 2026.
+  grok-4.7 tier large → frontier (Musk-stated ~2.1T parameters).
+- Added Meta Muse Spark 1.3 (closed, mid) and Muse Glimmer 30B (open, price-only).
+- Gemini 4 Argon and 3.8 Flash prices are introductory and double on 1 Dec 2026 / 1 Jan 2027;
+  noted on the site (the daily fetch follows the change).
+- Wording: rental index description, reseller pricing, "spark spread", CoreWeave depreciation note.
+
+Checked and kept: server prices, 6-year depreciation, $196/kW-month colocation (CBRE H1 2026 is
+~4% higher but the figure could not be read), $0.10/h operations, 80% occupancy, 60% utilization,
+30 tok/s floor, median price, fp8 base, PUE 1.3, all-in kW, EIA/Eurostat prices, CME futures,
+closed-model tiers (Gemini Flash Lite stays "small": it is faster than gpt-oss-120b).
