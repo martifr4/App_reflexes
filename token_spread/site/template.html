@@ -110,6 +110,10 @@ section:first-child { border-top: 0; }
 .verdict .tokens .big { color: var(--s-b200); }
 @media (max-width: 640px) { .verdict { grid-template-columns: 1fr; gap: 1rem; } .verdict .vs { padding: 0; } }
 .rank-panel h3 { font-size: var(--step-2); }
+.why { display: grid; gap: 0.8rem; }
+.why h2 { font-size: var(--step-2); }
+.why .lede { max-width: 68ch; color: var(--ink-2); }
+.why .findings { grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); }
 .rank-infra { margin: 0; padding-left: 1.1rem; font-size: var(--step--1); color: var(--ink-2); display: grid; gap: 0.15rem; }
 .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
 .board div { padding: 0.7rem 0.9rem; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin: 0 -1px -1px 0; display: grid; gap: 0.15rem; }
@@ -323,6 +327,11 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <div class="note" id="rank-note"></div>
       <ul class="rank-infra" id="rank-infra"></ul>
     </div>
+    <div class="why" id="why">
+      <h2 id="why-title">Why closed models earn more</h2>
+      <p class="lede" id="why-lede"></p>
+      <div class="findings" id="why-list"></div>
+    </div>
     <div class="verdict" id="verdict"></div>
     <div class="board" id="board" aria-label="Current inputs"></div>
   </section>
@@ -388,7 +397,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <li><a href="#power">Electricity <span>→</span></a><p>The full chain of a GPU-hour: what its power costs, what it costs its owner, what it rents for and what its tokens sell for, by region.</p></li>
       <li><a href="#firm">Who makes the money <span>→</span></a><p>The full cost of owning a GPU (hardware, financing, space, power, staff), the rental firm's profit, and how token revenue is shared.</p></li>
       <li><a href="#explore">Model explorer <span>→</span></a><p>One model at a time: the test data behind it, how much the answer depends on the assumptions, and how each seller's price changes it.</p></li>
-      <li><a href="#closed">Price-only models <span>→</span></a><p>Claude, GPT, Grok and the newest open models lack comparable test data, so we show how efficient they would need to be to pay for the chips.</p></li>
+      <li><a href="#closed">Price-only models <span>→</span></a><p>Claude, GPT, Grok, Meta Muse and the newest open models lack comparable test data, so we show how efficient they would need to be to pay for the chips.</p></li>
       <li><a href="#method">Method <span>→</span></a><p>How the calculation works, step by step, with a glossary of every term on the page.</p></li>
       <li><a href="#data">Data <span>→</span></a><p>Every raw number with its source link and date. Search it, copy it, or check it yourself.</p></li>
       <li><a href="#caveats">Caveats <span>→</span></a><p>What these numbers can't tell you, and what data would make them better.</p></li>
@@ -633,7 +642,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
   <section id="closed">
     <div class="section-head">
       <div class="eyebrow">Price-only models</div>
-      <h2>Claude, GPT, Grok and the newest open models: what would they need?</h2>
+      <h2>Claude, GPT, Grok, Meta Muse and the newest open models: what would they need?</h2>
       <p class="lede">Closed labs publish prices but not the hardware or throughput behind them, and some of the newest
         open-weight models have no comparable benchmark yet. There is no spread to compute for either. We can still ask
         how many tokens per second a GPU would have to produce for each model's list price to cover its rent, and compare
@@ -719,7 +728,7 @@ firm_profit    = rent × share_of_hours_rented − full_cost</div>
       <div><dt>Token spread and spread ratio</dt><dd>Spread = implied revenue − rental, in dollars per GPU-hour. Ratio = revenue ÷ rental. A ratio of 2× means a GPU-hour earns twice its rent at list API prices.</dd></div>
       <div><dt>Breakeven throughput</dt><dd>Tokens per second one GPU must produce for a model's price to cover the GPU's rent at a given utilization: rent ÷ (3,600 × utilization × price per token). For open-weight models, measured throughput ÷ breakeven throughput = spread ratio.</dd></div>
       <div><dt>Price-only model</dt><dd>A model shown without a spread because its throughput isn't measured in a comparable way: closed models, and open-weight models InferenceX has only tested on agentic workloads (long, mostly cached conversations) or not at all.</dd></div>
-      <div><dt>Closed vs open-weight</dt><dd>Closed models (Claude, GPT, Grok) are only available through their makers' APIs and cloud partners. Their size, hardware and throughput are not published, so only their prices enter this analysis.</dd></div>
+      <div><dt>Closed vs open-weight</dt><dd>Closed models (Claude, GPT, Grok, Meta Muse) are only available through their makers' APIs and cloud partners. Their size, hardware and throughput are not published, so only their prices enter this analysis.</dd></div>
       <div><dt>kWh</dt><dd>Kilowatt-hour, the unit electricity is sold in: one kilowatt drawn for one hour. An H100 with its share of the server draws about 1.4 kW.</dd></div>
       <div><dt>All-in power per GPU</dt><dd>The chip's own power plus its share of the server around it: CPUs, memory, network cards. SemiAnalysis estimates 1.37 kW for an H100 and 1.71 kW for a B200 at full load.</dd></div>
       <div><dt>PUE (power usage effectiveness)</dt><dd>Total building power divided by IT power. A PUE of 1.3 means every kW of servers needs 0.3 kW more for cooling and power conversion.</dd></div>
@@ -1896,10 +1905,58 @@ function renderRanking() {
   if (topC && topO) note.push(`${topC.key} would make ${fmtX(topC.profit / topO.profit, 0)} that, because its list price is ${fmtUSD(topC.price, 2)} per million: that assumes it is as fast as ${topC.proxy}. Frontier models are probably larger and slower than their stand-ins, so read the striped bars as upper bounds.`);
   note.push("Click any bar to see where its money goes.");
   $("rank-note").textContent = note.join(" ");
+  renderWhy(rows);
   const labs = [...new Set(closed.map(r => r.lab))];
   $("rank-infra").replaceChildren(...labs.map(l => { const inf = CFG.closed_infrastructure[l];
     const ms = closed.filter(r => r.lab === l).map(r => `${r.key} as ${r.proxy}`).join(", ");
     return h("li", {}, h("strong", { text: `${l}: ` }), `${inf.hardware} (`, link(inf.source_url, "source ↗"), `). Throughput assumed: ${ms}.`); }));
+}
+
+// Conclusions under the ranking: why closed models earn more. All numbers come from the ranking rows.
+function renderWhy(rows) {
+  const open = rows.filter(r => !r.est), closed = rows.filter(r => r.est);
+  if (!open.length || !closed.length) { $("why").hidden = true; return; }
+  const med = a => ENGINE.median(a);
+  const perM = r => r.cost / (r.tokH / 1e6);            // full GPU cost per million tokens
+  const pO = med(open.map(r => r.price)), pC = med(closed.map(r => r.price));
+  const top = closed[0], topProxy = open.find(r => r.key === top.proxy);
+  const closedB = closed.filter(r => r.gpu === CFG.profit_ranking_open_gpu);
+  const bestOpen = open[0];
+  const above = closed.filter(r => r.profit > bestOpen.profit);
+  $("why-title").textContent = `Why ${above.length} of ${closed.length} closed models out-earn every open one`;
+  $("why-lede").textContent = `In the ranking above, a GPU serving a closed model is assumed to work exactly as hard as one serving a similar open model. ` +
+    `So the gap can only come from what each token sells for, and from who is allowed to sell it.`;
+  const F = [];
+  // 1. price, same work
+  F.push({ stat: `${fmtX(pC / pO, 0)}`, title: "Same tokens, higher price",
+    text: `The median closed model lists at ${fmtUSD(pC, 2)} per million tokens; the median open model sells for ${fmtUSD(pO, 2)}. ` +
+      (topProxy ? `${top.key} is assumed as fast as ${topProxy.key}, so one GPU-hour makes the same ${nf(1).format(top.tokH / 1e6)} M tokens, but they sell for ${fmtUSD(top.price, 2)} instead of ${fmtUSD(topProxy.price, 2)} per million: ${fmtUSD(top.rev)} of revenue instead of ${fmtUSD(topProxy.rev)}.` : "") });
+  // 2. competition
+  const nProv = med(open.map(r => r.r.pst.n));
+  const mkO = med(open.map(r => r.price / perM(r))), mkC = med(closed.map(r => r.price / perM(r)));
+  // endpoint prices relative to list; the lab's own "flex" tiers (slower, discounted) are counted apart
+  const eps = closed.flatMap(r => ENGINE.closedPrice(r.key, BASE.ratio).rows.filter(x => x.inp != null && x.linp).map(x => ({ ...x, rel: x.inp / x.linp })));
+  const flex = eps.filter(x => /flex/i.test(x.tag || "")), other = eps.filter(x => !/flex/i.test(x.tag || ""));
+  const minOther = other.length ? Math.min(...other.map(x => x.rel)) : 1;
+  const sellers = [...new Set(other.map(x => x.provider))];
+  F.push({ stat: `${fmtInt(nProv)} vs 1`, title: "Many sellers vs one",
+    text: `Anyone can download open weights, so each open model is sold by a median of ${fmtInt(nProv)} providers competing on the same product. That pushes price toward cost: open models sell at a median ${fmtX(mkO, 1)} their full GPU cost per token. ` +
+      `A closed model has one owner that sets the price. The ${sellers.length} places selling closed models here (${sellers.slice(0, 4).join(", ")}${sellers.length > 4 ? "…" : ""}) ${minOther >= 0.999 ? "all charge the list price" : `charge at least ${fmtPct(minOther)} of list`}` +
+      `${flex.length ? `; the only discounts are the labs' own slower "flex" tiers (${fmtPct(Math.min(...flex.map(x => x.rel)))} of list)` : ""}. Closed prices sit at a median ${fmtX(mkC, 0)} their GPU cost.` });
+  // 3. hardware is not the explanation
+  const share = med(closedB.map(r => r.cost / r.rev));
+  const head = closed.map(r => ({ r, x: r.rev / r.cost })).sort((a, b) => a.x - b.x);
+  const hiH = head[head.length - 1];
+  F.push({ stat: `${nf(0).format(share * 100) === "0" ? "<1" : nf(0).format(share * 100)}%`, title: "The chips are a small part of the price",
+    text: `For the median closed model on ${gpuName(CFG.profit_ranking_open_gpu)}, owning and powering the GPU costs ${fmtPct(share)} of what its tokens sell for. ` +
+      `${hiH.r.key} would still cover its GPU costs if it were ${fmtX(hiH.x, 0)} slower than assumed, so the conclusion survives a large error in our throughput guess.` });
+  // 4. what the spread pays for
+  const low = closed.filter(r => r.profit < bestOpen.profit);
+  F.push({ stat: "Not all profit", title: "The spread pays for the model itself",
+    text: `Open-model hosts get the weights for free. Closed labs pay for training runs, research staff, safety work and free users, none of which is counted here. Their token spread is what recovers those costs, so it is the return on building the model, not just on serving it.` +
+      (low.length ? ` Price is still a choice: ${low.map(r => `${r.key} (${fmtUSD(r.price, 2)}/M on ${gpuName(r.gpu)})`).join(", ")} ${low.length > 1 ? "earn" : "earns"} less than the best open model.` : "") });
+  $("why-list").replaceChildren(...F.map(f => h("article", { class: "finding" },
+    h("div", { class: "stat", text: f.stat }), h("h3", { text: f.title }), h("p", { text: f.text }))));
 }
 
 /* ================= money flow (spark-spread style) ================= */
