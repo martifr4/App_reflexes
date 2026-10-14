@@ -1,18 +1,20 @@
 # Calame — website
 
-One-page French website for calame-ia.ch. Static files only: no build step, no cookies,
+One-page website for calame-ia.ch, in French and English. Static files only: no build step, no cookies,
 no trackers, nothing loaded from other websites (not even fonts).
 
 | File | What it is |
 |---|---|
-| `index.html` | The whole site (text and layout) |
+| `index.html` | French page (the homepage) |
+| `en.html` | English page |
+| `style.css` | Look and layout, shared by both pages |
 | `favicon.svg` | The small icon shown in the browser tab |
 
-Total size: about 25 KB (the Web Starter limit is 10 MB).
+Total size: about 50 KB (the Web Starter limit is 10 MB).
 
 ## Preview on your own computer
 
-Download both files into the same folder and double-click `index.html`. It opens in your browser.
+Download all four files into the same folder and double-click `index.html`. It opens in your browser.
 
 ## Publish on Infomaniak (Web Starter)
 
@@ -21,9 +23,9 @@ Download both files into the same folder and double-click `index.html`. It opens
 1. On GitHub, open the repository and switch to the branch that holds the site.
 2. Open the `calame` folder.
 3. Click `index.html`, then the **Download raw file** button (the arrow pointing down, top right of the file).
-4. Do the same for `favicon.svg`.
-5. Check that both files are in your Downloads folder and that the names are exactly
-   `index.html` and `favicon.svg`. Some browsers add `.txt` to the end. If yours did, rename the file.
+4. Do the same for `en.html`, `style.css` and `favicon.svg`.
+5. Check that all four files are in your Downloads folder and that the names are exactly
+   `index.html`, `en.html`, `style.css` and `favicon.svg`. Some browsers add `.txt` to the end. If yours did, rename the file.
 
 ### 2. Open the file manager in Infomaniak
 
@@ -47,8 +49,8 @@ Download both files into the same folder and double-click `index.html`. It opens
 1. If an `index.html` or `index.php` from Infomaniak (their placeholder page) is already there,
    delete it or rename it to `old-index.html`.
    Renaming is the safer choice because you can undo it.
-2. Drag `index.html` and `favicon.svg` from your Downloads folder into the Web FTP window.
-3. Wait until both files show in the list.
+2. Drag all four files from your Downloads folder into the Web FTP window.
+3. Wait until all four files show in the list. If asked whether to replace existing files, say yes.
 
 ### 5. Check the live site
 
@@ -62,4 +64,5 @@ Contact Infomaniak support. They respond in English and French.
 
 ## Updating the site later
 
-Change `index.html` and upload it again in step 4. It replaces the old one.
+Change the file and upload it again in step 4. It replaces the old one.
+If you change the text, change it in both `index.html` (French) and `en.html` (English).
