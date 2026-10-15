@@ -9,6 +9,8 @@ no trackers, nothing loaded from other websites (not even fonts).
 | `en.html` | English page |
 | `style.css` | Look and layout, shared by both pages |
 | `favicon.svg` | The small icon shown in the browser tab |
+| `robots.txt` | Tells search engines they may read the site, and where the sitemap is |
+| `sitemap.xml` | List of the site's pages, for Google and Bing |
 
 Total size: about 50 KB (the Web Starter limit is 10 MB).
 
