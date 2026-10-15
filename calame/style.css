@@ -168,3 +168,16 @@ footer dd { margin: 0; }
 .faq summary::after { content: "+"; position: absolute; right: 0; top: 10px; font-size: 1.4rem; color: var(--accent); }
 .faq details[open] summary::after { content: "–"; }
 .faq details p { margin: 0 0 16px; color: var(--ink-soft); }
+
+/* About */
+.about-box { display: grid; grid-template-columns: 240px 1fr; gap: 40px; align-items: center; }
+.portrait { width: 240px; height: 240px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 6px 24px rgba(28,39,51,.12); }
+.facts { list-style: none; padding: 0; margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.facts li { background: var(--accent-soft); color: var(--accent); font-size: .88rem; font-weight: 600; padding: 5px 12px; border-radius: 999px; }
+@media (max-width: 720px) {
+  .about-box { grid-template-columns: 1fr; gap: 20px; text-align: center; }
+  .portrait { width: 180px; height: 180px; margin: 0 auto; }
+  .about .lead { margin-left: auto; margin-right: auto; }
+  .facts { justify-content: center; }
+}
+.contact .avatar { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 14px; border: 3px solid #fff; box-shadow: 0 4px 14px rgba(28,39,51,.12); }
