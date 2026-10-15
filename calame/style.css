@@ -159,3 +159,12 @@ footer dd { margin: 0; }
 .price-list li { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 14px 18px; }
 .price-list strong { display: block; margin-bottom: 2px; }
 .price-list span { color: var(--ink-soft); font-size: .96rem; }
+
+/* FAQ */
+.faq { margin-top: 24px; display: grid; gap: 10px; max-width: 760px; }
+.faq details { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 0 18px; }
+.faq summary { cursor: pointer; padding: 14px 0; font-weight: 600; list-style: none; position: relative; padding-right: 28px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; position: absolute; right: 0; top: 10px; font-size: 1.4rem; color: var(--accent); }
+.faq details[open] summary::after { content: "–"; }
+.faq details p { margin: 0 0 16px; color: var(--ink-soft); }
