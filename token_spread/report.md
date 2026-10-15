@@ -15,7 +15,7 @@ OpenRouter provider, rental = `silicondata_index_faq`.
 
 - Lowest base-case ratio: **minimax-m3 on H100** at 0.40×
   (breakeven utilization 152%).
-- Highest ratio: **deepseek-v4-pro on B200 fp4** at 4.98×.
+- Highest ratio: **qwen3.5-397b on B200 fp4** at 4.76×.
 - B200 rents for 2.15× an H100, but at the same precision the token-implied value of a B200-hour is
   3.8×–7.2× an H100-hour, depending on the model (chart 3).
 
@@ -40,7 +40,7 @@ OpenRouter provider, rental = `silicondata_index_faq`.
 | minimax-m2.5 | H100 fp8 | base | 9 | 0.35–0.40–0.80 | 2322 | 2957 | $2.01 | $2.53 | −$0.52 | 0.79× | 76% | 2026-03-28,2026-06-04 |
 | minimax-m2.5 | B200 fp8 | base | 9 | 0.35–0.40–0.80 | 12509 | 12509 | $10.81 | $5.45 | $5.36 | 1.98× | 30% | 2026-03-28,2026-05-31,2026-06-03 |
 | minimax-m2.5 | B200 fp4 | variant | 9 | 0.35–0.40–0.80 | 20353 | 20353 | $17.59 | $5.45 | $12.14 | 3.23× | 19% | 2026-06-03 |
-| deepseek-v4-pro | B200 fp4 | base | 15 | 0.79–1.57–2.12 | 7983 | 9734 | $27.13 | $5.45 | $21.68 | 4.98× | 12% | 2026-06-12,2026-08-12 |
+| deepseek-v4-pro | B200 fp4 | base | 15 | 0.48–1.44–2.12 | 7983 | 9734 | $24.91 | $5.45 | $19.46 | 4.57× | 13% | 2026-06-12,2026-08-12 |
 | glm-5 | B200 fp8 | base | 8 | 0.75–1.19–1.24 | 1694 | 3682 | $4.34 | $5.45 | −$1.11 | 0.80× | 75% | 2026-03-20,2026-05-18,2026-06-12 |
 | glm-5 | B200 fp4 | variant | 8 | 0.75–1.19–1.24 | 3022 | 4134 | $7.74 | $5.45 | $2.29 | 1.42× | 42% | 2026-06-12 |
 | kimi-k2.5 | B200 int4 | base | 5 | 0.71–0.82–0.87 | 1594 | 2299 | $2.84 | $5.45 | −$2.61 | 0.52× | 115% | 2026-03-24,2026-07-05,2026-07-18 |
@@ -72,7 +72,7 @@ lines. Dots to the right mean B200 is cheap relative to H100 for that model (or 
 |---|---|---|---|---|
 | deepseek-r1 | B200 | DeepInfra (fp4) 1.28× | Novita (fp8) 1.69× | 4/4 |
 | deepseek-r1 | H100 | DeepInfra (fp4) 0.50× | Novita (fp8) 0.65× | 0/4 |
-| deepseek-v4-pro | B200 | Parasail (fp8) 2.49× | Azure (unknown) 6.72× | 15/15 |
+| deepseek-v4-pro | B200 | StreamLake (fp8) 1.53× | Azure (unknown) 6.72× | 15/15 |
 | glm-5 | B200 | StreamLake (fp8) 0.50× | Amazon Bedrock (unknown) 0.84× | 0/8 |
 | gpt-oss-120b | B200 | Venice (int4) 0.87× | Cerebras (fp16) 7.96× | 20/24 |
 | gpt-oss-120b | H100 | Venice (int4) 0.38× | Cerebras (fp16) 3.46× | 15/24 |
@@ -93,7 +93,9 @@ Full table: `outputs/provider_spread.csv`.
 | gpu | series | price | method | estimate | notes |
 |---|---|---|---|---|---|
 | h100 | silicondata_index_faq | $2.53 | scraped | False | FAQ text on index page (SDH100RT, neocloud on-demand) |
+| h100 | silicondata_index_widget | $2.81 | scraped | False | 'Related indices' widget, ticker SDH100RT, 7D change 5.6% |
 | b200 | silicondata_index_faq | $5.45 | scraped | False | FAQ text on index page (SDB200RT, neocloud on-demand) |
+| b200 | silicondata_index_widget | $6.01 | scraped | False | 'Related indices' widget, ticker SDB200RT, 7D change 4.9% |
 | h100 | inferencex_retail | $2.00 | fetched | True | InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote |
 | h100 | inferencex_owner_tco | $1.17 | fetched | True | InferenceX 'owning at hyperscaler volume' $/GPU-hr (all-in TCO, not a rental price); modelled, not a market quote |
 | b200 | inferencex_retail | $3.70 | fetched | True | InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote |
@@ -132,7 +134,7 @@ the same breakeven, and spread ratio = measured ÷ needed.
 | muse-spark-1.3 | Meta | closed | $1.58 | 740 | 1,594 | 6 | 9 |
 | grok-build-0.1 | xAI | closed | $1.11 | 1,054 | 2,271 | 5 | 7 |
 | gemini-3.8-flash | Google | closed | $1.08 | 1,081 | 2,329 | 5 | 7 |
-| glm-5.2 | Zhipu | open | $0.80 | 1,472 | 3,172 | 4 | 7 |
+| glm-5.2 | Zhipu | open | $0.83 | 1,409 | 3,036 | 4 | 7 |
 | gemini-3.5-flash-lite | Google | closed | $0.54 | 2,151 | 4,634 | 2 | 7 |
 | qwen3.8-27b | Qwen | open | $0.46 | 2,559 | 5,512 | 1 | 6 |
 | muse-glimmer-30b | Meta | open | $0.40 | 2,928 | 6,308 | 1 | 5 |
@@ -156,13 +158,13 @@ benchmarked open-weight = median provider):
 | grok-4.7 | closed | price-only | xAI | $2.444 | $2.444–$4.889 | OpenRouter list price |
 | kimi-k3 | open | price-only | Moonshot | $2.067 | $1.840–$6.500 | OpenRouter list price |
 | muse-spark-1.3 | closed | price-only | Meta | $1.583 | $1.583–$1.583 | OpenRouter list price |
-| deepseek-v4-pro | open | spread | open-weight | $1.573 | $0.787–$2.123 | median OpenRouter provider |
+| deepseek-v4-pro | open | spread | open-weight | $1.444 | $0.484–$2.123 | median OpenRouter provider |
 | glm-5 | open | spread | open-weight | $1.186 | $0.747–$1.244 | median OpenRouter provider |
 | grok-build-0.1 | closed | price-only | xAI | $1.111 | $1.111–$2.222 | OpenRouter list price |
 | gemini-3.8-flash | closed | price-only | Google | $1.083 | $0.542–$1.950 | OpenRouter list price |
 | qwen3.5-397b | open | spread | open-weight | $0.878 | $0.607–$1.167 | median OpenRouter provider |
+| glm-5.2 | open | price-only | Zhipu | $0.831 | $0.495–$3.222 | OpenRouter list price |
 | kimi-k2.5 | open | spread | open-weight | $0.823 | $0.713–$0.867 | median OpenRouter provider |
-| glm-5.2 | open | price-only | Zhipu | $0.796 | $0.461–$3.222 | OpenRouter list price |
 | deepseek-r1 | open | spread | open-weight | $0.724 | $0.683–$0.900 | median OpenRouter provider |
 | gemini-3.5-flash-lite | closed | price-only | Google | $0.544 | $0.272–$0.980 | OpenRouter list price |
 | llama-3.3-70b | open | spread | open-weight | $0.511 | $0.124–$1.040 | median OpenRouter provider |
@@ -192,7 +194,7 @@ At the base region (U.S. average (industrial), $0.098/kWh):
 - Across regions ($0.071–$0.201/kWh),
   power is 2.3%–11.3% of rent.
 - Turned into tokens and sold at market prices, one kWh earns
-  $0.70–$15.26: **7–156×**
+  $0.70–$14.01: **7–143×**
   what the electricity cost.
 - Measured GPU draw (newer InferenceX runs only) is 71%–97% of
   TDP at the chosen operating points, so the full-load assumption is conservative.
@@ -213,7 +215,7 @@ At the base region (U.S. average (industrial), $0.098/kWh):
 | deepseek-r1 | B200 fp8 | $0.17 | $1.73 | $5.45 | $7.39 | 5.74M | $4.15 | 43× | – |
 | minimax-m2.5 | H100 fp8 | $0.14 | $1.17 | $2.53 | $2.01 | 3.52M | $1.41 | 14× | 514 (73%) |
 | minimax-m2.5 | B200 fp8 | $0.17 | $1.73 | $5.45 | $10.81 | 15.19M | $6.08 | 62× | – |
-| deepseek-v4-pro | B200 fp4 | $0.17 | $1.73 | $5.45 | $27.13 | 9.70M | $15.26 | 156× | – |
+| deepseek-v4-pro | B200 fp4 | $0.17 | $1.73 | $5.45 | $24.91 | 9.70M | $14.01 | 143× | – |
 | glm-5 | B200 fp8 | $0.17 | $1.73 | $5.45 | $4.34 | 2.06M | $2.44 | 25× | – |
 | kimi-k2.5 | B200 int4 | $0.17 | $1.73 | $5.45 | $2.84 | 1.94M | $1.59 | 16× | 821 (82%) |
 
@@ -308,7 +310,7 @@ spread). An operator that owns its GPUs and sells tokens keeps token revenue min
 | deepseek-r1 | B200 | $2.76 | $2.69 | $5.45 | $7.39 | $1.94 | $5.18 | $0.216 | $0.724 |
 | minimax-m2.5 | H100 | $1.93 | $0.60 | $2.53 | $2.01 | −$0.52 | $0.46 | $0.307 | $0.400 |
 | minimax-m2.5 | B200 | $2.76 | $2.69 | $5.45 | $10.81 | $5.36 | $8.60 | $0.082 | $0.400 |
-| deepseek-v4-pro | B200 | $2.76 | $2.69 | $5.45 | $27.13 | $21.68 | $24.92 | $0.128 | $1.573 |
+| deepseek-v4-pro | B200 | $2.76 | $2.69 | $5.45 | $24.91 | $19.46 | $22.70 | $0.128 | $1.444 |
 | glm-5 | B200 | $2.76 | $2.69 | $5.45 | $4.34 | −$1.11 | $2.13 | $0.603 | $1.186 |
 | kimi-k2.5 | B200 | $2.76 | $2.69 | $5.45 | $2.84 | −$2.61 | $0.63 | $0.641 | $0.823 |
 
