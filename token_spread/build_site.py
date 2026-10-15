@@ -60,6 +60,10 @@ def build() -> dict:
     vs = pd.read_csv(vs_path) if vs_path.exists() else pd.DataFrame()
     rk_path = OUT / "profit_ranking.csv"
     rk = pd.read_csv(rk_path) if rk_path.exists() else pd.DataFrame()
+    bn_path, mh_path, bm_path = DATA / "bitcoin_network.csv", DATA / "mining_hardware.csv", OUT / "bitcoin_mining.csv"
+    bn = pd.read_csv(bn_path) if bn_path.exists() else pd.DataFrame()
+    mh = pd.read_csv(mh_path) if mh_path.exists() else pd.DataFrame()
+    bm = pd.read_csv(bm_path) if bm_path.exists() else pd.DataFrame()
     if "avg_power_w" not in tput:
         tput["avg_power_w"] = None
 
@@ -127,6 +131,15 @@ def build() -> dict:
             "integrated_profit": "integrated"}) if len(vs) else [],
         "python_ranking": records(rk, {
             "model": "m", "gpu": "gpu", "revenue": "revenue", "profit": "profit"}) if len(rk) else [],
+        "btc_network": records(bn, {
+            "btc_price_usd": "price", "difficulty": "difficulty", "network_hashrate_ehs": "ehs",
+            "block_subsidy_btc": "subsidy", "fees_per_block_btc": "fees", "fee_window_blocks": "window",
+            "tip_height": "height", "source_url": "url", "retrieved_date": "date", "notes": "notes"}) if len(bn) else [],
+        "mining_hw": records(mh, {
+            "device": "device", "label": "label", "kind": "kind", "sha256d_ths": "ths", "power_kw": "kw",
+            "source_url": "url", "retrieved_date": "date", "estimate": "estimate", "notes": "notes"}) if len(mh) else [],
+        "python_bitcoin": records(bm, {
+            "device": "device", "revenue": "revenue", "power_cost": "power", "full_cost": "full"}) if len(bm) else [],
         "timeseries": json.loads(ts.to_json(orient="records")) if len(ts) else [],
         "python_summary": records(summary, {
             "model": "m", "gpu": "gpu", "precision": "prec", "case": "case",

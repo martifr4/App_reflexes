@@ -296,6 +296,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <a href="#start">Start here</a>
       <a href="#findings">Findings</a>
       <a href="#dashboard">Dashboard</a>
+      <a href="#bitcoin">Bitcoin</a>
       <a href="#power">Electricity</a>
       <a href="#firm">Who profits</a>
       <a href="#explore">Model explorer</a>
@@ -393,11 +394,12 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
     <div class="section-head"><h3>What you'll find on this page</h3></div>
     <ul class="guide">
       <li><a href="#findings">Findings <span>→</span></a><p>The main conclusions in plain sentences, rewritten automatically when the data changes. Start here if you have a minute.</p></li>
+      <li><a href="#bitcoin">Tokens vs bitcoin <span>→</span></a><p>What the same GPU would earn mining bitcoin at today's price and difficulty, and how far a GPU is from a purpose-built mining machine.</p></li>
       <li><a href="#dashboard">Dashboard <span>→</span></a><p>The results for every model and chip. Move the sliders to try your own assumptions, and click any result to see the full calculation.</p></li>
       <li><a href="#power">Electricity <span>→</span></a><p>The full chain of a GPU-hour: what its power costs, what it costs its owner, what it rents for and what its tokens sell for, by region.</p></li>
       <li><a href="#firm">Who makes the money <span>→</span></a><p>The full cost of owning a GPU (hardware, financing, space, power, staff), the rental firm's profit, and how token revenue is shared.</p></li>
       <li><a href="#explore">Model explorer <span>→</span></a><p>One model at a time: the test data behind it, how much the answer depends on the assumptions, and how each seller's price changes it.</p></li>
-      <li><a href="#closed">Price-only models <span>→</span></a><p>Claude, GPT, Grok, Meta Muse and the newest open models lack comparable test data, so we show how efficient they would need to be to pay for the chips.</p></li>
+      <li><a href="#closed">Price-only models <span>→</span></a><p>Claude, GPT, Grok, Gemini, Meta Muse and the newest open models lack comparable test data, so we show how efficient they would need to be to pay for the chips.</p></li>
       <li><a href="#method">Method <span>→</span></a><p>How the calculation works, step by step, with a glossary of every term on the page.</p></li>
       <li><a href="#data">Data <span>→</span></a><p>Every raw number with its source link and date. Search it, copy it, or check it yourself.</p></li>
       <li><a href="#caveats">Caveats <span>→</span></a><p>What these numbers can't tell you, and what data would make them better.</p></li>
@@ -414,6 +416,26 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
     <div class="findings" id="findings-list"></div>
     <p class="note">These sentences are generated from the data on every rebuild, at the base assumptions in
       <code>assumptions.yaml</code>. Move the controls in the dashboard to test how robust each one is.</p>
+  </section>
+
+  <section id="bitcoin">
+    <div class="section-head">
+      <div class="eyebrow">Perspective</div>
+      <h2>Tokens vs bitcoin: the same GPU, two ways to earn</h2>
+      <p class="lede" id="btc-lede"></p>
+    </div>
+    <div class="kpis" id="btc-kpis"></div>
+    <div class="panel">
+      <div class="panel-head"><div><h3>Revenue per kWh of electricity</h3><div class="panel-sub" id="btc-sub"></div></div></div>
+      <div class="legend" id="btc-legend"></div>
+      <div class="chart" id="chart-btc"></div>
+    </div>
+    <div class="table-wrap"><table id="btc-table"></table></div>
+    <div class="formula" id="btc-formula"></div>
+    <div class="prose">
+      <h3>Reading these numbers</h3>
+      <ul class="list" id="btc-notes"></ul>
+    </div>
   </section>
 
   <section id="dashboard">
@@ -544,7 +566,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <ul class="list">
         <li><strong>Power per GPU includes its server.</strong> SemiAnalysis's "all-in" figure adds the GPU's share of host CPUs, memory and network cards to the chip itself: <span id="allin-txt"></span>.</li>
         <li><strong>PUE covers the building.</strong> Cooling and power conversion add 10–60% on top. SemiAnalysis uses 1.2 for AI facilities; the Uptime Institute's 2025 survey puts the global average just above 1.5.</li>
-        <li><strong>Full load is the conservative case.</strong> Where InferenceX measured it, GPUs drew <span id="meas-txt"></span> of their rated power at the operating points used here. Lower the average power draw to see the effect.</li>
+        <li><strong>Average draw is below the rating.</strong> Where InferenceX measured it, GPUs drew <span id="meas-txt"></span> of their rated power at the operating points used here. The base case assumes <span id="lf-txt"></span> of all-in power on average, because host CPUs and memory draw close to constant power and idle GPUs still draw some. Move the slider to 100% for the full-load upper bound.</li>
         <li><strong>Published tariffs, not contracts.</strong> Prices are average industrial or large non-household tariffs. Big operators sign long-term power contracts whose prices are not public, and pay demand charges not included here.</li>
       </ul>
     </div>
@@ -642,7 +664,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
   <section id="closed">
     <div class="section-head">
       <div class="eyebrow">Price-only models</div>
-      <h2>Claude, GPT, Grok, Meta Muse and the newest open models: what would they need?</h2>
+      <h2>Claude, GPT, Grok, Gemini, Meta Muse and the newest open models: what would they need?</h2>
       <p class="lede">Closed labs publish prices but not the hardware or throughput behind them, and some of the newest
         open-weight models have no comparable benchmark yet. There is no spread to compute for either. We can still ask
         how many tokens per second a GPU would have to produce for each model's list price to cover its rent, and compare
@@ -689,7 +711,7 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
       <div class="node"><span class="k">Input · InferenceX</span><span class="t">Throughput per GPU</span><span class="d">Tokens per second one GPU processes at the chosen speed-per-user floor.</span></div>
       <div class="node"><span class="k">Step</span><span class="t">Tokens per GPU-hour</span><span class="d">Throughput × 3,600 seconds × utilization.</span></div>
       <div class="node out"><span class="k">Result</span><span class="t">Implied revenue per GPU-hour</span><span class="d">Tokens per hour ÷ 1,000,000 × blended price.</span></div>
-      <div class="node"><span class="k">Input · Silicon Data</span><span class="t">Rental price per GPU-hour</span><span class="d">Neocloud on-demand index, the basis of CME's GPU futures.</span></div>
+      <div class="node"><span class="k">Input · Silicon Data</span><span class="t">Rental price per GPU-hour</span><span class="d">Silicon Data's standardized hourly rental index, the basis of CME's GPU futures.</span></div>
       <div class="node out"><span class="k">Result</span><span class="t">Token spread and ratio</span><span class="d">Revenue minus rental, and revenue divided by rental.</span></div>
     </div>
 <div class="formula" aria-label="Formulas"><span class="c"># r = input tokens per output token</span>
@@ -713,7 +735,7 @@ firm_profit    = rent × share_of_hours_rented − full_cost</div>
     <dl class="glossary">
       <div><dt>Token</dt><dd>The unit LLMs read and write, roughly ¾ of an English word. APIs charge per million tokens.</dd></div>
       <div><dt>Input vs output tokens</dt><dd>Input (prompt) tokens are processed in parallel and are cheap to serve. Output tokens are generated one at a time and cost more, so providers price them 2–6× higher.</dd></div>
-      <div><dt>Blended price</dt><dd>One price per million tokens that mixes input and output prices in the proportions real traffic has. Chat and coding traffic is input-heavy, often 3:1 to 10:1.</dd></div>
+      <div><dt>Blended price</dt><dd>One price per million tokens that mixes input and output prices in the proportions real traffic has. Real traffic is input-heavy: about 7:1 for people chatting and far more for coding agents.</dd></div>
       <div><dt>Open-weight model</dt><dd>A model whose weights are published, so anyone can serve it and anyone can benchmark it. Closed models hide their hardware, so they are left out.</dd></div>
       <div><dt>Dense vs mixture-of-experts (MoE)</dt><dd>A dense model uses all its weights for every token. An MoE model routes each token through a few "experts", so a 397B-parameter model may only use 17B per token, which makes it cheaper to run than its size suggests.</dd></div>
       <div><dt>Throughput per GPU</dt><dd>Total tokens (input + output) a GPU processes per second, divided across every GPU in the serving setup.</dd></div>
@@ -723,18 +745,18 @@ firm_profit    = rent × share_of_hours_rented − full_cost</div>
       <div><dt>Precision (bf16, fp8, fp4)</dt><dd>How many bits each weight uses. Fewer bits mean more throughput but can cost a little quality. B200 has hardware fp4 support; H100 does not.</dd></div>
       <div><dt>Speculative decoding (MTP)</dt><dd>A small draft model or extra prediction heads guess several tokens ahead, and the main model verifies them in one pass. Common in production, and it raises throughput at a given speed per user.</dd></div>
       <div><dt>Disaggregated, multi-node serving</dt><dd>Splitting prompt processing and token generation onto different GPUs, sometimes across machines. Needed for very large models such as DeepSeek-R1 on H100.</dd></div>
-      <div><dt>GPU rental index</dt><dd>Silicon Data publishes daily H100 (SDH100RT) and B200 (SDB200RT) on-demand rental indices from neoclouds. CME launched cash-settled futures on them (GPU1, GPU2) on 5 October 2026.</dd></div>
+      <div><dt>GPU rental index</dt><dd>Silicon Data publishes daily H100 (SDH100RT) and B200 (SDB200RT) rental indices, built mainly from neocloud prices (plus hyperscalers and rental platforms) and standardized for machine specs, rental terms and region. CME launched cash-settled futures on them (GPU1, GPU2) on 5 October 2026.</dd></div>
       <div><dt>Owner TCO</dt><dd>What a GPU-hour costs someone who owns the hardware at hyperscaler scale: depreciation, power, hosting. SemiAnalysis estimates this for InferenceX. It is a floor under rental prices.</dd></div>
       <div><dt>Token spread and spread ratio</dt><dd>Spread = implied revenue − rental, in dollars per GPU-hour. Ratio = revenue ÷ rental. A ratio of 2× means a GPU-hour earns twice its rent at list API prices.</dd></div>
       <div><dt>Breakeven throughput</dt><dd>Tokens per second one GPU must produce for a model's price to cover the GPU's rent at a given utilization: rent ÷ (3,600 × utilization × price per token). For open-weight models, measured throughput ÷ breakeven throughput = spread ratio.</dd></div>
       <div><dt>Price-only model</dt><dd>A model shown without a spread because its throughput isn't measured in a comparable way: closed models, and open-weight models InferenceX has only tested on agentic workloads (long, mostly cached conversations) or not at all.</dd></div>
-      <div><dt>Closed vs open-weight</dt><dd>Closed models (Claude, GPT, Grok, Meta Muse) are only available through their makers' APIs and cloud partners. Their size, hardware and throughput are not published, so only their prices enter this analysis.</dd></div>
+      <div><dt>Closed vs open-weight</dt><dd>Closed models (Claude, GPT, Grok, Gemini, Meta Muse) are only available through their makers' APIs and cloud partners. Their size, hardware and throughput are not published, so only their prices enter this analysis.</dd></div>
       <div><dt>kWh</dt><dd>Kilowatt-hour, the unit electricity is sold in: one kilowatt drawn for one hour. An H100 with its share of the server draws about 1.4 kW.</dd></div>
       <div><dt>All-in power per GPU</dt><dd>The chip's own power plus its share of the server around it: CPUs, memory, network cards. SemiAnalysis estimates 1.37 kW for an H100 and 1.71 kW for a B200 at full load.</dd></div>
       <div><dt>PUE (power usage effectiveness)</dt><dd>Total building power divided by IT power. A PUE of 1.3 means every kW of servers needs 0.3 kW more for cooling and power conversion.</dd></div>
       <div><dt>Neocloud</dt><dd>A company that buys GPUs and rents them out by the hour or on multi-year contracts, such as CoreWeave, Lambda or Nebius. Silicon Data's rental index tracks their prices.</dd></div>
       <div><dt>Depreciation</dt><dd>Spreading a machine's purchase price over its useful life. A $56,000 B200 depreciated over 6 years costs about $1.07 per hour, rented or not.</dd></div>
-      <div><dt>Cost of capital</dt><dd>The interest (or return investors demand) on the money used to buy the hardware. Neoclouds borrowed at around 15% early on; CoreWeave's 2026 investment-grade debt priced at 5.9%.</dd></div>
+      <div><dt>Cost of capital</dt><dd>The interest (or return investors demand) on the money used to buy the hardware. Neoclouds borrowed at around 15% early on; in 2026 CoreWeave's secured investment-grade debt priced at 5.9% and its unsecured notes at 8.5–9.6%.</dd></div>
       <div><dt>Colocation</dt><dd>Renting space, power delivery and cooling in someone else's data centre, priced per kW of capacity per month. North American wholesale space averaged $196 per kW-month in late 2025 (CBRE).</dd></div>
       <div><dt>Occupancy</dt><dd>The share of hours a GPU is actually rented out. Idle hours still cost depreciation, interest and space, so profit falls fast when occupancy drops.</dd></div>
       <div><dt>EBITDA</dt><dd>Earnings before interest, taxes, depreciation and amortization: revenue minus cash running costs. GPU firms report high EBITDA margins because their biggest costs, hardware and interest, sit below that line.</dd></div>
@@ -781,8 +803,9 @@ firm_profit    = rent × share_of_hours_rented − full_cost</div>
           <li><strong>Which point on the throughput curve.</strong> Dropping the speed floor can double throughput per GPU. Benchmarks use random data at fixed lengths; production traffic has prefix-cache hits, bursts and long-context tails.</li>
           <li><strong>Configurations differ across GPUs.</strong> The best published point may use speculative decoding on one GPU and not the other, or multi-node serving. Part of the B200 advantage may be better-tuned software, not silicon.</li>
           <li><strong>Stale benchmarks.</strong> Some model and GPU pairs have not been re-run for months; inference software improves fast, so their throughput is likely understated.</li>
-          <li><strong>Unmeasured mixes.</strong> 3:1 is interpolated between the measured 1:1 and 8:1 points; 10:1 is held at 8:1.</li>
-          <li><strong>List prices and on-demand rents.</strong> OpenRouter shows public per-token prices without volume or cache discounts. Rental is the neocloud on-demand index; term contracts are cheaper.</li>
+          <li><strong>Unmeasured mixes.</strong> The base 8:1 mix is measured. 3:1 is interpolated between the measured 1:1 and 8:1 points; 10:1 is held at 8:1.</li>
+          <li><strong>Cached input is not priced.</strong> Agent traffic (most tokens on OpenRouter) is around 100:1 input:output with about 90% of prompt tokens served from cache at a steep discount, and caching also makes the GPU faster. Neither effect is modelled, so revenue for agent-heavy traffic is uncertain in both directions.</li>
+          <li><strong>List prices and on-demand rents.</strong> OpenRouter shows public per-token prices without volume or cache discounts. Rental is Silicon Data's standardized index, not a term-contract quote; long contracts are usually cheaper.</li>
           <li><strong>Closed models are price-only.</strong> Their breakeven throughput is exact arithmetic, but nothing here says what throughput they actually reach or on which hardware.</li>
           <li><strong>Revenue is not margin.</strong> The spread leaves out CPU hosts, networking, storage, staff, idle peak capacity and the API marketplace's fee.</li>
         </ul>
@@ -981,8 +1004,27 @@ const ENGINE = (() => {
     }
     return out.sort((a, b) => b.profit - a.profit);
   }
+  // bitcoin mining on the same device: expected BTC/hour = TH/s x 1e12 / (difficulty x 2^32) x 3600 x (subsidy + fees)
+  function btcPerHour(ths) {
+    const n = (D.btc_network || [])[0];
+    return n ? ths * 1e12 / (n.difficulty * Math.pow(2, 32)) * 3600 * (n.subsidy + n.fees) : NaN;
+  }
+  function mining(dev, fs, ps) {
+    const n = (D.btc_network || [])[0], gpu = dev.kind === "gpu";
+    const kw = gpu ? gpuPower(dev.device).kw : dev.kw;                // mining runs flat out: no load factor
+    const kwh = kw * ps.pue, rev = btcPerHour(dev.ths) * n.price, power = kwh * elecPrice(ps.region);
+    const out = { dev, kw, kwh, jPerTh: kw * 1000 / dev.ths, btcDay: btcPerHour(dev.ths) * 24, rev, power,
+                  margin: rev - power, revPerKwh: rev / kwh };
+    if (gpu) {
+      const c = firmCosts(dev.device, fs, ps);
+      out.full = c.depreciation + c.financing + c.hosting + c.ops + power;
+      out.profit = rev - out.full;
+    }
+    return out;
+  }
   return { cases, evaluate, prices, priceStats, rows, opPoints, tputAt, rental, median, blend, closedPrice, breakeven,
-           gpuPower, kwhPerHour, elecPrice, measuredPower, firmCosts, firmPnl, fullCost, closedProxy, closedEstimate, ranking };
+           gpuPower, kwhPerHour, elecPrice, measuredPower, firmCosts, firmPnl, fullCost, closedProxy, closedEstimate, ranking,
+           btcPerHour, mining };
 })();
 /* ===================== ENGINE END ===================== */
 
@@ -1131,6 +1173,7 @@ function renderStatic() {
     ["Benchmarks", fmtInt(D.tput.length), `newest ${fmtDate(D.meta.newest_benchmark)}`],
     ["Price-only", String(CLOSED.length), "closed + unbenchmarked open"],
   ];
+  if ((D.btc_network || []).length) cells.push(["Bitcoin", fmtUSD(D.btc_network[0].price, 0), `difficulty ${nf(1).format(D.btc_network[0].difficulty / 1e12)} T`]);
   if ((D.electricity || []).length && (D.gpu_power || []).length) {
     const ep = ENGINE.elecPrice(PBASE.region), el0 = D.electricity.find(x => x.region === PBASE.region);
     cells.splice(2, 0, ["Electricity", `${nf(1).format(ep * 100)}¢/kWh`, `${el0.label}`]);
@@ -1238,6 +1281,18 @@ function renderStatic() {
       href: "#firm",
     });
   }
+  const bms = btcRows();
+  if (bms) {
+    const g0 = CFG.profit_ranking_open_gpu, mB = bms.find(m => m.dev.device === g0), asic = bms.find(m => m.dev.kind === "asic");
+    const tok = ENGINE.median(base.filter(r => r.c.gpu === g0 && r.c.kind === "base" && isFinite(r.rev)).map(r => r.rev));
+    if (mB) F.push({
+      stat: `${fmtCompact(Math.round(tok / mB.rev))}×`,
+      title: `Tokens beat bitcoin mining by a factor of ${fmtCompact(Math.round(tok / mB.rev))}`,
+      text: `Mining bitcoin, a ${mB.dev.label} would earn ${fmtUSD(mB.rev, 6)} an hour at ${fmtUSD(D.btc_network[0].price, 0)} per BTC, while burning ${fmtUSD(mB.power)} of electricity. Serving a median open model it earns ${fmtUSD(tok)}. ` +
+        (asic ? `Even a purpose-built ${asic.dev.label} earns only ${fmtUSD(asic.revPerKwh, 3)} per kWh, against ${fmtUSD(tok / ENGINE.kwhPerHour(g0, PBASE), 2)} per kWh for the GPU serving tokens.` : ""),
+      href: "#bitcoin",
+    });
+  }
   $("findings-list").replaceChildren(...F.map(f => h("article", { class: "finding" },
     h("div", { class: "stat", text: f.stat }), h("h3", { text: f.title }), h("p", { text: f.text }),
     h("a", { class: "more", href: f.href, text: "See the data →" }))));
@@ -1297,8 +1352,17 @@ function renderStatic() {
       if (r && r.gpu === p.gpu && Math.abs(r.profit - p.profit) <= 1e-6 * Math.max(1, Math.abs(p.profit))) ok++;
     }
   }
+  if (FBASE && D.python_bitcoin) {
+    for (const p of D.python_bitcoin) {
+      const dev = (D.mining_hw || []).find(d => d.device === p.device);
+      if (!dev) continue;
+      n++;
+      const m = ENGINE.mining(dev, FBASE, PBASE);
+      if (Math.abs(m.rev - p.revenue) <= 1e-9 + 1e-6 * p.revenue && Math.abs(m.power - p.power) < 1e-9 && (p.full == null || Math.abs(m.full - p.full) < 1e-9)) ok++;
+    }
+  }
   $("verify").replaceChildren(h("span", { class: "chip " + (ok === n ? "good" : "bad"), text: ok === n ? "✓ verified" : "✗ mismatch" }),
-    ` The in-browser engine reproduces compute.py for ${ok} of ${n} base-case results (spreads, breakeven throughputs, electricity costs, rental-firm economics and the profit ranking).`);
+    ` The in-browser engine reproduces compute.py for ${ok} of ${n} base-case results (spreads, breakeven throughputs, electricity costs, rental-firm economics, the profit ranking and bitcoin mining).`);
   $("footer-meta").textContent = `Prices retrieved ${fmtDate(D.meta.prices_retrieved)} · rental retrieved ${fmtDate(D.meta.rental_retrieved)} · benchmarks retrieved ${fmtDate(D.meta.throughput_retrieved)} (newest run ${fmtDate(D.meta.newest_benchmark)}).`;
   const repo = $("repo-link"); repo.href = D.meta.tree_url;
   return base;
@@ -1842,6 +1906,7 @@ function renderPower() {
   const gp = D.gpu_power;
   $("allin-txt").textContent = gp.map(g => `${gpuName(g.gpu)} ${g.kw} kW all-in vs ${g.tdp} W for the chip alone`).join(", ");
   const mp = rows.map(x0 => x0.mwPct).filter(isFinite);
+  $("lf-txt").textContent = fmtPct(PBASE.lf);
   $("meas-txt").textContent = mp.length ? `${fmtPct(Math.min(...mp))}–${fmtPct(Math.max(...mp))} (${mp.length} of ${rows.length} cases measured)` : "no measured cases yet";
 }
 $("p-region").addEventListener("change", e => { pstate.region = e.target.value; renderPower(); renderFirm(); renderFlow(); });
@@ -1860,11 +1925,18 @@ function renderRanking() {
   const hatch = g => `url(#rk-hatch-${g})`;
   $("rank-legend").replaceChildren(
     ...[...new Set(rows.filter(r => !r.est).map(r => r.gpu))].map(g => h("span", {}, h("i", { class: "bg-" + g }), `open-weight, measured on ${gpuName(g)}`)),
-    ...[...new Set(rows.filter(r => r.est).map(r => r.gpu))].map(g => h("span", {}, h("i", { style: `background:repeating-linear-gradient(135deg, var(--s-${g}) 0 2px, transparent 2px 5px);border:1px solid var(--s-${g})` }), `closed, estimated on ${gpuName(g)}-class hardware`)));
+    ...[...new Set(rows.filter(r => r.est).map(r => r.gpu))].map(g => h("span", {}, h("i", { style: `background:repeating-linear-gradient(135deg, var(--s-${g}) 0 2px, transparent 2px 5px);border:1px solid var(--s-${g})` }), `closed, estimated on ${gpuName(g)}-class hardware`)),
+    ...((D.btc_network || []).length ? [h("span", {}, h("i", { style: "border:1.5px dashed var(--muted);background:none" }), "reference: the same GPU mining bitcoin")] : []));
+  // reference: the same GPU mining bitcoin instead of serving tokens
+  const btcDev = (D.mining_hw || []).find(d => d.device === g0);
+  const btc = btcDev && (D.btc_network || []).length ? ENGINE.mining(btcDev, FBASE, PBASE) : null;
+  const chartRows = [...rows];
+  if (btc) chartRows.push({ key: `bitcoin mining (${gpuName(g0)})`, ref: true, gpu: g0, rev: btc.rev, cost: btc.full, profit: btc.profit, m: btc });
+  chartRows.sort((a, b) => b.profit - a.profit);
   const el = $("chart-rank"), W = widthOf(el), narrow = W < 560;
   const L = narrow ? 4 : 200, R = narrow ? 4 : 96, top = 6, rowH = narrow ? 36 : 24, barH = narrow ? 12 : 14;
-  const H = top + rows.length * rowH + 26;
-  const lo = Math.min(0, ...rows.map(r => r.profit)), hi = Math.max(...rows.map(r => r.profit));
+  const H = top + chartRows.length * rowH + 26;
+  const lo = Math.min(0, ...chartRows.map(r => r.profit)), hi = Math.max(...chartRows.map(r => r.profit));
   const ticks = linTicks(lo, hi * 1.02, narrow ? 4 : 6);
   const d0 = Math.min(lo, ticks[0]), d1 = Math.max(hi, ticks[ticks.length - 1]);
   const vW = narrow ? 64 : 0;
@@ -1878,21 +1950,36 @@ function renderRanking() {
   }
   const ax = s("g", { class: "ax" }, svg);
   for (const t of ticks) { s("line", { x1: x(t), x2: x(t), y1: top, y2: H - 22, class: t === 0 ? "zero" : null }, ax); st(ax, x(t), H - 8, fmtUSD(t, 0), { "text-anchor": "middle" }); }
-  rows.forEach((r, i) => {
+  let rank = 0;
+  chartRows.forEach((r, i) => {
     const y0 = top + i * rowH, cy = narrow ? y0 + rowH - barH / 2 - 4 : y0 + rowH / 2;
-    const name = st(svg, narrow ? L : L - 10, narrow ? y0 + 12 : cy + 4, `${i + 1}. ${r.key}`, { "text-anchor": narrow ? "start" : "end", class: r.est ? "lab-strong" : "lab-ink" });
+    if (r.ref) {
+      st(svg, narrow ? L : L - 10, narrow ? y0 + 12 : cy + 4, r.key, { "text-anchor": narrow ? "start" : "end", class: "lab-strong", style: "fill:var(--muted)" });
+      const xa = x(Math.min(0, r.profit)), xb = x(Math.max(0, r.profit));
+      s("rect", { x: xa, y: cy - barH / 2, width: Math.max(1, xb - xa), height: barH, rx: 2, style: "fill:none;stroke:var(--muted);stroke-width:1.25;stroke-dasharray:3 2" }, svg);
+      st(svg, r.profit < 0 ? xb + 6 : xb + 6, cy + 4, `${fmtUSD(r.profit)}/h · earns ${fmtUSD(r.rev, 5)}`, { class: "lab-ink" });
+      const hit = s("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit", tabindex: 0, role: "button", "aria-label": `${r.key}: ${fmtUSD(r.profit)} per GPU-hour` }, svg);
+      bindTip(hit, () => [`Reference: a ${gpuName(r.gpu)} mining bitcoin`, [["bitcoin earned / h", fmtUSD(r.rev, 6)], ["electricity / h", fmtUSD(r.m.power)], ["full cost / h", fmtUSD(r.cost)], ["profit / h", fmtUSD(r.profit)]], "Click for the bitcoin comparison"]);
+      const goB = () => $("bitcoin").scrollIntoView({ behavior: "smooth", block: "start" });
+      hit.addEventListener("click", goB);
+      hit.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goB(); } });
+      return;
+    }
+    rank++;
+    const name = st(svg, narrow ? L : L - 10, narrow ? y0 + 12 : cy + 4, `${rank}. ${r.key}`, { "text-anchor": narrow ? "start" : "end", class: r.est ? "lab-strong" : "lab-ink" });
     const tag = s("tspan", { class: "lab", dx: 6 }, name); tag.textContent = r.est ? r.lab : "open";
     const xa = x(Math.min(0, r.profit)), xb = x(Math.max(0, r.profit));
     s("rect", { x: xa, y: cy - barH / 2, width: Math.max(1, xb - xa), height: barH, rx: 2,
       style: r.est ? `fill:${hatch(r.gpu)};stroke:var(--s-${r.gpu});stroke-width:1` : null, class: r.est ? null : "f-" + r.gpu }, svg);
     st(svg, xb + 6, cy + 4, `${fmtUSD(r.profit)}/h${r.est ? " est." : ""}`, { class: "lab-ink" });
     const hit = s("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit", tabindex: 0, role: "button", "aria-label": `${r.key}: ${fmtUSD(r.profit)} per GPU-hour` }, svg);
-    bindTip(hit, () => [`${i + 1}. ${r.key}${r.est ? ` (${r.lab}, estimate)` : ""}`, [
+    const rk0 = rank;
+    bindTip(hit, () => [`${rk0}. ${r.key}${r.est ? ` (${r.lab}, estimate)` : ""}`, [
       ["hardware", r.est ? `${r.hardware}` : `${gpuName(r.gpu)}, measured`],
       ["tokens/s per GPU", `${fmtInt(r.tput)}${r.est ? ` (as ${r.proxy})` : ""}`],
       ["price per M tokens", fmtUSD(r.price, 3)],
       ["token revenue / h", fmtUSD(r.rev)], ["full cost / h", fmtUSD(r.cost)], ["profit / h", fmtUSD(r.profit)]],
-      "Click to see its money flow"]);
+      (CFG.closed_models || []).find(c => c.key === r.key)?.price_note || "Click to see its money flow"]);
     const go = () => { flowState.gpu = r.gpu; flowState.model = r.key; renderFlow(); $("flow-panel").scrollIntoView({ behavior: "smooth", block: "start" }); };
     hit.addEventListener("click", go);
     hit.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
@@ -1938,11 +2025,13 @@ function renderWhy(rows) {
   const eps = closed.flatMap(r => ENGINE.closedPrice(r.key, BASE.ratio).rows.filter(x => x.inp != null && x.linp).map(x => ({ ...x, rel: x.inp / x.linp })));
   const flex = eps.filter(x => /flex/i.test(x.tag || "")), other = eps.filter(x => !/flex/i.test(x.tag || ""));
   const minOther = other.length ? Math.min(...other.map(x => x.rel)) : 1;
+  const pricier = other.filter(x => x.rel > 1.001), maxOther = pricier.length ? Math.max(...pricier.map(x => x.rel)) : 1;
   const sellers = [...new Set(other.map(x => x.provider))];
   F.push({ stat: `${fmtInt(nProv)} vs 1`, title: "Many sellers vs one",
     text: `Anyone can download open weights, so each open model is sold by a median of ${fmtInt(nProv)} providers competing on the same product. That pushes price toward cost: open models sell at a median ${fmtX(mkO, 1)} their full GPU cost per token. ` +
-      `A closed model has one owner that sets the price. The ${sellers.length} places selling closed models here (${sellers.slice(0, 4).join(", ")}${sellers.length > 4 ? "…" : ""}) ${minOther >= 0.999 ? "all charge the list price" : `charge at least ${fmtPct(minOther)} of list`}` +
-      `${flex.length ? `; the only discounts are the labs' own slower "flex" tiers (${fmtPct(Math.min(...flex.map(x => x.rel)))} of list)` : ""}. Closed prices sit at a median ${fmtX(mkC, 0)} their GPU cost.` });
+      `A closed model has one owner that sets the price. The ${sellers.length} places selling closed models here (${sellers.slice(0, 4).join(", ")}${sellers.length > 4 ? "…" : ""}) ${minOther >= 0.999 ? "never sell below list" : `sell at no less than ${fmtPct(minOther)} of list`}` +
+      `${pricier.length ? `; regional and priority endpoints charge more (up to ${fmtX(maxOther, 1)} list)` : ""}` +
+      `${flex.length ? `, and the only discounts are the labs' own slower "flex" tiers (${fmtPct(Math.min(...flex.map(x => x.rel)))} of list)` : ""}. Closed prices sit at a median ${fmtX(mkC, 0)} their GPU cost.` });
   // 3. hardware is not the explanation
   const share = med(closedB.map(r => r.cost / r.rev));
   const head = closed.map(r => ({ r, x: r.rev / r.cost })).sort((a, b) => a.x - b.x);
@@ -1953,10 +2042,104 @@ function renderWhy(rows) {
   // 4. what the spread pays for
   const low = closed.filter(r => r.profit < bestOpen.profit);
   F.push({ stat: "Not all profit", title: "The spread pays for the model itself",
-    text: `Open-model hosts get the weights for free. Closed labs pay for training runs, research staff, safety work and free users, none of which is counted here. Their token spread is what recovers those costs, so it is the return on building the model, not just on serving it.` +
+    text: `Open-model hosts get the weights for free (licences vary). Closed labs pay for training runs, research staff, safety work and free users, none of which is counted here. Their token spread is what recovers those costs, so it is the return on building the model, not just on serving it.` +
       (low.length ? ` Price is still a choice: ${low.map(r => `${r.key} (${fmtUSD(r.price, 2)}/M on ${gpuName(r.gpu)})`).join(", ")} ${low.length > 1 ? "earn" : "earns"} less than the best open model.` : "") });
   $("why-list").replaceChildren(...F.map(f => h("article", { class: "finding" },
     h("div", { class: "stat", text: f.stat }), h("h3", { text: f.title }), h("p", { text: f.text }))));
+}
+
+/* ================= bitcoin comparison (base assumptions) ================= */
+function btcRows() {
+  if (!FBASE || !(D.btc_network || []).length || !(D.mining_hw || []).length) return null;
+  return (D.mining_hw).map(dev => ENGINE.mining(dev, FBASE, PBASE));
+}
+function renderBitcoin() {
+  const ms = btcRows();
+  if (!ms) { $("bitcoin").hidden = true; return; }
+  const n = D.btc_network[0], g0 = CFG.profit_ranking_open_gpu;
+  const base = CASES.filter(c => c.kind === "base").map(c => ENGINE.evaluate(c, BASE));
+  const tokFor = g => { const r = base.filter(x => x.c.gpu === g && isFinite(x.rev)); return { med: ENGINE.median(r.map(x => x.rev)), max: Math.max(...r.map(x => x.rev)), best: r.reduce((a, b) => b.rev > a.rev ? b : a, r[0]) }; };
+  const gpuM = ms.filter(m => m.dev.kind === "gpu"), asic = ms.find(m => m.dev.device === (CFG.bitcoin || {}).reference_asic) || ms.find(m => m.dev.kind === "asic");
+  const mB = gpuM.find(m => m.dev.device === g0) || gpuM[0], tB = tokFor(mB.dev.device);
+  const ep = ENGINE.elecPrice(PBASE.region);
+  const hashprice = ENGINE.btcPerHour(1000) * 24 * n.price;   // $ per PH/s per day
+  $("btc-lede").textContent = `A GPU can also mine bitcoin. At today's price and difficulty, a ${mB.dev.label} would earn ${fmtUSD(mB.rev, 6)} an hour mining, ` +
+    `about ${fmtCompact(Math.round(tB.med / mB.rev))} times less than it earns serving a typical open model (${fmtUSD(tB.med)}), and it would burn ${fmtUSD(mB.power)} of electricity doing it. ` +
+    `Bitcoin is mined by purpose-built chips (ASICs) that hash about ${fmtCompact(Math.round(mB.jPerTh / asic.jPerTh))} times more efficiently than a GPU.`;
+  const kp = [
+    ["Bitcoin price", fmtUSD(n.price, 0), `mempool.space, ${fmtDate(n.date)}`],
+    ["Network difficulty", `${nf(1).format(n.difficulty / 1e12)} T`, `${fmtInt(n.ehs)} EH/s of hashing worldwide`],
+    ["Reward per block", `${nf(4).format(n.subsidy + n.fees)} BTC`, `${n.subsidy} subsidy + ${nf(4).format(n.fees)} fees (last ${n.window} blocks)`],
+    ["Hashprice", `${fmtUSD(hashprice, 2)}`, "per PH/s per day"],
+    [`${mB.dev.label} mining`, `${fmtUSD(mB.rev, 6)}/h`, `vs ${fmtUSD(mB.power)}/h of electricity`],
+    [`${mB.dev.label} serving tokens`, `${fmtUSD(tB.med)}/h`, "median open model, base assumptions"],
+  ];
+  $("btc-kpis").replaceChildren(...kp.map(([k, v, d]) => h("div", { class: "kpi" }, h("span", { class: "k", text: k }), h("span", { class: "v", text: v }), h("span", { class: "d", text: d }))));
+  // chart: revenue per kWh, log scale
+  const items = [];
+  for (const m of gpuM) {
+    const t = tokFor(m.dev.device), kwhT = ENGINE.kwhPerHour(m.dev.device, PBASE);
+    items.push({ lab: `${m.dev.label} serving tokens (best open model: ${t.best.c.m.key})`, v: t.max / kwhT, cls: "f-" + m.dev.device, kind: "tok" });
+    items.push({ lab: `${m.dev.label} serving tokens (median open model)`, v: t.med / kwhT, cls: "f-" + m.dev.device, kind: "tok" });
+  }
+  items.push({ lab: `${asic.dev.label} mining bitcoin`, v: asic.revPerKwh, cls: "", kind: "asic" });
+  for (const m of gpuM) items.push({ lab: `${m.dev.label} mining bitcoin`, v: m.revPerKwh, cls: "", kind: "gpu-btc" });
+  items.sort((a, b) => b.v - a.v);
+  $("btc-sub").textContent = `Dollars earned per kWh the device and its building draw (PUE ${PBASE.pue}). Log scale. The dashed line is what that kWh costs: ${nf(1).format(ep * 100)}¢ (${(D.electricity.find(x => x.region === PBASE.region) || {}).label}).`;
+  $("btc-legend").replaceChildren(
+    h("span", {}, h("i", { class: "bg-" + g0 }), "GPU serving tokens"),
+    h("span", {}, h("i", { style: "background:var(--ink)" }), "Bitcoin ASIC mining"),
+    h("span", {}, h("i", { style: "background:var(--muted)" }), "GPU mining bitcoin"),
+    h("span", {}, h("i", { class: "line", style: "border-top:2px dashed var(--bad);background:none" }), "cost of 1 kWh"));
+  const el = $("chart-btc"), W = widthOf(el), narrow = W < 560;
+  const L = narrow ? 4 : 330, R = 70, top = 8, rowH = narrow ? 36 : 26, barH = 14;
+  const H = top + items.length * rowH + 28;
+  const vals = [...items.map(i => i.v), ep].filter(v => v > 0);
+  const lo = Math.pow(10, Math.floor(Math.log10(Math.min(...vals)))), hi = Math.pow(10, Math.ceil(Math.log10(Math.max(...vals))));
+  const x = v => L + (Math.log10(v) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo)) * (W - L - R);
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Revenue per kWh: tokens vs bitcoin mining" });
+  const ax = s("g", { class: "ax" }, svg);
+  for (let e = Math.log10(lo); e <= Math.log10(hi) + 1e-9; e++) {
+    if (narrow && (e - Math.log10(lo)) % 2) continue;
+    const t = Math.pow(10, e);
+    s("line", { x1: x(t), x2: x(t), y1: top, y2: H - 22 }, ax);
+    const sup = String(e).replace("-", "⁻").replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[d]);
+    st(ax, x(t), H - 8, t >= 1 ? fmtUSD(t, 0) : t >= 0.01 ? fmtUSD(t, 2) : `$10${sup}`, { "text-anchor": "middle" });
+  }
+  items.forEach((it, i) => {
+    const y0 = top + i * rowH, cy = narrow ? y0 + rowH - barH / 2 - 4 : y0 + rowH / 2;
+    st(svg, narrow ? L : L - 10, narrow ? y0 + 12 : cy + 4, it.lab, { "text-anchor": narrow ? "start" : "end", class: it.kind === "tok" ? "lab-ink" : "lab-strong" });
+    s("rect", { x: L, y: cy - barH / 2, width: Math.max(1, x(it.v) - L), height: barH, rx: 2, class: it.cls || null,
+      style: it.kind === "asic" ? "fill:var(--ink)" : it.kind === "gpu-btc" ? "fill:var(--muted)" : null }, svg);
+    st(svg, x(it.v) + 6, cy + 4, it.v >= 0.01 ? fmtUSD(it.v, 2) : fmtUSD(it.v, 6), { class: "lab-ink" });
+    const hit = s("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit", tabindex: 0 }, svg);
+    bindTip(hit, () => [it.lab, [["revenue per kWh", fmtUSD(it.v, it.v >= 0.01 ? 3 : 7)], ["electricity per kWh", fmtUSD(ep, 3)], ["revenue ÷ power cost", fmtX(it.v / ep, it.v / ep >= 10 ? 0 : 2)]]]);
+  });
+  s("line", { x1: x(ep), x2: x(ep), y1: top - 4, y2: H - 22, style: "stroke:var(--bad);stroke-width:1.5;stroke-dasharray:4 3" }, svg);
+  el.replaceChildren(svg);
+  // table
+  const cols = ["Device", "SHA-256d hash rate", "J per TH", "BTC per day", "Mining $/h", "Electricity $/h", "Mining − electricity", "Full cost $/h", "Mining profit $/h", "Tokens $/h (median open)", "Tokens ÷ mining", "Source"];
+  $("btc-table").replaceChildren(h("thead", {}, h("tr", {}, ...cols.map((c, i) => h("th", { class: i > 0 && i < cols.length - 1 ? "n" : null, text: c })))),
+    h("tbody", {}, ...ms.map(m => { const t = m.dev.kind === "gpu" ? tokFor(m.dev.device) : null;
+      const hr = m.dev.ths >= 1 ? `${fmtInt(m.dev.ths)} TH/s` : `${nf(2).format(m.dev.ths * 1000)} GH/s`;
+      return h("tr", {}, h("td", { text: `${m.dev.label}${m.dev.estimate ? " (est.)" : ""}` }), h("td", { class: "n", text: hr }),
+        h("td", { class: "n", text: fmtInt(m.jPerTh) }), h("td", { class: "n", text: m.btcDay < 1e-4 ? m.btcDay.toExponential(2) : nf(5).format(m.btcDay) }),
+        h("td", { class: "n", text: fmtUSD(m.rev, m.rev < 0.01 ? 6 : 2) }), h("td", { class: "n", text: fmtUSD(m.power) }), h("td", { class: "n", text: fmtUSD(m.margin) }),
+        h("td", { class: "n", text: m.full != null ? fmtUSD(m.full) : "–" }), h("td", { class: "n", text: m.profit != null ? fmtUSD(m.profit) : "–" }),
+        h("td", { class: "n", text: t ? fmtUSD(t.med) : "–" }), h("td", { class: "n", text: t ? fmtX(t.med / m.rev, 0) : "–" }),
+        h("td", {}, link(m.dev.url, "source ↗"))); })));
+  $("btc-formula").textContent =
+`BTC per hour   = hash rate (TH/s) × 10^12 ÷ (difficulty × 2^32) × 3,600 × (block subsidy + fees per block)
+               = ${nf(2).format(mB.dev.ths * 1000)} GH/s × 10^12 ÷ (${n.difficulty.toExponential(4)} × 2^32) × 3,600 × ${nf(4).format(n.subsidy + n.fees)} BTC
+revenue / hour = BTC per hour × ${fmtUSD(n.price, 0)} = ${fmtUSD(mB.rev, 6)}  (${mB.dev.label})
+electricity    = ${nf(2).format(mB.kw)} kW all-in × PUE ${PBASE.pue} × ${fmtUSD(ep, 3)}/kWh = ${fmtUSD(mB.power)}  (mining runs flat out)`;
+  $("btc-notes").replaceChildren(...[
+    ["Why the network math works.", " Every ~10 minutes one miner wins the block reward. A device's expected share is its hash rate divided by the whole network's, which the difficulty encodes: on average difficulty × 2³² hashes are needed per block."],
+    ["GPU hash rates are estimates.", ` Nobody mines bitcoin on data-centre GPUs, so there is no mining benchmark. The H100 figure is half its measured hashcat SHA-256 speed (bitcoin hashes twice); the B200 is scaled from it by compute. Even a 10× error would not change the conclusion.`],
+    ["ASICs set the price of hashing.", ` The network's ${fmtInt(n.ehs)} EH/s comes almost entirely from ASICs like the ${asic.dev.label} (${nf(1).format(asic.jPerTh)} J/TH). At ${nf(1).format(ep * 100)}¢/kWh it earns ${fmtUSD(asic.rev)} an hour against ${fmtUSD(asic.power)} of power: ${asic.margin >= 0 ? "a thin margin before paying for the machine" : "a loss even before paying for the machine"}.`],
+    ["The same kWh is worth far more as tokens.", ` A kWh through a ${mB.dev.label} serving a median open model earns ${fmtUSD(tB.med / ENGINE.kwhPerHour(mB.dev.device, PBASE), 2)}; through the ASIC mining bitcoin, ${fmtUSD(asic.revPerKwh, 3)}. That gap is why bitcoin miners with cheap power and sites have been converting to AI hosting.`],
+    ["Price and difficulty move daily.", ` Network data is refreshed every day from mempool.space; fees are the average over the last ${n.window} blocks.`],
+  ].map(([b, t]) => h("li", {}, h("strong", { text: b }), t)));
 }
 
 /* ================= money flow (spark-spread style) ================= */
@@ -2118,7 +2301,7 @@ function renderFlow() {
       h("td", { class: "mono", text: `per ${gpuName(flowState.gpu)}-hour, whether the GPU is busy or idle` }), h("td", {}, h("a", { href: "#firm-sources", text: "sources ↓" }))));
   $("flow-costs").replaceChildren(h("thead", {}, h("tr", {}, ...["Input", "$/GPU-hour", "Share", "How it is calculated", "Based on"].map((t, i) => h("th", { class: i === 1 || i === 2 ? "n" : null, text: t })))), tb);
   const perM = x => fmtUSD(x / mtok, 3);
-  $("flow-note").textContent = `Per million tokens: sold for ${fmtUSD(r.price, 3)}; electricity ${perM(c.power)} (the "clean spark" view, price minus fuel: ${perM(r.price * mtok - c.power)}); total input cost ${perM(cost)}. ` +
+  $("flow-note").textContent = `Per million tokens: sold for ${fmtUSD(r.price, 3)}; electricity ${perM(c.power)} (the spark-spread view, price minus fuel: ${perM(r.price * mtok - c.power)}); total input cost ${perM(cost)}. ` +
     `Assumes the owner also serves the tokens (at ${fmtPct(state.util)} utilization and the dashboard settings). Renting the GPU out instead earns rent × hours rented; see Who makes the money.` +
     (r.est ? ` ${r.key} is closed, so its throughput is an assumption: as many tokens per second as ${r.proxy} on ${gpuName(flowState.gpu)} (the lab's real hardware: ${r.hardware}).` : "");
 }
@@ -2395,7 +2578,7 @@ function renderClosed() {
     ["Rented NVIDIA GPUs are a yardstick here, not these labs' costs.", " Closed labs also run on TPUs, Trainium and their own clusters, at owner cost rather than neocloud rent."],
     ["Cached input is much cheaper.", cacheRatios.length ? ` These models bill cached input at ${fmtPct(Math.min(...cacheRatios))}–${fmtPct(Math.max(...cacheRatios))} of the input price. Agentic traffic with high cache-hit rates pays far less than the uncached list prices used here.` : " Agentic traffic with high cache-hit rates pays far less than list prices."],
     ["Reasoning tokens bill as output.", " Thinking models generate hidden tokens charged at the output price. That raises revenue per request, not per token, so the threshold is unchanged."],
-    ["Batch and flex tiers are about half price,", " and priority tiers cost 2–6× more. Endpoint tiers appear as whiskers; batch variants are excluded."],
+    ["Flex tiers are half price;", " regional endpoints on Bedrock, Vertex and Azure add about 10%, priority and \"fast\" tiers cost about 2×, and OpenAI's \"ultrafast\" tier more. Endpoint tiers appear as whiskers; batch variants are excluded."],
     ["Why some open models are price-only.", " InferenceX has tested them only on agentic workloads, where most input is re-read from cache and the mix is around 100 input tokens per output token. Revenue there depends on cached-input prices, so those runs aren't comparable with the fixed-length tests used for the spread."],
   ];
   $("closed-notes").replaceChildren(...notes.map(([b, t2]) => h("li", {}, h("strong", { text: b }), t2)));
@@ -2404,7 +2587,7 @@ function renderClosed() {
 /* ================= method tables ================= */
 function renderMethodTables() {
   const rows = [
-    ["Input:output ratio", `${CFG.io_ratio_base}:1`, "Typical chat and coding traffic is input-heavy. Sensitivity runs 1:1 to 10:1."],
+    ["Input:output ratio", `${CFG.io_ratio_base}:1`, "OpenRouter: ~7:1 for human traffic, ~15:1 per request on average; 8:1 is a measured benchmark point. Sensitivity runs 1:1 to 10:1."],
     ["Utilization", fmtPct(CFG.utilization_base), "Share of paid hours spent serving at the operating point. Sensitivity runs 30–80%."],
     ["Speed floor", `${CFG.interactivity_floor_tok_s_per_user} tok/s per user`, "Roughly the slowest stream a paying API customer accepts. The point with no floor is shown as an upper bound."],
     ["Price statistic", CFG.price_statistic, "Median across OpenRouter providers; the cheapest and priciest give the range."],
@@ -2414,12 +2597,12 @@ function renderMethodTables() {
     ...(CFG.power ? [
       ["Electricity price", (D.electricity || []).find(x => x.region === CFG.power.base_region)?.label || CFG.power.base_region, "Most rented GPU capacity is in the US; industrial is the tariff class closest to a large data centre. Other regions are in the Electricity section."],
       ["PUE", String(CFG.power.pue_base), "Between SemiAnalysis's 1.2 for AI facilities and the Uptime Institute's global average just above 1.5."],
-      ["Average power draw", fmtPct(CFG.power.load_factor) + " of all-in", "Full load every hour: conservative, since measured GPU draw is lower and idle GPUs still draw some power."],
+      ["Average power draw", fmtPct(CFG.power.load_factor) + " of all-in", "Measured GPU draw at the benchmark points is 60–72% of the chip rating; host parts draw near-constant power. 100% is the upper bound."],
     ] : []),
     ...(RF ? [
       ["Hardware price per GPU", GPUS.map(g => `${gpuName(g)} $${nf(0).format(RF.capex_usd_per_gpu[g])}`).join(", "), "Typical 8-GPU server price ÷ 8 (Mercatus estimates; NVIDIA publishes no list price)."],
       ["Depreciation", `${RF.depreciation_years} years, straight line`, "CoreWeave's accounting life for GPU equipment; peers use 4–5."],
-      ["Cost of capital", fmtPct(RF.cost_of_capital), "Between CoreWeave's 5.9% investment-grade debt (2026) and ~15% on early GPU-backed loans."],
+      ["Cost of capital", fmtPct(RF.cost_of_capital), "CoreWeave's 2026 debt: 5.9% secured investment-grade, 8.5–9.6% unsecured notes; early GPU-backed loans ~15%."],
       ["Data-centre space", `$${RF.colocation_usd_per_kw_month} per kW-month`, "CBRE H2 2025 wholesale average, 250–500 kW, primary North American markets."],
       ["Operations", `$${nf(2).format(RF.ops_usd_per_gpu_hour)} per GPU-hour`, "Staff, maintenance and support (Mercatus estimate)."],
       ["Hours rented out", fmtPct(RF.occupancy_base), "Assumption. Fleets on multi-year contracts run higher, spot fleets lower."],
@@ -2461,6 +2644,12 @@ const DATASETS = [
   { id: "firm", label: "Rental-firm inputs", file: "data/rental_firm_sources.csv", rows: () => D.firm_sources || [],
     desc: "Every published figure behind the rental-firm model: server prices, depreciation life, cost of capital, data-centre rent, operations, occupancy, and CoreWeave's Q2 2026 results as a reality check.",
     cols: [["item", "item"], ["gpu", "GPU"], ["value", "value", "n"], ["unit", "unit"], ["low", "low", "n"], ["high", "high", "n"], ["used", "used in model"], ["estimate", "estimate"], ["notes", "notes"], ["url", "source", "url"]] },
+  { id: "btc", label: "Bitcoin network", file: "data/bitcoin_network.csv", rows: () => D.btc_network || [],
+    desc: "Bitcoin price, current difficulty and network hash rate, and the average block reward (halving-schedule subsidy plus fees over the last day of blocks), from mempool.space.",
+    cols: [["price", "BTC/USD", "n"], ["difficulty", "difficulty", "n"], ["ehs", "hash rate EH/s", "n"], ["subsidy", "subsidy BTC", "n"], ["fees", "fees/block BTC", "n"], ["window", "blocks", "n"], ["height", "tip height", "n"], ["date", "retrieved"], ["notes", "notes"], ["url", "source", "url"]] },
+  { id: "mining", label: "Mining hardware", file: "data/mining_hardware.csv", rows: () => D.mining_hw || [],
+    desc: "SHA-256d hash rates used for the bitcoin comparison. GPU rates are estimates from hashcat benchmarks; GPU power comes from the all-in kW in GPU power and cost.",
+    cols: [["device", "device"], ["label", "label"], ["kind", "kind"], ["ths", "TH/s", "n"], ["kw", "power kW", "n"], ["estimate", "estimate"], ["date", "retrieved"], ["notes", "notes"], ["url", "source", "url"]] },
   { id: "rental", label: "GPU rental", file: "data/gpu_rental.csv", rows: () => D.rental,
     desc: "Rental and cost series per GPU. Silicon Data values are scraped from the public index pages; InferenceX values are SemiAnalysis model assumptions (estimate = true).",
     cols: [["gpu", "GPU"], ["series", "series"], ["price", "$/GPU-hour", "n"], ["method", "method"], ["estimate", "estimate"], ["date", "retrieved"], ["notes", "notes"], ["url", "source", "url"]] },
@@ -2580,6 +2769,7 @@ function renderGaps() {
     const measured = CASES.filter(c => c.kind === "base").filter(c => isFinite(ENGINE.measuredPower(ENGINE.evaluate(c, BASE).tf))).length;
     out.push(["Measured power:", ` ${measured} of ${CASES.filter(c => c.kind === "base").length} base cases have measured GPU power (newer InferenceX runs only). Electricity cost always uses the all-in nameplate figure.`]);
   }
+  for (const c of (CFG.closed_models || []).filter(c => c.price_note)) out.push([`${c.key}:`, ` ${c.price_note}. The page uses today's price and will follow the change automatically.`]);
   if (CFG.closed_infrastructure) out.push(["Closed-model profit:", " the ranking's closed-model rows assume each lab's hardware and borrow the throughput of an open model of similar size. Labs don't publish either, so these are illustrative upper bounds, not measurements."]);
   if (RF) out.push(["Rental-firm model:", " server prices are vendor estimates and the firm model is generic: real fleets mix contract and on-demand prices, and sales, R&D and corporate costs are left out."]);
   if (nPts) out.push(["Sweep edges:", ` ${edge} of ${nPts} chosen benchmark points are the last point of their concurrency sweep and still well above the speed floor. The test stopped early, so throughput there is a lower bound.`]);
@@ -2600,7 +2790,7 @@ function update() {
   raf = requestAnimationFrame(() => {
     computeAll();
     renderControls(); renderSpreadChart(); renderResultsTable(); renderAudit(); renderRelChart(); renderTimeseries();
-    renderRanking(); renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed();
+    renderRanking(); renderBitcoin(); renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed();
     if (ds.id === "results") renderData();
   });
 }
@@ -2608,7 +2798,7 @@ function boot() {
   renderStatic(); renderMethodTables(); renderGaps();
   computeAll();
   renderControls(); renderSpreadChart(); renderResultsTable(); renderAudit(); renderRelChart(); renderTimeseries();
-  renderRanking(); renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed(); renderData();
+  renderRanking(); renderBitcoin(); renderPower(); renderFirm(); renderFlow(); renderExplorerControls(); renderFrontier(); renderHeatmaps(); renderProviders(); renderClosed(); renderData();
   let lastW = 0;
   new ResizeObserver(() => { const w = document.body.clientWidth; if (Math.abs(w - lastW) > 8) { lastW = w; update(); } }).observe(document.body);
 }

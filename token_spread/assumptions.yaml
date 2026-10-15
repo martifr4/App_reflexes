@@ -97,8 +97,12 @@ utilization_sensitivity: [0.30, 0.40, 0.50, 0.60, 0.70, 0.80]
 # Benchmarks only measure 1:1 (1k/1k) and 8:1 (8k/1k) [and 1:8].
 # Other ratios: throughput is interpolated linearly in log(ratio) between the
 # measured points and held flat beyond them — those rows are estimate=true.
-io_ratio_base: 3
-io_ratio_sensitivity: [1, 3, 10]
+# Base 8:1 (changed from 3:1, 2026-10-14): OpenRouter reports ~12% output tokens in
+# human (non-agent) traffic (~7:1; "Cache is Crucial", 8 Oct 2026) and ~6K prompt vs
+# ~400 completion tokens per request (~15:1; State of AI, Dec 2025). Agent traffic is
+# ~100:1 with ~90% cached prompt tokens, which this model does not price (see README).
+io_ratio_base: 8
+io_ratio_sensitivity: [1, 3, 8, 10]
 
 # --- Prices ------------------------------------------------------------------
 # How to collapse many OpenRouter providers into one price for the headline.
@@ -124,9 +128,15 @@ closed_models:
   - {key: gpt-6-astra,       openrouter_id: openai/gpt-6-astra,          lab: OpenAI,    tier: frontier}
   - {key: gpt-6.1-sol,       openrouter_id: openai/gpt-6.1-sol,          lab: OpenAI,    tier: mid}
   - {key: gpt-6-luna,        openrouter_id: openai/gpt-6-luna,           lab: OpenAI,    tier: small}
-  - {key: grok-4.7,          openrouter_id: x-ai/grok-4.7,               lab: xAI,       tier: large}
+  - {key: grok-4.7,          openrouter_id: x-ai/grok-4.7,               lab: xAI,       tier: frontier}  # Musk-stated ~2.1T params; output speed close to Opus/Fable
   - {key: grok-build-0.1,    openrouter_id: x-ai/grok-build-0.1,         lab: xAI,       tier: mid}
+  - {key: gemini-4-argon,        openrouter_id: google/gemini-4-argon,        lab: Google, tier: frontier,  # Google's flagship (Oct 2026)
+     price_note: "introductory price: $4 input / $20 output per million from 1 Dec 2026 (Google AI pricing page)"}
+  - {key: gemini-3.8-flash,      openrouter_id: google/gemini-3.8-flash,      lab: Google, tier: mid,
+     price_note: "introductory price: $1.50 input / $7.50 output per million from 1 Jan 2027 (Google AI pricing page)"}
+  - {key: gemini-3.5-flash-lite, openrouter_id: google/gemini-3.5-flash-lite, lab: Google, tier: small}
   - {key: muse-wonder,       openrouter_id: meta/muse-wonder,            lab: Meta,      tier: frontier}  # Meta's newest (Oct 2026); no InferenceX benchmark for any Muse model
+  - {key: muse-spark-1.3,    openrouter_id: meta/muse-spark-1.3,         lab: Meta,      tier: mid}
 
 # --- Closed models: estimated profit (ranking at the top of the website) ------
 # A rough, clearly-labelled estimate so closed models can sit in the same ranking
@@ -139,14 +149,16 @@ closed_models:
 #             that GPU (at the proxy's base precision, same speed floor).
 # Estimated profit = proxy tokens/hour x closed list price - full cost of owning the GPU.
 closed_infrastructure:
-  Anthropic: {gpu: b200, hardware: "AWS Trainium2 (plus Google TPUs), modelled as B200-class",
+  Anthropic: {gpu: b200, hardware: "AWS Trainium2, Google TPUs and NVIDIA GPUs (incl. xAI's former Colossus 1 since May 2026), modelled as B200-class",
               source_url: "https://www.anthropic.com/news/anthropic-amazon-compute"}
   OpenAI:    {gpu: b200, hardware: "NVIDIA GB200 (Stargate, Oracle and Azure)",
-              source_url: "https://intuitionlabs.ai/articles/openai-stargate-datacenter-details"}
+              source_url: "https://www.tomshardware.com/tech-industry/oracle-and-openai-scrap-planned-600mw-abilene-expansion"}
+  Google:    {gpu: b200, hardware: "Google TPUs (Ironwood-class), modelled as B200-class",
+              source_url: "https://cloud.google.com/blog/products/compute/ironwood-tpus-and-new-axion-based-vms-for-your-ai-workloads"}
   Meta:      {gpu: b200, hardware: "NVIDIA GB300 (Blackwell), modelled as B200",
               source_url: "https://investor.nvidia.com/news/press-release-details/2026/Meta-Builds-AI-Infrastructure-With-NVIDIA/default.aspx"}
-  xAI:       {gpu: h100, hardware: "NVIDIA H100/H200 (Colossus 1), modelled as H100",
-              source_url: "https://www.tomshardware.com/tech-industry/artificial-intelligence/elon-musk-says-xai-is-targeting-50-million-h100-equivalent-ai-gpus-in-five-years-230k-gpus-including-30k-gb200s-already-reportedly-operational-for-training-grok"}
+  xAI:       {gpu: b200, hardware: "NVIDIA GB200/GB300 (Colossus 2; Colossus 1 went to Anthropic in May 2026), modelled as B200",
+              source_url: "https://www.eenewseurope.com/en/anthropic-compute-deal-spacexai-colossus-1/"}
 # Open-weight models are ranked on this GPU (every benchmarked model has it).
 profit_ranking_open_gpu: b200
 # Proxy (benchmarked open model) by size tier. A model's own `proxy` key overrides this.
@@ -166,6 +178,7 @@ price_only_open_models:
   - {key: glm-5.2,             openrouter_id: z-ai/glm-5.2,                 lab: Zhipu,    tier: open, reason: agentic benchmarks only}
   - {key: qwen3.8-flash-next,  openrouter_id: qwen/qwen3.8-flash,           lab: Qwen,     tier: open, reason: agentic benchmarks only}
   - {key: qwen3.8-27b,         openrouter_id: qwen/qwen3.8-27b,             lab: Qwen,     tier: open, reason: no benchmark runs yet}
+  - {key: muse-glimmer-30b,    openrouter_id: meta/muse-glimmer-30b,        lab: Meta,     tier: open, reason: no InferenceX benchmark}
 
 # --- Electricity (power price -> GPU-hour cost -> rent -> tokens) -------------
 # power_cost_per_gpu_hour = allin_kw x load_factor x PUE x price_per_kWh
@@ -174,12 +187,15 @@ price_only_open_models:
 #   PUE        facility overhead (cooling, power conversion). SemiAnalysis uses 1.2
 #              for AI facilities; Uptime Institute's 2025 survey puts the global
 #              average just above 1.5. 1.3 is an assumption between the two.
-#   load_factor share of all-in nameplate power drawn on average. 1.0 = full load
-#              every hour (conservative upper bound; idle GPUs still draw power).
+#   load_factor share of all-in nameplate power drawn on average. 0.8 (changed from
+#              1.0 on 2026-10-14): InferenceX measured GPU draw at the benchmark points
+#              is a median 60% (H100) and 72% (B200) of TDP, while host CPUs, memory and
+#              NICs draw closer to constant; idle GPUs still draw ~20-30% of TDP.
+#              1.0 (full nameplate every hour) remains the upper bound on the slider.
 power:
   pue_base: 1.3
-  pue_sensitivity: [1.1, 1.2, 1.3, 1.4, 1.5, 1.6]
-  load_factor: 1.0
+  pue_sensitivity: [1.1, 1.15, 1.2, 1.3, 1.4, 1.5, 1.6]
+  load_factor: 0.8
   base_region: us_industrial
   eurostat_band: MWH70000-149999   # 70-150 GWh/yr non-household band, excl. VAT
   regions:
@@ -215,8 +231,20 @@ rental_firm:
   capex_usd_per_gpu: {h100: 35625, b200: 56250}   # 8-GPU HGX server / 8 (Mercatus: $285k, $450k typical)
   depreciation_years: 6                           # CoreWeave's useful life for GPU equipment
   depreciation_sensitivity: [4, 5, 6]
-  cost_of_capital: 0.09                           # between CoreWeave's 5.9% IG tranche (2026) and ~15% early facilities
+  cost_of_capital: 0.10                           # was 0.09; CoreWeave's unsecured notes priced at 9.625% (USD) / 8.5% (EUR) in Jun 2026, secured IG debt 5.9%, early loans ~15%
   colocation_usd_per_kw_month: 196.25             # CBRE H2 2025, 250-500 kW primary markets
   ops_usd_per_gpu_hour: 0.10                      # Mercatus: ~$0.80 per 8-GPU server-hour
   occupancy_base: 0.80                            # assumption; long-term contracts run higher, spot fleets lower
   occupancy_sensitivity: [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+
+# --- Bitcoin mining comparison ---------------------------------------------------
+# What the same GPU would earn mining bitcoin, for perspective.
+#   expected BTC per hour = hashrate / (difficulty x 2^32) x 3600 x (subsidy + fees per block)
+#   revenue per hour      = BTC per hour x BTC price
+# Network data: data/bitcoin_network.csv (mempool.space, daily). Device hash rates:
+# data/mining_hardware.csv (sourced; GPU rates are SHA-256d estimates from hashcat).
+# Mining runs flat out, so mining power uses all-in kW at full load (no load factor) x PUE.
+# An ASIC's power_kw is its wall power; GPUs use gpu_power.csv all-in kW.
+bitcoin:
+  fee_window_blocks: 144            # ~1 day of blocks for the average fee
+  reference_asic: antminer_s23

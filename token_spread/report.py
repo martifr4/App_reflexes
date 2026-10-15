@@ -363,7 +363,7 @@ def build():
         lo = cb.iloc[-1]
         closed_md = f"""## 6. Price-only models: breakeven throughput and price comparison
 
-Closed models (Claude, GPT, Grok, Meta Muse) publish prices but not their hardware or throughput, and some
+Closed models (Claude, GPT, Grok, Gemini, Meta Muse) publish prices but not their hardware or throughput, and some
 open-weight models have no comparable benchmark yet (only agentic traces, or no runs). No
 spread is computed for them. Instead: how many tokens/s per GPU would a model need for its
 **list price** to cover the GPU's rent at {cfg['utilization_base']:.0%} utilization?
@@ -671,22 +671,26 @@ Full table: `outputs/provider_spread.csv`.
 - **Throughput dominates.** The interactivity floor alone moves results by up to several ×
   (compare `tok/s/GPU` with `(max)`). Benchmarks use random tokens and fixed lengths, with no
   prefix-cache hits, no traffic burstiness and no long-context tail.
-- **3:1 and 10:1 ratios are not measured.** InferenceX measures 1k/1k (1:1) and 8k/1k (8:1).
+- **Only 1:1 and 8:1 are measured.** InferenceX measures 1k/1k (1:1) and 8k/1k (8:1).
   3:1 is log-interpolated and 10:1 is held at 8:1. The 1:1 and 8:1 points can come from
   different dates and software versions.
+- **Cached input is not priced.** Agent traffic is ~100:1 input:output with ~90% of prompt
+  tokens served from cache at a discount (OpenRouter, Oct 2026), and caching also speeds up the
+  GPU. Neither effect is modelled.
 - **Configurations differ across GPUs.** The best point may use speculative decoding (MTP) on
   one GPU and not the other, and some points (e.g. DeepSeek-R1 on H100) need multi-node
   disaggregated serving. These are the best published configurations, not matched ones.
 - **Prices are list prices.** OpenRouter shows public per-token prices only, without volume
   deals, batch discounts or cache-hit pricing. Precision is not matched per provider: the
   median is across all providers, and an fp4 provider counts the same as a bf16 one.
-- **Rental is neocloud on-demand.** Silicon Data's public page shows two different readings
+- **Rental is a standardized index.** Silicon Data's index (mainly neoclouds, normalised for
+  terms) is not a term-contract quote. Its public page shows two different readings
   (FAQ vs widget; both are recorded). Term contracts and hyperscalers price differently.
   InferenceX's owner-TCO figures (H100 {money(rd.loc['h100'].get('inferencex_owner_tco'))},
   B200 {money(rd.loc['b200'].get('inferencex_owner_tco'))}) are a floor for what serving
   costs an owner-operator.
 - **Electricity is modelled, not metered.** Power cost uses SemiAnalysis all-in kW per GPU at
-  full load, an assumed PUE and average published tariffs. Large operators buy power through
+  an assumed average draw ({cfg['power']['load_factor']:.0%} of all-in), an assumed PUE and average published tariffs. Large operators buy power through
   contracts (PPAs) whose prices are not public, and pay demand charges not captured here.
 - **The rental-firm model is generic.** Server prices are vendor estimates (NVIDIA publishes no
   list price), depreciation life and financing cost vary by firm, and real fleets mix contract

@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 import traceback
 
+import fetch_bitcoin
 import fetch_inferencex
 import fetch_openrouter
 import fetch_power
@@ -12,7 +13,8 @@ import fetch_silicondata
 
 # order matters: silicondata merges the GPU costs written by inferencex
 STEPS = [("openrouter", fetch_openrouter), ("inferencex", fetch_inferencex),
-         ("silicondata", fetch_silicondata), ("power", fetch_power)]
+         ("silicondata", fetch_silicondata), ("power", fetch_power),
+         ("bitcoin", fetch_bitcoin)]
 
 
 def main() -> int:

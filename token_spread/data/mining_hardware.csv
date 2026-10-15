@@ -1,0 +1,4 @@
+device,label,kind,sha256d_ths,power_kw,source_url,retrieved_date,estimate,notes
+h100,H100 SXM,gpu,0.00808,,https://gist.github.com/laluka/2ee80e40ad485adc26934109f4ab75ef,2026-10-14,true,"hashcat v6.2.6 mode 1400 (single SHA-256) on 8x H100 80GB HBM3: 16.16 GH/s per GPU. Bitcoin hashes the block header twice (SHA-256d), so mining rate is taken as half: 8.08 GH/s. Power uses the GPU's all-in kW at full load."
+b200,B200,gpu,0.00904,,https://www.spheron.network/blog/nvidia-b200-complete-guide/,2026-10-14,true,"No public SHA-256 benchmark for B200. Scaled from H100 SXM by FP32 throughput (75 vs 67 TFLOPS; integer hashing runs on the same CUDA cores): 8.08 x 75/67 = 9.04 GH/s. Power uses the GPU's all-in kW at full load."
+antminer_s23,Antminer S23 (air),asic,318,3.498,https://miningboard.com/rigs/antminer-s23-318th,2026-10-14,false,"Bitmain's current air-cooled Bitcoin ASIC, shipping since Jan 2026: 318 TH/s at 3,498 W (11 J/TH). Hydro version: 580 TH/s at 9.5 J/TH."
