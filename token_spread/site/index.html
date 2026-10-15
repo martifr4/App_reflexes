@@ -118,6 +118,23 @@ section:first-child { border-top: 0; }
 .verdict .tokens .big { color: var(--s-b200); }
 @media (max-width: 640px) { .verdict { grid-template-columns: 1fr; gap: 1rem; } .verdict .vs { padding: 0; } }
 .rank-panel h3 { font-size: var(--step-2); }
+/* ---------- token factory animation ---------- */
+.factory { margin: 0; position: relative; display: grid; gap: 0.7rem; border: 1px solid var(--rule); border-radius: 10px; padding: 0.9rem 1rem 1rem;
+  background: radial-gradient(120% 90% at 30% 0%, var(--surface) 0%, var(--surface-2) 100%); overflow: hidden; }
+.factory canvas { display: block; width: 100%; height: auto; }
+.factory-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+.factory-steps li { font-size: 0.8rem; color: var(--muted); border-top: 2px solid var(--rule); padding-top: 0.4rem; transition: color .25s, border-color .25s; }
+.factory-steps li b { font-family: var(--font-mono); font-weight: 500; margin-right: 0.3rem; }
+.factory-steps li.on { color: var(--ink); border-color: var(--s-b200); }
+.factory-steps li[data-step="0"].on { border-color: var(--s-h100); }
+.factory-steps li[data-step="1"].on { border-color: var(--ink); }
+.factory figcaption { font-size: var(--step--1); color: var(--ink-2); max-width: 80ch; }
+.factory-live { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.5rem; }
+.factory-live div { display: grid; gap: 0.1rem; }
+.factory-live .k { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-family: var(--font-mono); }
+.factory-live .v { font-family: var(--font-mono); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.factory-toggle { justify-self: end; margin-top: -0.2rem; font: inherit; font-size: 0.75rem; color: var(--ink-2); background: var(--surface); border: 1px solid var(--rule-strong); border-radius: 999px; padding: 0.15rem 0.6rem; cursor: pointer; }
+@media (max-width: 560px) { .factory-steps { grid-template-columns: 1fr; gap: 0.25rem; } .factory-steps li { border-top: 0; border-left: 2px solid var(--rule); padding: 0 0 0 0.5rem; } }
 .why { display: grid; gap: 0.8rem; }
 .why h2 { font-size: var(--step-2); }
 .why .lede { max-width: 68ch; color: var(--ink-2); }
@@ -324,6 +341,17 @@ footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding-block: 1.5
     <p class="lede">A GPU-hour has a market rental price. It also has a value as a factory for tokens:
       run an open-weight model on it, sell the output at public API prices, and see what it earns.
       The gap between those two numbers is the <strong>token spread</strong>.</p>
+    <figure class="factory" id="factory" aria-labelledby="factory-cap">
+      <canvas id="factory-canvas" role="img" aria-label="Animation: electricity and model weights flow into a GPU, its cores multiply, and every user's text grows by one token at the same time."></canvas>
+      <ol class="factory-steps" id="factory-steps">
+        <li data-step="0"><b>1</b> Read the model's weights from memory</li>
+        <li data-step="1"><b>2</b> Multiply them in thousands of cores at once</li>
+        <li data-step="2"><b>3</b> Every user gets one new token</li>
+      </ol>
+      <figcaption id="factory-cap"></figcaption>
+      <div class="factory-live" id="factory-live" aria-live="off"></div>
+      <button class="factory-toggle" id="factory-toggle" type="button" aria-pressed="false">Pause</button>
+    </figure>
     <div class="panel rank-panel" id="rank-panel">
       <div class="panel-head">
         <div>
@@ -2150,6 +2178,241 @@ electricity    = ${nf(2).format(mB.kw)} kW all-in × PUE ${PBASE.pue} × ${fmtUS
   ].map(([b, t]) => h("li", {}, h("strong", { text: b }), t)));
 }
 
+/* ================= token factory animation (hero) ================= */
+// A slowed-down picture of one decode step on a B200, driven by the real benchmark point:
+// weights stream from HBM into the cores, a compute wave sweeps the SM grid, and every
+// user in the batch gets one token. Counters below run at the real rate.
+const FACTORY = (() => {
+  const SENTENCES = [
+    "The capital of Australia is Canberra, not Sydney, which surprises many visitors.",
+    "Here is a Python function that sorts the list and removes every duplicate entry.",
+    "Photosynthesis turns sunlight, water and carbon dioxide into sugar and oxygen.",
+    "Dear team, the quarterly report is attached and the numbers look stronger than expected.",
+    "To fix the bug, check whether the index is smaller than the length of the array.",
+    "A haiku: cold GPU at dawn, a thousand tiny cores wake, words begin to flow.",
+    "The spread is revenue minus rent, so higher throughput means a wider margin.",
+    "Translate to French: the meeting is moved to Thursday afternoon at three.",
+    "Summary: rates held steady, inflation cooled, and markets rallied on the news.",
+    "Step one is to preheat the oven; step two is to whisk the eggs with sugar.",
+  ];
+  const STEP = 2400;           // ms per animated decode step (real steps take ~10-40 ms)
+  let cv, ctx, W = 0, H = 0, dpr = 1, L = {}, col = {}, info = null, running = true, visible = true, reduce = false;
+  let t0 = 0, lastStep = -1, streams = [], sparks = [], tStart = performance.now(), raf = 0;
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function readColors() {
+    col = { ink: css("--ink"), ink2: css("--ink-2"), muted: css("--muted"), rule: css("--rule"), ruleS: css("--rule-strong"),
+            surf: css("--surface"), surf2: css("--surface-2"), tok: css("--s-b200"), mem: css("--s-h100"), pow: css("--c-pow"), good: css("--good") };
+  }
+  function pickCase() {
+    const g = "b200";
+    const rs = CASES.filter(c => c.gpu === g && c.kind === "base").map(c => ENGINE.evaluate(c, BASE)).filter(r => isFinite(r.rev) && r.tf.used.length);
+    if (!rs.length) return null;
+    const r = [...rs].sort((a, b) => a.rev - b.rev)[Math.floor(rs.length / 2)];
+    const users = r.tf.used.reduce((a, u) => a + u.w * u.p.row.conc / (u.p.row.ngpu || 1), 0);
+    const perUser = r.tf.used.reduce((a, u) => a + u.w * u.p.row.intv, 0);
+    const kw = ENGINE.kwhPerHour(g, PBASE), ep = ENGINE.elecPrice(PBASE.region);
+    return { r, g, users, perUser, tps: r.tf.tput, price: r.price, usdPerSec: r.tf.tput * r.price / 1e6,
+             powPerSec: kw * ep / 3600, rentPerSec: r.R.base / 3600 };
+  }
+  function layout() {
+    const box = cv.parentElement.clientWidth - 32;
+    W = Math.max(280, Math.floor(box)); const narrow = W < 640;
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    const TOP = 22;
+    const die = narrow ? Math.min(150, W * 0.46) : Math.min(210, W * 0.2);
+    const hbmW = die * 0.2, hbmH = die * 0.26, dh = die * 0.8;
+    const dy = TOP + 16 + hbmH + 10;
+    const cx = narrow ? W / 2 + 16 : W * 0.34;
+    const chipBottom = dy + dh + 10 + hbmH + 22;
+    L = { narrow, TOP, die, cx, cy: dy + dh / 2, cols: 12, rows: 8, dx: cx - die / 2, dy, dw: die, dh, hbmW, hbmH, chipBottom,
+          px: narrow ? 6 : 18, sx: narrow ? 8 : W * 0.58, sw: narrow ? W - 16 : W * 0.42 - 12, lineH: narrow ? 28 : 30, labW: 46 };
+    L.sy = narrow ? chipBottom + 26 : TOP + 14;
+    L.nLines = narrow ? 6 : Math.max(5, Math.floor((chipBottom - 18 - L.sy) / L.lineH));
+    H = narrow ? L.sy + L.nLines * L.lineH + 26 : chipBottom + 4;
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    L.hbm = [];
+    for (let i = 0; i < 4; i++) {
+      const x = L.dx + (i + 0.5) * (L.dw / 4) - hbmW / 2;
+      L.hbm.push({ x, y: dy - hbmH - 10 }, { x, y: dy + dh + 10 });
+    }
+    while (streams.length < L.nLines) streams.push(newStream(streams.length));
+    streams.length = L.nLines;
+  }
+  function newStream(i) {
+    const sent = SENTENCES[(i * 3 + Math.floor(Math.random() * SENTENCES.length)) % SENTENCES.length];
+    return { words: sent.split(" "), shown: 1 + Math.floor(Math.random() * 4), user: i + 1, fresh: 0 };
+  }
+  const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+  const MONO = () => css("--font-mono") || "monospace";
+  function head(x, y, txt) { ctx.fillStyle = col.muted; ctx.font = "600 10px system-ui, sans-serif"; ctx.fillText(txt.toUpperCase().split("").join(" "), x, y); }
+  function draw(now) {
+    const t = (now - t0) / STEP, step = Math.floor(t), ph = t - step;
+    if (step !== lastStep) { lastStep = step; onStep(); }
+    const phase = ph < 0.36 ? 0 : ph < 0.72 ? 1 : 2;
+    document.querySelectorAll("#factory-steps li").forEach(li => li.classList.toggle("on", +li.dataset.step === phase));
+    ctx.clearRect(0, 0, W, H);
+    ctx.textBaseline = "alphabetic";
+    // column headings tell the story left to right
+    head(L.px, 12, "Electricity");
+    head(L.dx - 6, 12, `GPU · ${gpuName(info.g)}`);
+    head(L.sx, L.narrow ? L.sy - 14 : 12, "Tokens, one line per user");
+    // power line + flowing electricity
+    const py = L.cy, px1 = L.dx - 6;
+    ctx.strokeStyle = col.ruleS; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(L.px + 22, py); ctx.lineTo(px1, py); ctx.stroke();
+    ctx.fillStyle = col.pow; ctx.beginPath();
+    const bx = L.px, by = py - 14;
+    ctx.moveTo(bx + 12, by); ctx.lineTo(bx + 2, by + 16); ctx.lineTo(bx + 10, by + 16); ctx.lineTo(bx + 6, by + 28); ctx.lineTo(bx + 18, by + 10); ctx.lineTo(bx + 10, by + 10); ctx.closePath(); ctx.fill();
+    for (let i = 0; i < 6; i++) {
+      const u = ((now / 900) + i / 6) % 1, x = L.px + 22 + u * (px1 - L.px - 22);
+      ctx.globalAlpha = 0.35 + 0.65 * Math.sin(u * Math.PI);
+      ctx.beginPath(); ctx.arc(x, py, 3, 0, 7); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (!L.narrow) { ctx.fillStyle = col.muted; ctx.font = "11px system-ui, sans-serif"; ctx.fillText(`${nf(2).format(ENGINE.gpuPower(info.g).kw)} kW`, L.px, py + 32); }
+    // HBM stacks
+    const memOn = phase === 0 ? Math.sin(clamp(ph / 0.36) * Math.PI) : 0;
+    for (const m of L.hbm) {
+      ctx.fillStyle = col.surf; ctx.strokeStyle = col.mem; ctx.lineWidth = 1.25;
+      rr(m.x, m.y, L.hbmW, L.hbmH, 3); ctx.fill(); ctx.stroke();
+      ctx.globalAlpha = 0.15 + 0.8 * memOn; ctx.fillStyle = col.mem;
+      for (let k = 0; k < 4; k++) { rr(m.x + 3, m.y + 3 + k * (L.hbmH - 6) / 4, L.hbmW - 6, (L.hbmH - 6) / 4 - 2, 1.5); ctx.fill(); }
+      ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = col.mem; ctx.font = "10px system-ui, sans-serif";
+    ctx.fillText(L.narrow ? "memory (weights)" : "HBM memory · model weights", L.hbm[0].x, L.hbm[0].y - 5);
+    // die with core grid
+    const cw = L.dw / L.cols, ch = L.dh / L.rows;
+    const computing = phase === 1, wave = computing ? ease(clamp((ph - 0.36) / 0.36)) : -1;
+    ctx.save();
+    if (computing) { ctx.shadowColor = col.tok; ctx.shadowBlur = 18 * Math.sin(clamp((ph - 0.36) / 0.36) * Math.PI); }
+    ctx.fillStyle = col.surf2; ctx.strokeStyle = col.ink; ctx.lineWidth = 1.5;
+    rr(L.dx - 6, L.dy - 6, L.dw + 12, L.dh + 12, 6); ctx.fill(); ctx.stroke();
+    ctx.restore();
+    for (let i = 0; i < L.cols; i++) for (let j = 0; j < L.rows; j++) {
+      const d = (i / (L.cols - 1) + j / (L.rows - 1)) / 2;             // 0 top-left .. 1 bottom-right
+      const x = L.dx + i * cw + 1.5, y = L.dy + j * ch + 1.5;
+      ctx.fillStyle = col.surf; rr(x, y, cw - 3, ch - 3, 1.5); ctx.fill();
+      let blue = 0, hot = 0;
+      if (phase === 0) blue = clamp(clamp(ph / 0.36) * 1.6 - (1 - d) * 0.6);       // weights arrive
+      if (computing) { const w = wave * 1.4 - 0.2; hot = Math.max(0, 1 - Math.abs(d - w) * 4.5); blue = d > w ? 1 : 0; }
+      if (blue > 0) { ctx.globalAlpha = 0.45 * blue; ctx.fillStyle = col.mem; rr(x, y, cw - 3, ch - 3, 1.5); ctx.fill(); }
+      if (hot > 0) { ctx.globalAlpha = hot; ctx.fillStyle = col.tok; rr(x, y, cw - 3, ch - 3, 1.5); ctx.fill(); }
+      ctx.globalAlpha = 1;
+    }
+    if (computing && !L.narrow) {
+      ctx.fillStyle = col.ink; ctx.font = `600 11px ${MONO()}`;
+      ctx.globalAlpha = Math.sin(clamp((ph - 0.36) / 0.36) * Math.PI);
+      ctx.fillText("matrix × matrix", L.dx + L.dw + 14, L.dy + 12);
+      ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = col.muted; ctx.font = "10px system-ui, sans-serif";
+    ctx.fillText(L.narrow ? "cores" : "148 streaming multiprocessors (cores)", L.dx - 6, L.chipBottom - 6);
+    // weights flowing HBM -> cores
+    if (phase === 0) {
+      const u = clamp(ph / 0.36);
+      ctx.fillStyle = col.mem;
+      L.hbm.forEach((m, k) => {
+        for (let n = 0; n < 6; n++) {
+          const v = (u * 1.5 - n * 0.1); if (v < 0 || v > 1) continue;
+          const x0 = m.x + L.hbmW / 2, y0 = m.y + (m.y < L.dy ? L.hbmH : 0);
+          const x1 = L.dx + ((k * 7 + n * 3) % L.cols + 0.5) * cw, y1 = L.dy + ((k * 5 + n * 2) % L.rows + 0.5) * ch;
+          const e = ease(v);
+          ctx.globalAlpha = 1 - v * 0.5; ctx.beginPath(); ctx.arc(x0 + (x1 - x0) * e, y0 + (y1 - y0) * e, 2.6, 0, 7); ctx.fill();
+        }
+      });
+      ctx.globalAlpha = 1;
+    }
+    // streams: one line per user in the batch
+    const tx0 = L.sx + L.labW;
+    ctx.textBaseline = "middle";
+    streams.forEach((st, i) => {
+      const y = L.sy + i * L.lineH + L.lineH / 2;
+      ctx.fillStyle = col.muted; ctx.font = `10px ${MONO()}`;
+      ctx.fillText(`user ${st.user}`, L.sx, y);
+      ctx.font = `12.5px ${MONO()}`;
+      let words = st.words.slice(0, st.shown), text = words.join(" ");
+      while (ctx.measureText(text).width > L.sw - L.labW - 16 && words.length > 1) { words = words.slice(1); text = "…" + words.join(" "); }
+      st.textW = ctx.measureText(text).width;
+      const last = st.words[st.shown - 1] || "";
+      const headTxt = text.slice(0, Math.max(0, text.length - last.length));
+      ctx.fillStyle = col.ink2; ctx.fillText(headTxt, tx0, y);
+      const fresh = clamp(1 - (now - st.fresh) / 1200);
+      ctx.fillStyle = fresh > 0 ? col.tok : col.ink2; ctx.fillText(last, tx0 + ctx.measureText(headTxt).width, y);
+      if (phase !== 2 && Math.floor(now / 500) % 2) { ctx.fillStyle = col.tok; ctx.fillRect(tx0 + st.textW + 2, y - 7, 6, 13); }
+    });
+    // tokens fly from the die to every user's line
+    if (phase === 2) {
+      const u = ease(clamp((ph - 0.72) / 0.26));
+      ctx.fillStyle = col.tok;
+      streams.forEach((st, i) => {
+        const tx = tx0 + Math.min(st.textW || 0, L.sw - L.labW - 30) + 7, ty = L.sy + i * L.lineH + L.lineH / 2;
+        const x0 = L.narrow ? L.cx : L.dx + L.dw + 6, y0 = L.narrow ? L.dy + L.dh + 6 : L.dy + L.dh * (0.15 + 0.7 * i / Math.max(1, streams.length - 1));
+        const x = x0 + (tx - x0) * u, y = y0 + (ty - y0) * u - Math.sin(u * Math.PI) * 16;
+        ctx.globalAlpha = 0.95; rr(x - 5, y - 5, 10, 10, 2); ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+    }
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = col.muted; ctx.font = "10px system-ui, sans-serif";
+    ctx.fillText(`${streams.length} of ~${fmtInt(info.users)} users shown; all get a token in the same step`, L.sx, L.narrow ? H - 6 : L.chipBottom - 6);
+  }
+  function onStep() {
+    const now = performance.now();
+    for (const st of streams) {
+      if (st.shown >= st.words.length) Object.assign(st, newStream(st.user - 1), { shown: 0, user: st.user });
+      st.shown++; st.fresh = now;
+    }
+  }
+  function live() {
+    if (!info) return;
+    const sec = (performance.now() - tStart) / 1000;
+    const cells = [
+      ["Tokens generated", fmtInt(info.tps * sec)],
+      ["Earned at API prices", fmtUSD(info.usdPerSec * sec, 4)],
+      ["Rent paid", fmtUSD(info.rentPerSec * sec, 4)],
+      ["Electricity used", fmtUSD(info.powPerSec * sec, 4)],
+    ];
+    const el = $("factory-live");
+    if (el.children.length !== cells.length) el.replaceChildren(...cells.map(() => h("div", {}, h("span", { class: "k" }), h("span", { class: "v" }))));
+    cells.forEach(([k, v], i) => { el.children[i].children[0].textContent = k; el.children[i].children[1].textContent = v; });
+  }
+  function loop(now) {
+    raf = 0;
+    if (!running || !visible || reduce) return;
+    draw(now); live();
+    raf = requestAnimationFrame(loop);
+  }
+  function kick() { if (!raf && running && visible && !reduce) raf = requestAnimationFrame(loop); }
+  function init() {
+    cv = $("factory-canvas"); if (!cv || !cv.getContext) return;
+    info = pickCase();
+    if (!info) { $("factory").hidden = true; return; }
+    ctx = cv.getContext("2d");
+    reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    readColors(); layout(); t0 = performance.now();
+    $("factory-cap").textContent = `One ${gpuName(info.g)} serving ${info.r.c.m.key}, slowed down about ${fmtInt(STEP / (1000 / info.perUser))}× (benchmark point, ${fmtRatio(BASE.ratio)} input:output). ` +
+      `It answers about ${fmtInt(info.users)} users at once, each receiving ${nf(0).format(info.perUser)} new tokens a second. Counting the prompts it reads as well, that is ${fmtInt(info.tps)} tokens a second. ` +
+      `The weights are read from memory once per step and reused for every user, which is why serving many users together makes tokens cheap. The counters run in real time since you opened the page.`;
+    if (reduce) { draw(t0 + STEP * 0.5); live(); setInterval(live, 1000); $("factory-toggle").hidden = true; }
+    $("factory-toggle").addEventListener("click", e => {
+      running = !running; e.currentTarget.textContent = running ? "Pause" : "Play"; e.currentTarget.setAttribute("aria-pressed", String(!running));
+      if (running) { t0 = performance.now() - (lastStep + 0.5) * STEP; kick(); }
+    });
+    if ("IntersectionObserver" in window) new IntersectionObserver(es => { visible = es[0].isIntersecting; kick(); }).observe(cv);
+    document.addEventListener("visibilitychange", () => { visible = !document.hidden; kick(); });
+    const mq = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
+    if (mq && mq.addEventListener) mq.addEventListener("change", () => { readColors(); if (reduce) draw(t0 + STEP * 0.5); });
+    let lw = 0;
+    new ResizeObserver(() => { const w = cv.parentElement.clientWidth; if (Math.abs(w - lw) > 4) { lw = w; layout(); if (reduce) draw(t0 + STEP * 0.5); } }).observe(cv.parentElement);
+    kick();
+  }
+  return { init };
+})();
+
 /* ================= money flow (spark-spread style) ================= */
 // What the flow can show for one GPU: open models (measured) and closed models (estimated via a proxy).
 function flowOptions(gpu) {
@@ -2803,6 +3066,7 @@ function update() {
   });
 }
 function boot() {
+  try { FACTORY.init(); } catch (e) { console.error(e); }
   renderStatic(); renderMethodTables(); renderGaps();
   computeAll();
   renderControls(); renderSpreadChart(); renderResultsTable(); renderAudit(); renderRelChart(); renderTimeseries();
