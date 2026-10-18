@@ -1,0 +1,3 @@
+gpu,tdp_w,allin_kw,owner_tco_per_hour,retail_per_hour,source_url,retrieved_date,estimate,notes
+h100,700,1.37,1.17,2.0,https://github.com/SemiAnalysisAI/InferenceX-app/blob/main/packages/constants/src/gpu-keys.ts,2026-10-18,True,"SemiAnalysis AI Cloud TCO model values as published in InferenceX; allin_kw = GPU + per-GPU share of host/NICs at full load (IT power, before PUE)"
+b200,1000,1.71,1.73,3.7,https://github.com/SemiAnalysisAI/InferenceX-app/blob/main/packages/constants/src/gpu-keys.ts,2026-10-18,True,"SemiAnalysis AI Cloud TCO model values as published in InferenceX; allin_kw = GPU + per-GPU share of host/NICs at full load (IT power, before PUE)"
