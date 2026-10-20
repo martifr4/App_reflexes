@@ -1,0 +1,2 @@
+btc_price_usd,difficulty,network_hashrate_ehs,block_subsidy_btc,fees_per_block_btc,fee_window_blocks,tip_height,source_url,retrieved_date,estimate,notes
+81480.0,140577680051919.6,1044.134871896238,3.125,0.014833121041666666,144,972316,https://mempool.space/mining,2026-10-20,False,"mempool.space API: price, current difficulty, average reward over blocks 972173-972316"
