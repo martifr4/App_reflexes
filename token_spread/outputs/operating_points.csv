@@ -109,7 +109,7 @@ qwen3.5-397b,b200,bf16,8192,1024,8.0,floor,4159.722583030353,64.83082028943805,s
 qwen3.5-397b,b200,bf16,8192,1024,8.0,max,4159.722583030353,64.83082028943805,sglang,mtp,False,64,8,2026-07-04,https://github.com/SemiAnalysisAI/InferenceX/actions/runs/28719974515/attempts/1,True,835.153
 qwen3.5-397b,b200,fp4,1024,1024,1.0,floor,9568.817724609133,40.9644202385574,trt,mtp,False,1024,8,2026-06-24,https://github.com/SemiAnalysisAI/InferenceX/actions/runs/28051750810/attempts/2,True,915.855
 qwen3.5-397b,b200,fp4,1024,1024,1.0,max,10936.56759052513,22.35926287730212,trt,none,False,1024,4,2026-06-16,https://github.com/SemiAnalysisAI/InferenceX/actions/runs/27582708402/attempts/3,False,942.788
-qwen3.5-397b,b200,fp4,8192,1024,8.0,floor,13668.755578870963,51.38710239785281,sglang,mtp,False,64,2,2026-09-01,https://github.com/SemiAnalysisAI/InferenceX/actions/runs/33451222974/attempts/2,True,888.815
+qwen3.5-397b,b200,fp4,8192,1024,8.0,floor,15347.14142355368,57.27385039166212,sglang,mtp,False,64,2,2026-10-20,https://github.com/SemiAnalysisAI/InferenceX/actions/runs/38967528662/attempts/1,True,969.672
 qwen3.5-397b,b200,fp4,8192,1024,8.0,max,20570.910564264384,9.346156478430071,trt,none,False,1024,4,2026-06-16,https://github.com/SemiAnalysisAI/InferenceX/actions/runs/27582708402/attempts/3,False,946.292
 qwen3.5-397b,b200,fp8,1024,1024,1.0,floor,4873.141275444992,41.46318789690114,sglang,mtp,False,256,4,2026-07-05,https://github.com/SemiAnalysisAI/InferenceX/actions/runs/28719983892/attempts/1,True,866.693
 qwen3.5-397b,b200,fp8,1024,1024,1.0,max,4873.141275444992,41.46318789690114,sglang,mtp,False,256,4,2026-07-05,https://github.com/SemiAnalysisAI/InferenceX/actions/runs/28719983892/attempts/1,True,866.693
