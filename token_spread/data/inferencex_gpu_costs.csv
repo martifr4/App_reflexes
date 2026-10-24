@@ -1,5 +1,5 @@
 gpu,series,price_per_gpu_hour,source_url,retrieved_date,estimate,notes
-h100,inferencex_retail,2.0,https://inferencex.semianalysis.com/api/v1/views/options,2026-10-23,True,"InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote"
-h100,inferencex_owner_tco,1.17,https://inferencex.semianalysis.com/api/v1/views/options,2026-10-23,True,"InferenceX 'owning at hyperscaler volume' $/GPU-hr (all-in TCO, not a rental price); modelled, not a market quote"
-b200,inferencex_retail,3.7,https://inferencex.semianalysis.com/api/v1/views/options,2026-10-23,True,"InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote"
-b200,inferencex_owner_tco,1.73,https://inferencex.semianalysis.com/api/v1/views/options,2026-10-23,True,"InferenceX 'owning at hyperscaler volume' $/GPU-hr (all-in TCO, not a rental price); modelled, not a market quote"
+h100,inferencex_retail,2.0,https://inferencex.semianalysis.com/api/v1/views/options,2026-10-24,True,"InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote"
+h100,inferencex_owner_tco,1.17,https://inferencex.semianalysis.com/api/v1/views/options,2026-10-24,True,"InferenceX 'owning at hyperscaler volume' $/GPU-hr (all-in TCO, not a rental price); modelled, not a market quote"
+b200,inferencex_retail,3.7,https://inferencex.semianalysis.com/api/v1/views/options,2026-10-24,True,"InferenceX 'retail tier' $/GPU-hr assumption (SemiAnalysis TCO model); modelled, not a market quote"
+b200,inferencex_owner_tco,1.73,https://inferencex.semianalysis.com/api/v1/views/options,2026-10-24,True,"InferenceX 'owning at hyperscaler volume' $/GPU-hr (all-in TCO, not a rental price); modelled, not a market quote"
