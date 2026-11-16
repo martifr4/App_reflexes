@@ -1,0 +1,75 @@
+# XBRL concept -> canonical line item.
+# `options` is tried in order. Each option is a list of us-gaap concepts that are summed; all of
+# them must be reported for the same date. Anything not mapped stays in the residual lines, so
+# the lines always add up to the reported totals.
+
+assets:
+  total: [[Assets]]
+  current_total: [[AssetsCurrent]]
+  lines:
+    - {key: cash, label: Cash and equivalents, class: current, haircut: cash,
+       options: [[CashAndCashEquivalentsAtCarryingValue], [Cash]]}
+    - {key: restricted_cash_current, label: Restricted cash (current), class: current, haircut: restricted_cash,
+       options: [[RestrictedCashAndCashEquivalentsAtCarryingValue], [RestrictedCashCurrent]]}
+    - {key: restricted_cash_noncurrent, label: Restricted cash (non-current), class: noncurrent, haircut: restricted_cash,
+       options: [[RestrictedCashAndCashEquivalentsNoncurrent], [RestrictedCashNoncurrent]]}
+    - {key: securities_current, label: Securities (current), class: current, haircut: securities, gap_if_present: fair_value_levels,
+       options: [[MarketableSecuritiesCurrent], [ShortTermInvestments], [AvailableForSaleSecuritiesDebtSecuritiesCurrent]]}
+    - {key: securities_noncurrent, label: Securities (non-current), class: noncurrent, haircut: securities, gap_if_present: fair_value_levels,
+       options: [[MarketableSecuritiesNoncurrent], [LongTermInvestments], [AvailableForSaleSecuritiesDebtSecuritiesNoncurrent]]}
+    - {key: receivables, label: Receivables (net of allowance), class: current, haircut: receivables,
+       options: [[AccountsReceivableNetCurrent], [ReceivablesNetCurrent]]}
+    - {key: rou, label: Operating lease right-of-use assets, class: noncurrent, haircut: rou,
+       options: [[OperatingLeaseRightOfUseAsset]]}
+    - {key: goodwill, label: Goodwill, class: noncurrent, haircut: goodwill,
+       options: [[Goodwill]]}
+    - {key: book_intangibles, label: Book intangibles (excl. goodwill), class: noncurrent, haircut: book_intangibles,
+       options: [[IntangibleAssetsNetExcludingGoodwill], [FiniteLivedIntangibleAssetsNet]]}
+    - {key: dta, label: Deferred tax assets, class: noncurrent, haircut: dta,
+       options: [[DeferredIncomeTaxAssetsNet], [DeferredTaxAssetsNetNoncurrent]]}
+  inventory:
+    net: [[InventoryNet]]
+    finished_goods: [[InventoryFinishedGoodsNetOfReserves], [InventoryFinishedGoods]]
+    work_in_process: [[InventoryWorkInProcessNetOfReserves], [InventoryWorkInProcess]]
+    raw_materials: [[InventoryRawMaterialsNetOfReserves], [InventoryRawMaterialsAndSuppliesNetOfReserves],
+                    [InventoryRawMaterials], [InventoryRawMaterialsAndSupplies]]
+    lifo_reserve: [[InventoryLIFOReserve], [ExcessOfReplacementOrCurrentCostsOverStatedLIFOValue]]
+  ppe:
+    net: [[PropertyPlantAndEquipmentNet]]
+    gross: [[PropertyPlantAndEquipmentGross]]
+    land: [[Land], [LandAndLandImprovements]]
+    buildings: [[BuildingsAndImprovementsGross]]
+    cip: [[ConstructionInProgressGross]]
+
+liabilities:
+  total: [[Liabilities]]
+  # Used only when `Liabilities` is not reported: total = liabilities-and-equity minus equity minus temporary equity.
+  liabilities_and_equity: [[LiabilitiesAndStockholdersEquity]]
+  equity_incl_nci: [[StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest], [StockholdersEquity]]
+  temporary_equity: [[TemporaryEquityCarryingAmountAttributableToParent], [TemporaryEquityCarryingAmountIncludingPortionAttributableToNoncontrollingInterests]]
+  debt: [[DebtLongtermAndShorttermCombinedAmount], [LongTermDebt],
+         [LongTermDebtNoncurrent, LongTermDebtCurrent], [LongTermDebtNoncurrent]]
+  operating_lease: [[OperatingLeaseLiability], [OperatingLeaseLiabilityCurrent, OperatingLeaseLiabilityNoncurrent]]
+  deferred_revenue: [[ContractWithCustomerLiability], [ContractWithCustomerLiabilityCurrent, ContractWithCustomerLiabilityNoncurrent],
+                     [DeferredRevenue], [ContractWithCustomerLiabilityCurrent], [DeferredRevenueCurrent]]
+  # Off-balance-sheet items and claims that rank ahead of common equity
+  pension_obligation: [[DefinedBenefitPlanBenefitObligation]]
+  contingent_possible: [[LossContingencyEstimateOfPossibleLoss], [LossContingencyRangeOfPossibleLossPortionNotAccrued]]
+  guarantees: [[GuaranteeObligationsMaximumExposure]]
+  purchase_obligations: [[UnrecordedUnconditionalPurchaseObligationBalanceSheetAmount], [PurchaseObligation]]
+  preferred: [[PreferredStockLiquidationPreferenceValue], [PreferredStockValue]]
+  nci: [[MinorityInterest]]
+  redeemable_nci: [[RedeemableNoncontrollingInterestEquityCarryingAmount]]
+
+flows:
+  revenue: [RevenueFromContractWithCustomerExcludingAssessedTax, Revenues, SalesRevenueNet,
+            RevenueFromContractWithCustomerIncludingAssessedTax]
+  rd: [ResearchAndDevelopmentExpense, ResearchAndDevelopmentExpenseExcludingAcquiredInProcessCost]
+  sga: [SellingGeneralAndAdministrativeExpense]
+
+shares:
+  cover: EntityCommonStockSharesOutstanding            # dei
+  balance_sheet: CommonStockSharesOutstanding
+  dilution_adjustment: WeightedAverageNumberDilutedSharesOutstandingAdjustment
+  weighted_diluted: WeightedAverageNumberOfDilutedSharesOutstanding
+  weighted_basic: WeightedAverageNumberOfSharesOutstandingBasic

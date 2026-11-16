@@ -1,0 +1,101 @@
+# Parameter set v001 — DRAFT starting values, to be calibrated by the owner.
+#
+# Conventions
+# - Every entry is either {low, base, high} or {value}. Add a `note` to record why.
+# - low / base / high name the VALUATION SCENARIO the number is used in, not its size.
+#   "low" is the conservative scenario: smaller asset fractions, larger liability amounts.
+# - Haircuts are the fraction of book value kept. There are two lenses:
+#     liquidation    = orderly sale of each asset
+#     going_concern  = what it would cost to rebuild the tangible asset base (reproduction)
+# - Never edit a released version in place. Copy the folder to v002 and change it there.
+#   The loader also hashes the resolved values, and every run records that hash.
+version: v001
+description: Draft defaults for US non-financial companies.
+
+params:
+  # ---- Tangible assets, liquidation lens -------------------------------------------------
+  haircut.liquidation.cash:                  {low: 1.0,  base: 1.0,  high: 1.0}
+  haircut.liquidation.restricted_cash:       {low: 0.5,  base: 0.8,  high: 1.0}
+  haircut.liquidation.securities:            {low: 0.85, base: 0.95, high: 1.0, note: "Level-2 values. Fair-value levels are not in the tier-1 facts yet."}
+  haircut.liquidation.receivables:           {low: 0.75, base: 0.85, high: 0.95, note: "Applied to receivables net of the allowance."}
+  haircut.liquidation.inventory_fg:          {low: 0.5,  base: 0.65, high: 0.8}
+  haircut.liquidation.inventory_wip:         {low: 0.1,  base: 0.25, high: 0.4}
+  haircut.liquidation.inventory_rm:          {low: 0.4,  base: 0.6,  high: 0.8}
+  haircut.liquidation.inventory_unclassified: {low: 0.3, base: 0.5,  high: 0.7}
+  haircut.liquidation.land:                  {low: 1.0,  base: 1.0,  high: 1.25, note: "Held at historical cost, so book or higher."}
+  haircut.liquidation.buildings:             {low: 0.4,  base: 0.6,  high: 0.8}
+  haircut.liquidation.equipment:             {low: 0.1,  base: 0.25, high: 0.4}
+  haircut.liquidation.cip:                   {low: 0.2,  base: 0.35, high: 0.5}
+  haircut.liquidation.ppe_unclassified:      {low: 0.2,  base: 0.4,  high: 0.6}
+  haircut.liquidation.rou:                   {low: 0.0,  base: 0.0,  high: 0.25, note: "Right-of-use assets rarely have resale value; the lease liability stays in full."}
+  haircut.liquidation.goodwill:              {value: 0.0}
+  haircut.liquidation.book_intangibles:      {value: 0.0, note: "Intangibles are worth nothing in the liquidation lens."}
+  haircut.liquidation.dta:                   {low: 0.0,  base: 0.25, high: 0.5}
+  haircut.liquidation.other_current:         {low: 0.0,  base: 0.25, high: 0.5, note: "Mostly prepaids."}
+  haircut.liquidation.other_noncurrent:      {low: 0.0,  base: 0.25, high: 0.5}
+
+  # ---- Tangible assets, going-concern (reproduction) lens --------------------------------
+  haircut.going_concern.cash:                  {value: 1.0}
+  haircut.going_concern.restricted_cash:       {low: 0.8,  base: 1.0, high: 1.0}
+  haircut.going_concern.securities:            {low: 0.95, base: 1.0, high: 1.0}
+  haircut.going_concern.receivables:           {low: 0.95, base: 1.0, high: 1.0}
+  haircut.going_concern.inventory_fg:          {low: 0.9,  base: 1.0, high: 1.0}
+  haircut.going_concern.inventory_wip:         {low: 0.8,  base: 1.0, high: 1.0}
+  haircut.going_concern.inventory_rm:          {low: 0.9,  base: 1.0, high: 1.0}
+  haircut.going_concern.inventory_unclassified: {low: 0.85, base: 1.0, high: 1.0}
+  haircut.going_concern.land:                  {low: 1.0,  base: 1.0, high: 1.5}
+  haircut.going_concern.buildings:             {low: 0.8,  base: 1.0, high: 1.2}
+  haircut.going_concern.equipment:             {low: 0.7,  base: 0.9, high: 1.0}
+  haircut.going_concern.cip:                   {low: 0.8,  base: 1.0, high: 1.0}
+  haircut.going_concern.ppe_unclassified:      {low: 0.7,  base: 0.9, high: 1.1}
+  haircut.going_concern.rou:                   {value: 1.0, note: "Offsets the lease liability."}
+  haircut.going_concern.goodwill:              {value: 0.0, note: "Replaced by the intangible estimates."}
+  haircut.going_concern.book_intangibles:      {value: 0.0, note: "Replaced by the intangible estimates; keeping both would double-count."}
+  haircut.going_concern.dta:                   {low: 0.5,  base: 0.8, high: 1.0}
+  haircut.going_concern.other_current:         {low: 0.5,  base: 0.9, high: 1.0}
+  haircut.going_concern.other_noncurrent:      {low: 0.5,  base: 0.8, high: 1.0}
+
+  # ---- Tax ---------------------------------------------------------------------------------
+  tax.rate: {low: 0.26, base: 0.25, high: 0.21, note: "Used for tax on liquidation gains and for after-tax royalties."}
+
+  # ---- Intangibles (going-concern lens only) -------------------------------------------
+  # Method A: capitalised investment (historical spend, straight-line amortised)
+  intangible.rd_life_years:          {low: 3,    base: 5,    high: 8}
+  intangible.brand_sga_share:        {low: 0.10, base: 0.20, high: 0.30, note: "Share of SG&A treated as brand / customer investment."}
+  intangible.brand_life_years:       {low: 2,    base: 3,    high: 5}
+  intangible.sga_includes_rd:        {value: 0, note: "Set to 1 where R&D is reported inside SG&A, so it is not counted twice."}
+  # Method B: replacement cost (years of spend an entrant would need)
+  intangible.replacement_rd_years:   {low: 2,    base: 4,    high: 6}
+  intangible.replacement_sga_years:  {low: 0.25, base: 0.5,  high: 1.0}
+  intangible.replacement_avg_years:  {value: 3, note: "Spend is averaged over this many fiscal years."}
+  # Method C: relief from royalty (flat revenue, finite life)
+  intangible.royalty_rate:           {low: 0.01, base: 0.02, high: 0.04}
+  intangible.royalty_discount_rate:  {low: 0.12, base: 0.10, high: 0.08}
+  intangible.royalty_life_years:     {low: 5,    base: 10,   high: 15}
+  # Which method's figure enters each scenario: min | lower_median | max
+  intangible.selection:              {low: min,  base: lower_median, high: max}
+
+  # ---- Liabilities -------------------------------------------------------------------------
+  liability.deferred_revenue_cost_to_fulfil: {low: 0.7,  base: 0.4, high: 0.25}
+  liability.pension_rate_shift:              {low: 0.01, base: 0.0, high: 0.0, note: "Discount-rate cut applied to the benefit obligation."}
+  liability.pension_duration_years:          {value: 12}
+  liability.contingent_possible_fraction:    {low: 1.0,  base: 0.0, high: 0.0, note: "Share of 'reasonably possible' loss estimates added."}
+  liability.guarantee_fraction:              {low: 0.25, base: 0.0, high: 0.0, note: "Share of maximum guarantee exposure added."}
+  liability.purchase_obligation_fraction:    {low: 0.10, base: 0.0, high: 0.0}
+
+  # ---- Decision and controls ---------------------------------------------------------------
+  decision.margin_of_safety:                 {value: 0.33}
+  decision.buy_requires_liquidation_floor:   {value: 1, note: "1 = BUY also needs market cap at or below the low liquidation value."}
+  mapping.residual_tolerance:                {value: 0.005, note: "Mapped lines may exceed a reported total by this share of total assets before the run fails."}
+  market.max_price_stale_days:               {value: 7}
+
+# First matching SIC range wins. Example:
+#   - name: industrial_machinery
+#     sic: [3500, 3599]
+#     params:
+#       intangible.royalty_rate: {low: 0.01, base: 0.02, high: 0.03}
+industry_overrides: []
+
+company_overrides:
+  LECO:
+    intangible.sga_includes_rd: {value: 1, note: "10-K FY2025, accounting policies: R&D costs are charged to SG&A as incurred."}
