@@ -1,0 +1,260 @@
+{
+  "analysts": {
+    "asset": {
+      "model": "claude-opus-5-5",
+      "turns": 22,
+      "cost_usd": 0.354105,
+      "extractions": [
+        {
+          "key": "options_outstanding",
+          "status": "found",
+          "fact_id": "T2/CIK59527/options_outstanding/2025-12-31/0000059527-26-000006/3d33d656",
+          "note": "Taken from the stock option activity table in the annual report's stock plans note, as of the fiscal year end. The September quarterly report does not restate the option table, so options exercised during the year are not reflected. Share counts in this table are in ones."
+        },
+        {
+          "key": "options_wavg_exercise_price",
+          "status": "found",
+          "fact_id": "T2/CIK59527/options_wavg_exercise_price/2025-12-31/0000059527-26-000006/ccfd0f71",
+          "note": "Weighted-average exercise price in dollars per share, from the same row of the annual report's option activity table at fiscal year end."
+        },
+        {
+          "key": "unvested_stock_awards",
+          "status": "found",
+          "fact_id": "T2/CIK59527/unvested_stock_awards/2025-12-31/0000059527-26-000006/57cae412",
+          "note": "Combined balance of RSUs and PSUs from the annual report's activity table at fiscal year end. The filing also says a separate group of vested but deferred units under the executive deferred compensation plan count in diluted shares, and it is not clear whether this table includes them. No newer figure appears in the quarterly reports."
+        }
+      ],
+      "rejected_extractions": [],
+      "observations": [
+        {
+          "line": "cash",
+          "direction": "lowers_value",
+          "statement": "Most of the reported cash at the quarter end is held by international subsidiaries. During the quarter the company booked a tax charge on foreign earnings it may bring home, so not all of this cash would reach shareholders at face value.",
+          "quote": "As of September 30, 2026, the Company had cash of $283,237, of which $179,018 was held by international subsidiaries.",
+          "source": "LECO/filings/0000059527-26-000027/leco-20260930x10q.txt:946"
+        },
+        {
+          "line": "lifo_reserve",
+          "direction": "raises_value",
+          "statement": "Only part of inventory, mostly in the U.S., is on LIFO. The LIFO reserve grew over the year after a LIFO charge caused by rising input costs, so the book value of that inventory is below what it would cost to replace today. This supports the engine adding the reserve back.",
+          "quote": "At December 31, 2025 and 2024, approximately 38% and 35% of total inventories, respectively, were valued using the LIFO method.",
+          "source": "LECO/filings/0000059527-26-000006/leco-20251231x10k.txt:991"
+        },
+        {
+          "line": "goodwill",
+          "direction": "neutral",
+          "statement": "Goodwill comes from a series of recent bolt-on acquisitions in automation and mining services (Alloy Steel, Vanair, Inrotech, RedViking). It is purchase premium, not something that could be sold, so zero value in both lenses is right. It also shows the reproduction intangibles include bought capabilities, not only ones built internally.",
+          "quote": "(2) Decreases to Americas Welding reflects Vanair and RedViking purchase accounting adjustments. Additions to International Welding reflect goodwill recognized in the acquisition of Alloy Steel.",
+          "source": "LECO/filings/0000059527-26-000006/leco-20251231x10k.txt:1134"
+        },
+        {
+          "line": "ppe_equipment",
+          "direction": "lowers_value",
+          "statement": "Rationalization plans in all three segments include consolidating manufacturing facilities, and impairment charges continue into the current year, mostly in International Welding. Some equipment and buildings may be worth less than book, which supports the liquidation haircuts.",
+          "quote": "The plans impacted headcount and included the consolidation of manufacturing facilities to better align with the cost structure, economic conditions and operating needs of the business.",
+          "source": "LECO/filings/0000059527-26-000027/leco-20260930x10q.txt:444"
+        },
+        {
+          "line": "contingent_possible",
+          "direction": "neutral",
+          "statement": "The company is a long-standing co-defendant in asbestos cases over welding consumables, and the claimants mostly seek unspecified sums. The filing gives no estimate of reasonably possible loss, so this gap cannot be filled, although past outcomes have been mostly dismissals or defence wins.",
+          "quote": "The asbestos claimants seek compensatory and punitive damages, in most cases for unspecified sums.",
+          "source": "LECO/filings/0000059527-26-000006/leco-20251231x10k.txt:263"
+        }
+      ],
+      "rejected_observations": []
+    },
+    "liabilities": {
+      "model": "claude-opus-5-5",
+      "turns": 20,
+      "cost_usd": 0.3575908,
+      "extractions": [
+        {
+          "key": "pension_benefit_obligation",
+          "status": "found",
+          "fact_id": "T2/CIK59527/pension_benefit_obligation/2025-12-31/0000059527-26-000006/8b72a0f2",
+          "note": "The U.S. and non-U.S. columns for the latest fiscal year end are added. The U.S. plans hold no assets. The quarterly reports do not restate the obligation."
+        },
+        {
+          "key": "contingent_possible_loss",
+          "status": "not_disclosed",
+          "fact_id": "T2/CIK59527/contingent_possible_loss/2025-12-31/0000059527-26-000006/f99e8b38",
+          "note": "Searched the contingencies note of the annual report and the legal proceedings section of the latest quarterly report. The company says a range of possible losses often cannot be made and gives no estimate of reasonably possible losses above amounts accrued."
+        },
+        {
+          "key": "guarantee_max_exposure",
+          "status": "not_disclosed",
+          "fact_id": "T2/CIK59527/guarantee_max_exposure/2025-12-31/0000059527-26-000006/f99e8b38",
+          "note": "Searched for guarantees, indemnities and off-balance-sheet arrangements. The filing mentions only letters of credit backing the company's own obligations and possible divestiture indemnities, with no maximum exposure stated."
+        },
+        {
+          "key": "purchase_obligations",
+          "status": "found",
+          "fact_id": "T2/CIK59527/purchase_obligations/2025-12-31/0000059527-26-000006/2a04621b",
+          "note": "The wording says almost the whole amount sits in current liabilities. That may mean it is already on the balance sheet, or the company may just mean it is due within a year. Check before adding it as an extra liability, because it could be double-counted."
+        }
+      ],
+      "rejected_extractions": [],
+      "observations": [
+        {
+          "line": "contingent_possible",
+          "direction": "lowers_value",
+          "statement": "Reserves cover only identified or asserted claims and no range of possible loss is given, so litigation exposure beyond the accruals inside other liabilities can't be measured.",
+          "quote": "Moreover, reserves only cover identified and/or asserted claims.",
+          "source": "LECO/filings/0000059527-26-000006/leco-20251231x10k.txt:1817"
+        },
+        {
+          "line": "contingent_possible",
+          "direction": "neutral",
+          "statement": "Asbestos claims are still open but have been shrinking, and the company's long record of dismissals and defense verdicts suggests a small exposure. Damages sought are unspecified, though.",
+          "quote": "As of September 30, 2026, the Company was a co-defendant in cases alleging asbestos induced illness involving claims by approximately 367 plaintiffs, which is a net decrease of 334 claims from those previously reported.",
+          "source": "LECO/filings/0000059527-26-000027/leco-20260930x10q.txt:1011"
+        },
+        {
+          "line": "pension_repricing",
+          "direction": "neutral",
+          "statement": "Both plan groups are underfunded, and the U.S. plans have no assets at all. The net deficit is already in the balance sheet's other liabilities, so only a change in assumptions would add to the liability, and the plans are small next to the company's size.",
+          "quote": "Funded status at end of year (7,300) (31,438) (7,862) (30,830)",
+          "source": "LECO/filings/0000059527-26-000006/leco-20251231x10k.txt:1456"
+        },
+        {
+          "line": "other_liabilities",
+          "direction": "neutral",
+          "statement": "Trade payables include amounts owed to a bank under a supplier financing programme with long invoice terms. The amount is already on the balance sheet, but it is closer to debt than an ordinary payable.",
+          "quote": "At December 31, 2025 and 2024, Trade accounts payable included $25,709 and $29,164, respectively, payable to suppliers that have elected to participate in the supplier financing program.",
+          "source": "LECO/filings/0000059527-26-000006/leco-20251231x10k.txt:1820"
+        },
+        {
+          "line": "debt",
+          "direction": "neutral",
+          "statement": "The revolving credit facility has a maximum net leverage covenant and a minimum interest coverage covenant. The company was in compliance, and the reported debt is well inside these limits, so a covenant-driven acceleration seems unlikely.",
+          "quote": "The financial covenants consist of a maximum net leverage ratio of 3.5x EBITDA and a minimum interest coverage ratio of 2.5x EBITDA.",
+          "source": "LECO/filings/0000059527-26-000006/leco-20251231x10k.txt:1352"
+        },
+        {
+          "line": "guarantees",
+          "direction": "lowers_value",
+          "statement": "The company warns that indemnities it gives when selling businesses may be hard to quantify and could be material. No amount is disclosed, so this is an unmeasured exposure.",
+          "quote": "Sellers typically retain certain liabilities or indemnify buyers for certain matters.",
+          "source": "LECO/filings/0000059527-26-000006/leco-20251231x10k.txt:154"
+        }
+      ],
+      "rejected_observations": []
+    }
+  },
+  "bear": {
+    "model": "claude-opus-5-5",
+    "turns": 21,
+    "cost_usd": 0.367402,
+    "summary": "The valuation already says PASS: the market price is far above both the liquidation and the reproduction value. The bear case is that even the base reproduction figure is too generous. Equipment is held near book while the company keeps consolidating plants and booking impairments, especially in International Welding. The intangible estimate gives credit for brand spending at a time when gross margin is shrinking because the company cannot fully pass on input costs. The deferred tax asset depends on a large valuation-allowance release that management says could reverse, and the bad-debt allowance was cut while receivables grew. The pension discount-rate risk and the asbestos docket, plus untaxed credit for the LIFO reserve, push the floor lower still, so the gap between price and assets is even wider than the base case shows.",
+    "attacks": [
+      {
+        "target": "haircut.going_concern.equipment",
+        "severity": "medium",
+        "claim": "Lincoln has rationalization plans in all three segments that consolidate manufacturing facilities, and impairment charges are rising in International Welding. Management also warns that more actions may follow. Machinery in plants that are being closed or merged is not worth close to its depreciated book value to a buyer rebuilding the business.",
+        "quote": "The plans impacted headcount and included the consolidation of manufacturing facilities to better align with the cost structure, economic conditions and operating needs of the business.",
+        "source": "LECO/filings/0000059527-26-000027/leco-20260930x10q.txt:444",
+        "override_param": "haircut.going_concern.equipment"
+      },
+      {
+        "target": "intangible.brand_sga_share",
+        "severity": "medium",
+        "claim": "The base case counts a fifth of SG&A as investment in brand and customer relationships. But gross margin fell in both the quarter and the year to date because input costs rose faster than prices, which points to limited pricing power. Brand capital that cannot protect margins should get a smaller share of overhead.",
+        "quote": "Gross profit as a percentage of sales decreased 1.9% and 1.1% for the three and nine months ended September 30, 2026, respectively, as compared to the same 2025 periods, driven by higher input costs.",
+        "source": "LECO/filings/0000059527-26-000027/leco-20260930x10q.txt:766",
+        "override_param": "intangible.brand_sga_share"
+      },
+      {
+        "target": "haircut.going_concern.dta",
+        "severity": "medium",
+        "claim": "The deferred tax asset is held at most of its book value, but that book value was lifted by a large valuation-allowance release in the latest fiscal year. Management says the amount it treats as realizable could be cut if its view of future taxable income changes. Reliance on a recent release argues for a deeper haircut.",
+        "quote": "The amount of net deferred tax assets considered realizable could be increased or reduced in the future if the Company\u2019s assessment of future taxable income or tax planning strategies changes.",
+        "source": "LECO/filings/0000059527-26-000006/leco-20251231x10k.txt:567",
+        "override_param": "haircut.going_concern.dta"
+      },
+      {
+        "target": "haircut.going_concern.receivables",
+        "severity": "low",
+        "claim": "Gross receivables grew during the year while the allowance for doubtful accounts was cut sharply, so reserve coverage is thinner than at year end. Taking net receivables at full value assumes this lower reserve is enough.",
+        "quote": "Accounts receivable (less allowance for doubtful accounts of $7,406 in 2026; $11,326 in 2025) 603,307 538,791",
+        "source": "LECO/filings/0000059527-26-000027/leco-20260930x10q.txt:112",
+        "override_param": "haircut.going_concern.receivables"
+      },
+      {
+        "target": "liability.pension_rate_shift",
+        "severity": "low",
+        "claim": "The base case assumes no discount-rate risk on the pension and supplemental retirement obligations, even though the low case already prices a rate cut. A modest cut in the base is more prudent for unfunded and international plans.",
+        "fact_id": "T2/CIK59527/pension_benefit_obligation/2025-12-31/0000059527-26-000006/8b72a0f2",
+        "override_param": "liability.pension_rate_shift"
+      },
+      {
+        "target": "lifo_reserve",
+        "severity": "low",
+        "claim": "In the reproduction lens the off-balance-sheet LIFO reserve is added at full value with no deferred tax, even though restating inventory to current cost would create taxable gains. Since the reserve keeps growing as input costs rise, this untaxed add-back inflates the base reproduction value.",
+        "quote": "The excess of current cost over LIFO cost was $145,501 and $138,589 at September 30, 2026 and December 31, 2025, respectively.",
+        "source": "LECO/filings/0000059527-26-000027/leco-20260930x10q.txt:524"
+      },
+      {
+        "target": "other_liabilities",
+        "severity": "low",
+        "claim": "The company remains a co-defendant in asbestos cases and faces product liability and health-and-safety claims, and no accrual or range of possible loss is disclosed. The valuation lists this as a gap, so any defence or settlement cost is a liability the model does not include.",
+        "quote": "The Company is subject, from time to time, to a variety of civil and administrative proceedings arising out of its normal operations, including, without limitation, product liability claims, regulatory claims and health, safety and environmental claims.",
+        "source": "LECO/filings/0000059527-26-000027/leco-20260930x10q.txt:1010"
+      }
+    ],
+    "rejected_attacks": [],
+    "rejected_overrides": [],
+    "overrides": [
+      {
+        "param": "haircut.going_concern.equipment",
+        "original_base": 0.9,
+        "proposed_base": 0.8
+      },
+      {
+        "param": "intangible.brand_sga_share",
+        "original_base": 0.2,
+        "proposed_base": 0.15
+      },
+      {
+        "param": "haircut.going_concern.dta",
+        "original_base": 0.8,
+        "proposed_base": 0.6
+      },
+      {
+        "param": "haircut.going_concern.receivables",
+        "original_base": 1.0,
+        "proposed_base": 0.98
+      },
+      {
+        "param": "liability.pension_rate_shift",
+        "original_base": 0.0,
+        "proposed_base": 0.005
+      }
+    ],
+    "scenario": {
+      "equity": {
+        "liquidation": {
+          "low": -1113946165.7633321,
+          "base": -705546196.7497883,
+          "high": -272973602.0655234
+        },
+        "reproduction": {
+          "low": 157575385.69091225,
+          "base": 836245202.1119008,
+          "high": 1818640580.3956728
+        },
+        "liquidation_per_share": {
+          "low": -20.36860769186419,
+          "base": -12.90097684409689,
+          "high": -4.9913473214368835
+        },
+        "reproduction_per_share": {
+          "low": 2.881280363161004,
+          "base": 15.29082013074574,
+          "high": 33.25400962191006
+        }
+      },
+      "verdict": "PASS"
+    }
+  }
+}

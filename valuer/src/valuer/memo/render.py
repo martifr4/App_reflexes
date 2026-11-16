@@ -5,6 +5,8 @@ from __future__ import annotations
 from ..params import ParamSet
 from ..valuation.types import Line, Range, Valuation
 
+TERM_SEP = " + "  # same separator as valuer.agents.verify
+
 
 def usd_m(v: float) -> str:
     s = f"${abs(v) / 1e6:,.1f}m"
@@ -40,7 +42,97 @@ _HDR = ("| Line | Book | Liq. low | Liq. base | Liq. high | Repro. low | Repro. 
         "|---|---:|---:|---:|---:|---:|---:|---:|")
 
 
-def render_memo(v: Valuation, params: ParamSet, run_id: str, model_id: str | None) -> str:
+def _quote(q: dict) -> str:
+    """A verified quote with the raw text file and line it came from. The checker re-verifies it."""
+    return f'  > "{q["quote"]}" — `{q["source"]}`'
+
+
+def _fmt_unit(unit: str, value: float) -> str:
+    return {"USD": usd_m, "shares": count_m}.get(unit, usd)(value)
+
+
+_DIRECTION = {"lowers_value": "lowers value", "raises_value": "raises value", "neutral": "neutral"}
+
+
+def _bear_section(v: Valuation, bear: dict, w) -> None:
+    w("## Bear case\n")
+    w(f"Written by an independent agent (`{bear['model']}`) that saw the valuation and the filings but not the analysts' "
+      "work. The claims are the agent's opinion. Every quote and fact below was checked by code, and the scenario "
+      "figures were computed by the engine.\n")
+    if bear.get("summary"):
+        w(bear["summary"] + "\n")
+    if bear.get("scenario"):
+        eq = bear["scenario"]["equity"]
+        w("| | Low | Base | High |\n|---|---:|---:|---:|")
+        w(f"| Reproduction value, as valued | {_r(v.equity.reproduction)} |")
+        w(f"| Reproduction value, bear scenario | {_r(Range(**eq['reproduction']))} |")
+        w(f"| Liquidation value, as valued | {_r(v.equity.liquidation)} |")
+        w(f"| Liquidation value, bear scenario | {_r(Range(**eq['liquidation']))} |")
+        w("")
+        w(f"Verdict in the bear scenario: **{bear['scenario']['verdict']}**\n")
+        w("| Parameter changed (base value) | As valued | Bear |\n|---|---:|---:|")
+        for o in bear["overrides"]:
+            w(f"| `{o['param']}` | {bare(o['original_base'])} | {bare(o['proposed_base'])} |")
+        w("")
+    for a in bear["attacks"]:
+        tail = f" Changes `{a['override_param']}`." if a.get("override_param") else ""
+        w(f"- **[{a['severity']}] `{a['target']}`** {a['claim']}{tail}")
+        if a.get("quote"):
+            w(_quote(a))
+        elif a.get("fact_id"):
+            w(f"  Fact: `{a['fact_id']}`")
+    if not bear["attacks"]:
+        w("The agent returned no attack that passed verification.")
+    if bear["rejected_attacks"] or bear["rejected_overrides"]:
+        w("\nSome of the agent's attacks or parameter changes failed verification and were dropped; "
+          "they are listed with reasons in the run's findings file.")
+    w("")
+
+
+def _analyst_section(v: Valuation, findings: dict, w) -> None:
+    labels = {x.key: x.label for x in v.assets + v.liabilities}
+    w("## Analyst findings\n")
+    w("Observations from agents that read the filings. The statements are the agents' reading; each quote was "
+      "checked by code against the filing text.\n")
+    for name, title in (("asset", "Asset analyst"), ("liabilities", "Liabilities analyst")):
+        a = findings["analysts"][name]
+        w(f"### {title} (`{a['model']}`)\n")
+        for o in a["observations"]:
+            where = labels.get(o["line"], "General") if o["line"] != "general" else "General"
+            w(f"- **[{_DIRECTION[o['direction']]}] {where}:** {o['statement']}")
+            w(_quote(o))
+        if not a["observations"]:
+            w("No observation passed verification.")
+        for x in a["extractions"]:
+            if x["status"] == "not_disclosed":
+                w(f"- Searched for `{x['key']}` and found none disclosed. {x['note']}".rstrip())
+        for x in a["rejected_extractions"]:
+            w(f"- Rejected by code: `{x['key']}` (`{x['reason']}`)")
+        if a["rejected_observations"]:
+            w("- Some observations failed verification and were dropped; see the run's findings file.")
+        w("")
+
+
+def _tier2_section(v: Valuation, w) -> None:
+    rows = [(fid, f) for fid, f in v.facts_used.items() if f.tier == 2 and f.status == "found"]
+    if not rows:
+        return
+    w("## Figures read from filing text\n")
+    w("These figures are not in the structured data. An agent located them; code parsed the figure from the quote, "
+      "applied the stated scale and confirmed the quote against the filing. Open the cited file at the cited line to check.\n")
+    for fid, f in rows:
+        key = f.concept.split(":", 1)[1]
+        w(f"- **`{key}`** = {_fmt_unit(f.unit, f.value)} at {f.period_end} (`{fid}`)")
+        w(_quote({"quote": f.quote, "source": f"{v.meta.ticker}/{f.document}:{f.paragraph}"}))
+        if TERM_SEP in f.number_text:
+            w(f"  The value is a sum, added by code, of figures the agent marked in this row: `{f.number_text}`.")
+        if f.note:
+            w(f"  Agent's caveat: {f.note}")
+    w("")
+
+
+def render_memo(v: Valuation, params: ParamSet, run_id: str, model_id: str | None,
+                findings: dict | None = None, sources: list[dict] | None = None) -> str:
     m, mk, d, e = v.meta, v.market, v.decision, v.equity
     out: list[str] = []
     w = out.append
@@ -71,6 +163,9 @@ def render_memo(v: Valuation, params: ParamSet, run_id: str, model_id: str | Non
     w("")
     w("Liquidation value = tangible assets at sale haircuts minus all liabilities. "
       "Reproduction value = tangible assets at rebuild cost plus the selected intangible estimate minus all liabilities.\n")
+
+    if findings and findings.get("bear"):
+        _bear_section(v, findings["bear"], w)
 
     w("## Market value\n")
     w("| | |\n|---|---:|")
@@ -119,6 +214,10 @@ def render_memo(v: Valuation, params: ParamSet, run_id: str, model_id: str | Non
             w(f"- {label}: {n}")
         w("")
 
+    if findings and findings.get("analysts"):
+        _analyst_section(v, findings, w)
+    _tier2_section(v, w)
+
     if v.sensitivity:
         w("## Sensitivity\n")
         w("Base equity value when one parameter is moved to its own low or high setting and all others stay at base. Largest swings first.\n")
@@ -144,11 +243,20 @@ def render_memo(v: Valuation, params: ParamSet, run_id: str, model_id: str | Non
         w(f"| `{name}` | {bare(lo)} | {bare(ba)} | {bare(hi)} |")
     w("")
 
-    w("## Sources\n")
+    if sources:
+        w("## Documents\n")
+        w("The raw files behind this run. Paths are relative to the `raw` folder of the data directory.\n")
+        w("| Document | Local copy |\n|---|---|")
+        for src in sources:
+            name = f"[{src['description']}]({src['url']})" if src["url"].startswith("http") else src["description"]
+            w(f"| {name} | `{src['path']}` |")
+        w("")
+
+    w("## Facts used\n")
     w(f"Price: `{mk.price_id}`\n")
     w("| Fact | Value | Form | Filed |\n|---|---:|---|---|")
     for fid, f in v.facts_used.items():
-        val = usd_m(f.value) if f.unit == "USD" else count_m(f.value)
+        val = "none disclosed" if f.value is None else _fmt_unit(f.unit, f.value)
         w(f"| `{fid}` | {val} | {f.form} | {f.filed} |")
     w("")
     return "\n".join(out)

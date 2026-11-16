@@ -1,7 +1,7 @@
 """Run archive and decision journal.
 
 Each run is a folder under <home>/runs/<run_id>/ holding memo.md, valuation.json, params.json,
-check.json and meta.json. The journal (<home>/journal.duckdb) indexes runs and records the
+check.json, sources.json and meta.json, plus findings.json and transcript.jsonl when agents ran. The journal (<home>/journal.duckdb) indexes runs and records the
 owner's decisions. Decisions are append-only: changing your mind adds a row.
 """
 from __future__ import annotations
@@ -58,12 +58,19 @@ class Journal:
             raise FileNotFoundError(f"No run {run_id} under {self.runs_dir}")
         return d
 
-    def save_run(self, run_id: str, valuation: Valuation, params: ParamSet, memo: str, model_id: str | None) -> Path:
+    def save_run(self, run_id: str, valuation: Valuation, params: ParamSet, memo: str, model_id: str | None,
+                 sources: list[dict] | None = None, findings: dict | None = None,
+                 transcript: list[dict] | None = None) -> Path:
         d = self.runs_dir / run_id
         d.mkdir(parents=True)
         (d / "valuation.json").write_text(valuation.model_dump_json(indent=2))
         (d / "params.json").write_text(json.dumps(params.to_json(), indent=2))
         (d / "memo.md").write_text(memo)
+        (d / "sources.json").write_text(json.dumps(sources or [], indent=2))
+        if findings is not None:
+            (d / "findings.json").write_text(json.dumps(findings, indent=2))
+        if transcript is not None:
+            (d / "transcript.jsonl").write_text("".join(json.dumps(t) + "\n" for t in transcript))
         meta = {"run_id": run_id, "created_at": _now().isoformat(), "git_sha": _git_sha(), "model_id": model_id}
         (d / "meta.json").write_text(json.dumps(meta, indent=2))
         m = valuation.meta

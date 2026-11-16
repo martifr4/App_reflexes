@@ -9,7 +9,7 @@ from importlib import resources
 import yaml
 
 from ..params import ParamSet
-from ..store.store import Entity, Fact, FactStore
+from ..store.store import Entity, Fact, FactStore, Tier2Fact
 from .types import FactRef, Gap, Range
 
 
@@ -35,8 +35,10 @@ class Found:
 
 
 class Ctx:
-    def __init__(self, store: FactStore, entity: Entity, as_of: dt.date, params: ParamSet):
+    def __init__(self, store: FactStore, entity: Entity, as_of: dt.date, params: ParamSet,
+                 knowledge_time: dt.datetime):
         self.store = store
+        self.knowledge_time = knowledge_time
         self.entity = entity
         self.cik = entity.cik
         self.as_of = as_of
@@ -57,13 +59,26 @@ class Ctx:
         return self.params.triple(name)
 
     # ------------------------------------------------------------------ facts
-    def record(self, *facts: Fact) -> list[str]:
+    def record(self, *facts: Fact | Tier2Fact) -> list[str]:
         for f in facts:
+            extra = {}
+            if isinstance(f, Tier2Fact):
+                extra = dict(tier=2, status=f.status, document=f.document, paragraph=f.paragraph,
+                             quote=f.quote, number_text=f.number_text, scale=f.scale, note=f.note)
             self.facts_used[f.fact_id] = FactRef(
                 concept=f"{f.taxonomy}:{f.concept}", unit=f.unit, period_start=f.period_start,
                 period_end=f.period_end, value=f.value, form=f.form, filed=f.filed, accession=f.accession,
+                **extra,
             )
         return [f.fact_id for f in facts]
+
+    def tier2(self, key: str) -> Tier2Fact | None:
+        """A figure an agent read from the current filings' text, if one has been recorded."""
+        f = self.store.tier2(self.cik, key, self.as_of, self.knowledge_time,
+                             sorted({self.balance_date, self.annual_date}))
+        if f is not None:
+            self.record(f)
+        return f
 
     def _at(self, option: list[str], date: dt.date, unit: str) -> tuple[Fact, ...] | None:
         facts = [self.store.instant(self.cik, c, date, self.as_of, unit) for c in option]

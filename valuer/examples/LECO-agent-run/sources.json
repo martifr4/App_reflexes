@@ -1,0 +1,79 @@
+[
+  {
+    "path": "LECO/sec/submissions.2026-11-16.json",
+    "description": "SEC filing index and company profile (SIC code, fiscal year end)",
+    "url": "https://data.sec.gov/submissions/CIK0000059527.json",
+    "sha256": "c4ce71eff309277530af66374fd456b5ad6e67f33da33fb87abf5e444b9bf4fe",
+    "fetched_at": "2026-11-16T10:34:16Z"
+  },
+  {
+    "path": "LECO/sec/companyfacts.2026-11-16.json",
+    "description": "Every XBRL-tagged fact the company has filed; source of the XBRL fact store",
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000059527.json",
+    "sha256": "7b4c00eb27bf9b2741c9811fb61456cd52aa54904f09148e64d32bfe843a79eb",
+    "fetched_at": "2026-11-16T10:34:16Z"
+  },
+  {
+    "path": "LECO/filings/0000059527-26-000006/leco-20251231x10k.htm",
+    "description": "10-K for the period ending 2025-12-31, filed 2026-02-25, as filed",
+    "url": "https://www.sec.gov/Archives/edgar/data/59527/000005952726000006/leco-20251231x10k.htm",
+    "sha256": "46d005df23aa2c465036e9720d7a66365ae4eb3f91c25aedf5f8c33d04d83c49",
+    "fetched_at": "2026-11-16T10:34:17Z"
+  },
+  {
+    "path": "LECO/filings/0000059527-26-000006/leco-20251231x10k.txt",
+    "description": "10-K for the period ending 2025-12-31, filed 2026-02-25, as plain text; line numbers are the paragraph numbers in citations",
+    "url": "derived from filings/0000059527-26-000006/leco-20251231x10k.htm",
+    "sha256": "678a29cc6d8ad290b3222428d5fb4e185ac03ba457855f6e0dcd7a684bbebc3f",
+    "fetched_at": "2026-11-16T10:37:37Z"
+  },
+  {
+    "path": "LECO/filings/0000059527-26-000012/leco-20260331x10q.htm",
+    "description": "10-Q for the period ending 2026-03-31, filed 2026-04-30, as filed",
+    "url": "https://www.sec.gov/Archives/edgar/data/59527/000005952726000012/leco-20260331x10q.htm",
+    "sha256": "fc484222d94d9f2225936ed4853a6556bf16bb39f9755b260bbccd423192a0ba",
+    "fetched_at": "2026-11-16T10:34:18Z"
+  },
+  {
+    "path": "LECO/filings/0000059527-26-000012/leco-20260331x10q.txt",
+    "description": "10-Q for the period ending 2026-03-31, filed 2026-04-30, as plain text; line numbers are the paragraph numbers in citations",
+    "url": "derived from filings/0000059527-26-000012/leco-20260331x10q.htm",
+    "sha256": "9f24fc14df673283b79387df280c964945c5cadc8ebb2bb3af74dd0777c7f7ab",
+    "fetched_at": "2026-11-16T10:37:37Z"
+  },
+  {
+    "path": "LECO/filings/0000059527-26-000022/leco-20260630x10q.htm",
+    "description": "10-Q for the period ending 2026-06-30, filed 2026-07-30, as filed",
+    "url": "https://www.sec.gov/Archives/edgar/data/59527/000005952726000022/leco-20260630x10q.htm",
+    "sha256": "978881a27d60c0dfc01a65cd54b753bb168fa4e8f443831097a19d5ce0b672fb",
+    "fetched_at": "2026-11-16T10:34:18Z"
+  },
+  {
+    "path": "LECO/filings/0000059527-26-000022/leco-20260630x10q.txt",
+    "description": "10-Q for the period ending 2026-06-30, filed 2026-07-30, as plain text; line numbers are the paragraph numbers in citations",
+    "url": "derived from filings/0000059527-26-000022/leco-20260630x10q.htm",
+    "sha256": "2f21092e79028eb7f7c18e79cdbba524a07133b825596ac048e3192bf7881a98",
+    "fetched_at": "2026-11-16T10:37:37Z"
+  },
+  {
+    "path": "LECO/filings/0000059527-26-000027/leco-20260930x10q.htm",
+    "description": "10-Q for the period ending 2026-09-30, filed 2026-10-27, as filed",
+    "url": "https://www.sec.gov/Archives/edgar/data/59527/000005952726000027/leco-20260930x10q.htm",
+    "sha256": "35e6cce169ebdb0587cad91ab17133794302ef664b8aa72fa6c2d496df71e0d3",
+    "fetched_at": "2026-11-16T10:34:19Z"
+  },
+  {
+    "path": "LECO/filings/0000059527-26-000027/leco-20260930x10q.txt",
+    "description": "10-Q for the period ending 2026-09-30, filed 2026-10-27, as plain text; line numbers are the paragraph numbers in citations",
+    "url": "derived from filings/0000059527-26-000027/leco-20260930x10q.htm",
+    "sha256": "a0921cbea0c872f836ef8970f9e9132cd67889168ca395ac4b66eff54a46abd3",
+    "fetched_at": "2026-11-16T10:37:38Z"
+  },
+  {
+    "path": "LECO/prices/yahoo.csv",
+    "description": "Daily closes stored from yahoo; append-only, earlier rows never change",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/LECO",
+    "sha256": "31d470b8512698f5180d46f1c5294306de4e1e9e4cb440a52d288b43887cfcee",
+    "fetched_at": "2026-11-16T10:34:20Z"
+  }
+]

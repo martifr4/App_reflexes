@@ -42,8 +42,9 @@ def test_every_line_cites_facts_or_params(store, params):
 
 
 def test_valuation_is_deterministic(store, params, home):
-    a = run_valuation(store, "LECO", AS_OF, "csv", params)
-    b = run_valuation(FactStore(home), "LECO", AS_OF, "csv", params)
+    kt = dt.datetime(2026, 11, 16, 12, 0, 0)
+    a = run_valuation(store, "LECO", AS_OF, "csv", params, kt)
+    b = run_valuation(FactStore(home), "LECO", AS_OF, "csv", params, kt)
     assert a.model_dump_json() == b.model_dump_json()
 
 

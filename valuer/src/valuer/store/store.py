@@ -76,6 +76,33 @@ PRICE_SCHEMA = pa.schema(
 )
 
 
+TIER2_SCHEMA = pa.schema(
+    [
+        ("fact_id", pa.string()),
+        ("cik", pa.int64()),
+        ("key", pa.string()),
+        ("unit", pa.string()),
+        ("status", pa.string()),  # found | not_disclosed
+        ("period_end", pa.date32()),
+        ("value", pa.float64()),
+        ("accession", pa.string()),
+        ("form", pa.string()),
+        ("filed", pa.date32()),
+        ("recorded_at", pa.timestamp("s")),
+        ("document", pa.string()),
+        ("paragraph", pa.int32()),
+        ("quote", pa.string()),
+        ("number_text", pa.string()),
+        ("scale", pa.string()),
+        ("scale_paragraph", pa.int32()),
+        ("scale_quote", pa.string()),
+        ("extracted_by", pa.string()),
+        ("note", pa.string()),
+    ]
+)
+TIER2_COLS = [f.name for f in TIER2_SCHEMA]
+
+
 class NotIngested(RuntimeError):
     pass
 
@@ -95,6 +122,54 @@ class Fact:
     fy: int | None
     fp: str | None
     filed: dt.date
+
+
+@dataclass(frozen=True)
+class Tier2Fact:
+    """A figure read from filing text by an agent and verified by code against that text.
+
+    Bitemporal: ``filed`` is when the information became public, ``recorded_at`` is when this
+    system learned it. A run only sees rows recorded before its own knowledge time.
+    """
+
+    fact_id: str
+    cik: int
+    key: str
+    unit: str
+    status: str
+    period_end: dt.date
+    value: float | None
+    accession: str
+    form: str
+    filed: dt.date
+    recorded_at: dt.datetime
+    document: str
+    paragraph: int | None
+    quote: str | None
+    number_text: str | None
+    scale: str | None
+    scale_paragraph: int | None
+    scale_quote: str | None
+    extracted_by: str
+    note: str | None
+
+    taxonomy = "tier2"
+    period_start = None
+
+    @property
+    def concept(self) -> str:
+        return self.key
+
+
+@dataclass(frozen=True)
+class Filing:
+    cik: int
+    accession: str
+    form: str
+    filed: dt.date
+    report_date: dt.date | None
+    primary_document: str
+    url: str
 
 
 @dataclass(frozen=True)
@@ -159,6 +234,19 @@ class FactStore:
 
     def write_filings(self, cik: int, rows: list[dict]) -> None:
         self._write(self._filings_path(cik), rows, FILING_SCHEMA)
+
+    def _tier2_path(self, cik: int) -> Path:
+        return self.root / "tier2" / f"cik={cik}.parquet"
+
+    def add_tier2(self, cik: int, rows: list[dict]) -> int:
+        """Append tier-2 rows. A row whose fact_id is already stored is left untouched."""
+        path = self._tier2_path(cik)
+        existing = pq.read_table(path).to_pylist() if path.exists() else []
+        have = {r["fact_id"] for r in existing}
+        new = [r for r in rows if r["fact_id"] not in have]
+        if new:
+            self._write(path, existing + new, TIER2_SCHEMA)
+        return len(new)
 
     def add_prices(self, ticker: str, source: str, closes: Iterable[tuple[dt.date, float]]) -> int:
         """Append closes for dates not yet stored. Existing rows are never changed."""
@@ -284,7 +372,50 @@ class FactStore:
         )
         return Fact(*rows[0]) if rows else None
 
-    def fact_by_id(self, fact_id: str) -> Fact | None:
+    def filings(self, cik: int) -> list[Filing]:
+        p = self._filings_path(cik)
+        if not p.exists():
+            return []
+        rows = self._q(
+            f"SELECT cik, accession, form, filed, report_date, primary_document, url "
+            f"FROM read_parquet('{p.as_posix()}') ORDER BY filed DESC", [])
+        return [Filing(*r) for r in rows]
+
+    def tier2(self, cik: int, key: str, as_of: dt.date, knowledge_time: dt.datetime,
+              period_ends: list[dt.date]) -> Tier2Fact | None:
+        """Latest tier-2 row for ``key``: public by ``as_of``, recorded by ``knowledge_time``,
+        measured at one of ``period_ends``. Newer periods win, then newer recordings."""
+        p = self._tier2_path(cik)
+        if not p.exists():
+            return None
+        rows = self._q(
+            f"SELECT {', '.join(TIER2_COLS)} FROM read_parquet('{p.as_posix()}') "
+            "WHERE key = ? AND filed <= ? AND recorded_at <= ? AND period_end IN (SELECT unnest(?)) "
+            "ORDER BY period_end DESC, recorded_at DESC, fact_id DESC LIMIT 1",
+            [key, as_of, knowledge_time, period_ends],
+        )
+        return Tier2Fact(*rows[0]) if rows else None
+
+    def search_concepts(self, cik: int, pattern: str, as_of: dt.date, limit: int = 20) -> list[Fact]:
+        """Latest visible fact for each concept whose name contains ``pattern`` (case-insensitive)."""
+        cols = ", ".join(FACT_COLS)
+        rows = self._q(
+            f"SELECT {cols} FROM (SELECT *, row_number() OVER (PARTITION BY concept, unit ORDER BY period_end DESC, "
+            f"period_start DESC NULLS LAST, filed DESC, accession DESC) AS rn FROM {self._facts_src(cik)} "
+            "WHERE concept ILIKE ? AND filed <= ? AND form IN (SELECT unnest(?))) WHERE rn = 1 "
+            "ORDER BY period_end DESC, concept LIMIT ?",
+            [f"%{pattern}%", as_of, list(PERIODIC_FORMS), limit],
+        )
+        return [Fact(*r) for r in rows]
+
+    def fact_by_id(self, fact_id: str) -> Fact | Tier2Fact | None:
+        if fact_id.startswith("T2/"):
+            cik = int(fact_id.split("/")[1].removeprefix("CIK"))
+            p = self._tier2_path(cik)
+            if not p.exists():
+                return None
+            rows = self._q(f"SELECT {', '.join(TIER2_COLS)} FROM read_parquet('{p.as_posix()}') WHERE fact_id = ?", [fact_id])
+            return Tier2Fact(*rows[0]) if rows else None
         cik = int(fact_id.split("/", 1)[0].removeprefix("CIK"))
         rows = self._q(
             f"SELECT {', '.join(FACT_COLS)} FROM {self._facts_src(cik)} WHERE fact_id = ?", [fact_id]
@@ -304,6 +435,12 @@ class FactStore:
         if not rows or (as_of - rows[0][2]).days > max_stale_days:
             raise NotIngested(f"No {source} close for {ticker} within {max_stale_days} days before {as_of}.")
         return Price(*rows[0])
+
+    def prices(self, ticker: str, source: str) -> list[tuple[dt.date, float]]:
+        p = self._prices_path(ticker, source)
+        if not p.exists():
+            return []
+        return self._q(f"SELECT date, close FROM read_parquet('{p.as_posix()}') ORDER BY date", [])
 
     def price_by_id(self, price_id: str) -> Price | None:
         _, ticker, _, source = price_id.split("/")

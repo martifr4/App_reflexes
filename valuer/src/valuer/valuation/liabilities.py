@@ -6,6 +6,23 @@ from .context import Ctx, MappingError
 from .types import Line, Range
 
 _ABSENT = "is not tagged in the XBRL company facts. Confirm from the footnotes whether one exists."
+_SEARCHED = ("An analyst agent searched the current filings and found none disclosed. "
+             "Code cannot verify an absence, so check this yourself if it matters.")
+_TIER2_NOTE = "Read from the filing text by an agent and checked against that text by code."
+
+
+def _exposure(ctx: Ctx, options: list, tier2_key: str) -> tuple[float | None, list[str], list[str], str]:
+    """(amount, fact ids, notes, state) from XBRL if tagged, else from a tier-2 fact.
+    state is found | not_disclosed | unknown."""
+    f = ctx.lookup(options)
+    if f is not None:
+        return f.value, f.ids, [], "found"
+    t = ctx.tier2(tier2_key)
+    if t is None:
+        return None, [], [], "unknown"
+    if t.status != "found":
+        return None, [t.fact_id], [], "not_disclosed"
+    return t.value, [t.fact_id], [_TIER2_NOTE], "found"
 
 
 def _face(key: str, label: str, amount: float, facts: list[str], notes: list[str] | None = None) -> Line:
@@ -51,31 +68,33 @@ def value_liabilities(ctx: Ctx, assets: list[Line]) -> list[Line]:
                        ["Residual: payables, accruals, pensions, deferred taxes and everything else, at the reported amount."]))
 
     # ---- adjustments and off-balance-sheet items (book = 0: none is inside reported liabilities)
-    def scaled(key: str, label: str, options_key: str, param: str, gap: str) -> None:
-        f = ctx.lookup(spec[options_key])
-        if f is None:
-            ctx.gap(key, f"{gap} {_ABSENT}")
+    def scaled(key: str, label: str, options_key: str, tier2_key: str, param: str, gap: str) -> None:
+        amount, ids, notes, state = _exposure(ctx, spec[options_key], tier2_key)
+        if state != "found":
+            ctx.gap(key, f"{gap}: {_SEARCHED}" if state == "not_disclosed" else f"{gap} {_ABSENT}")
             return
-        if f.value == 0:
+        if not amount:
             return
-        v = ctx.p(param) * f.value
-        lines.append(Line(key=key, label=label, book=0.0, liquidation=v, going_concern=v, facts=f.ids,
-                          params=[param], formula="reported exposure x fraction"))
+        v = ctx.p(param) * amount
+        lines.append(Line(key=key, label=label, book=0.0, liquidation=v, going_concern=v, facts=ids,
+                          params=[param], formula="reported exposure x fraction", notes=notes))
 
-    pbo = ctx.lookup(spec["pension_obligation"])
-    if pbo is None:
-        ctx.gap("pension_repricing", f"The pension benefit obligation {_ABSENT} The low-scenario re-pricing is not applied.")
-    elif pbo.value:
+    pbo, ids, notes, state = _exposure(ctx, spec["pension_obligation"], "pension_benefit_obligation")
+    if state != "found":
+        ctx.gap("pension_repricing", f"The pension benefit obligation: {_SEARCHED}" if state == "not_disclosed"
+                else f"The pension benefit obligation {_ABSENT} The low-scenario re-pricing is not applied.")
+    elif pbo:
         shift, dur = ctx.p("liability.pension_rate_shift"), ctx.p("liability.pension_duration_years")
-        v = shift * dur * pbo.value
+        v = shift * dur * pbo
         lines.append(Line(key="pension_repricing", label="Pension re-pricing at a lower discount rate", book=0.0,
-                          liquidation=v, going_concern=v, facts=pbo.ids,
+                          liquidation=v, going_concern=v, facts=ids,
                           params=["liability.pension_rate_shift", "liability.pension_duration_years"],
-                          formula="benefit obligation x duration x rate cut"))
-    scaled("contingent_possible", "Reasonably possible losses", "contingent_possible",
+                          formula="benefit obligation x duration x rate cut", notes=notes))
+    scaled("contingent_possible", "Reasonably possible losses", "contingent_possible", "contingent_possible_loss",
            "liability.contingent_possible_fraction", "An estimate of reasonably possible losses")
-    scaled("guarantees", "Guarantees", "guarantees", "liability.guarantee_fraction", "A maximum guarantee exposure")
-    scaled("purchase_obligations", "Unconditional purchase obligations", "purchase_obligations",
+    scaled("guarantees", "Guarantees", "guarantees", "guarantee_max_exposure",
+           "liability.guarantee_fraction", "A maximum guarantee exposure")
+    scaled("purchase_obligations", "Unconditional purchase obligations", "purchase_obligations", "purchase_obligations",
            "liability.purchase_obligation_fraction", "An unconditional purchase obligation total")
 
     for key, label in (("preferred", "Preferred stock"), ("nci", "Non-controlling interests"),

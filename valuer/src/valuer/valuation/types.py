@@ -135,10 +135,18 @@ class FactRef(BaseModel):
     unit: str
     period_start: dt.date | None
     period_end: dt.date
-    value: float
+    value: float | None
     form: str
     filed: dt.date
     accession: str
+    tier: int = 1  # 1 = XBRL fact; 2 = read from filing text by an agent, verified by code
+    status: str | None = None
+    document: str | None = None
+    paragraph: int | None = None
+    quote: str | None = None
+    number_text: str | None = None
+    scale: str | None = None
+    note: str | None = None
 
 
 class Meta(BaseModel):
@@ -147,6 +155,7 @@ class Meta(BaseModel):
     name: str
     sic: int
     as_of: dt.date
+    knowledge_time: dt.datetime  # tier-2 facts recorded after this moment are ignored
     balance_date: dt.date
     annual_date: dt.date
     price_source: str
