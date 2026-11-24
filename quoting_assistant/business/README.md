@@ -3,7 +3,7 @@
 | File | What it is |
 |---|---|
 | `prospects.csv` | Mirror of the prospect tracker (Claude Sheet: https://claude.ai/artifact/4EHf7bVJvkSKFgK3EJGyb1). Update `status`, `last_contact` and `notes` whenever a prospect replies. |
-| `pricing.md` | Our pricing options, simple P&L and break-even (to come). |
+| `pricing.yaml` → `pricing.md` | Our prices and cost assumptions; run `python business/pnl.py` to rebuild the P&L and break-even in `pricing.md`. |
 
 ## Prospect statuses (same as the tracker dropdown)
 

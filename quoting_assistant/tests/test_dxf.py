@@ -9,12 +9,15 @@ from app.pricing.dxf import parse_dxf
 from app.pricing.engine import QuoteRequest, estimate
 from samples.make_samples import SAMPLES
 
-SAMPLES_DIR = Path(__file__).resolve().parents[1] / "samples"
 PI = math.pi
+SAMPLES_DIR: Path
 
 
 @pytest.fixture(scope="module", autouse=True)
-def regenerate_samples():
+def regenerate_samples(tmp_path_factory):
+    """Build the samples fresh from the generator (in a temp dir, so the repo copies stay untouched)."""
+    global SAMPLES_DIR
+    SAMPLES_DIR = tmp_path_factory.mktemp("samples")
     for name, fn in SAMPLES.items():
         fn(SAMPLES_DIR / name)
 

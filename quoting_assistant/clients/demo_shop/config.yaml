@@ -41,7 +41,7 @@ pricing:
 materials:
   steel:
     label: {ca: "Acer al carboni (S235/S275)", es: "Acero al carbono (S235/S275)", en: "Mild steel (S235/S275)", fr: "Acier (S235/S275)"}
-    aliases: [s235, s275, s355, dc01, acer, acero, steel, ferro, hierro, "acer negre", "hierro negro", "acier", "carbon"]
+    aliases: [s235, s275, s355, dc01, acer, acero, steel, ferro, hierro, "acer al carboni", "acero al carbono", "mild steel", "acer negre", "hierro negro", "acier", "carbon"]
     density_kg_m3: 7850
     price_per_kg: 1.05
     scrap_factor: 1.10
@@ -49,7 +49,7 @@ materials:
     pierce_each: {1: 0.02, 3: 0.03, 6: 0.06, 10: 0.12, 15: 0.25, 20: 0.40}
   galvanised:
     label: {ca: "Acer galvanitzat (DX51D)", es: "Acero galvanizado (DX51D)", en: "Galvanised steel (DX51D)", fr: "Acier galvanisé (DX51D)"}
-    aliases: [galvanitzat, galvanizado, galvanised, galvanized, dx51d, zincat, "galvanisé"]
+    aliases: [galvanitzat, galvanitzada, galvanizado, galvanizada, galvanised, galvanized, dx51d, zincat, "galvanisé"]
     density_kg_m3: 7850
     price_per_kg: 1.30
     scrap_factor: 1.10

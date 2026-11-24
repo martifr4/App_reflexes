@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Taller Demo SL · Tall làser i plegat</title>
+<style>
+:root{--bg:#f5f6f8;--ink:#1b2027;--muted:#5b6572;--card:#fff;--line:#dfe3e8;--brand:#0b5cad;--steel:#2b3440;--ribbon:#fff4d6;--ribbon-ink:#6b4e00}
+@media (prefers-color-scheme:dark){:root{--bg:#11151a;--ink:#e6ebf0;--muted:#9aa4b0;--card:#1a2027;--line:#2c343e;--steel:#0d1116;--ribbon:#3a3010;--ribbon-ink:#f2d98a}}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+.ribbon{background:var(--ribbon);color:var(--ribbon-ink);font-size:13px;padding:8px 16px;text-align:center}
+.ribbon a{color:inherit;font-weight:600}
+header{background:var(--steel);color:#fff}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+nav{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
+.logo{font-weight:800;letter-spacing:.02em;font-size:18px}
+.logo span{color:#7fb6ee}
+nav ul{display:flex;gap:18px;list-style:none;margin:0;padding:0;font-size:14px;opacity:.85}
+@media (max-width:640px){nav ul{display:none}}
+.hero{padding:56px 0 64px}
+.hero h1{font-size:clamp(28px,5vw,44px);line-height:1.15;margin:0 0 14px;max-width:720px}
+.hero p{max-width:620px;opacity:.85;margin:0 0 24px;font-size:18px}
+.cta{display:inline-block;background:var(--brand);color:#fff;border:0;border-radius:8px;padding:13px 22px;font-size:16px;font-weight:600;cursor:pointer}
+section{padding:48px 0}
+h2{font-size:24px;margin:0 0 20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px}
+.card h3{margin:0 0 6px;font-size:17px}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.samples a{display:inline-block;margin:4px 8px 4px 0;font-size:14px}
+footer{border-top:1px solid var(--line);padding:24px 0;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<div class="ribbon">Demostració: web d'exemple d'un taller fictici amb l'assistent de pressupostos instal·lat.
+  Plànols de prova: <a href="/demo/samples/placa_base_200x150.dxf">placa base</a> · <a href="/demo/samples/escaire_plegat.dxf">escaire plegat</a> · <a href="/demo/samples/brida_160.dxf">brida</a> ·
+  <a href="/demo/sales" target="_blank" rel="noopener">vista de l'equip comercial</a></div>
+<header>
+  <div class="wrap">
+    <nav><div class="logo">TALLER <span>DEMO</span> SL</div>
+      <ul><li>Serveis</li><li>Materials</li><li>Qualitat</li><li>Contacte</li></ul></nav>
+    <div class="hero">
+      <h1>Tall làser, plegat i soldadura de xapa a mida</h1>
+      <p>Peces unitàries i sèries per a fabricants de maquinària, construcció i instal·lacions. Acer, inoxidable i alumini fins a 20 mm.</p>
+      <button class="cta" onclick="window.QuoteAssistant && window.QuoteAssistant.open()">Demanin pressupost</button>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+  <section>
+    <h2>Serveis</h2>
+    <div class="grid">
+      <div class="card"><h3>Tall làser de fibra</h3><p>Planxa fins a 3.000 × 1.500 mm. Acer fins a 20 mm, inoxidable fins a 15 mm.</p></div>
+      <div class="card"><h3>Plegat CNC</h3><p>Plegadores de 3 m amb control d'angle, fins a 12 mm de gruix.</p></div>
+      <div class="card"><h3>Soldadura</h3><p>TIG i MIG en acer, inoxidable i alumini; conjunts soldats i muntatge.</p></div>
+      <div class="card"><h3>Acabats</h3><p>Desbarbat, pintura en pols i galvanitzat en calent amb proveïdors homologats.</p></div>
+    </div>
+  </section>
+</main>
+<footer><div class="wrap">Taller Demo SL · Empresa fictícia per a demostracions · Les tarifes de l'assistent són valors de mostra.</div></footer>
+
+<!-- The only line a client adds to their website: -->
+<script src="/widget.js" data-client="demo_shop" data-lang="ca" async></script>
+</body>
+</html>
