@@ -13,6 +13,7 @@ replied = [r for r in contacted if r["reply_1_date"] or r["reply_2_date"]]
 second = [r for r in contacted if r["second_email_date"]]
 optout = [r for r in rows if r["opt_out_date"]]
 pending = [r for r in rows if not r["first_email_date"] and not r["batch"].startswith("Reserve")]
+drafted = [r for r in pending if r["status"] == "Draft ready"]
 
 def row(r):
     reply = "; ".join(x for x in (r["reply_1_date"] and f"{r['reply_1_date']}: {r['reply_1_summary']}",
@@ -32,7 +33,7 @@ md = f"""# Outreach status
 | Second email sent | {len(second)} |
 | Replied | {len(replied)} ({', '.join(r['company'] for r in replied) or '—'}) |
 | Opted out | {len(optout)} ({', '.join(r['company'] for r in optout) or '—'}) |
-| Researched, not contacted yet | {len(pending)} |
+| Researched, not contacted yet | {len(pending)} (of which Gmail draft ready: {len(drafted)}) |
 
 Batches: {', '.join(f'{k} ({v})' for k, v in sorted(by_batch.items()))}.
 
@@ -49,4 +50,4 @@ Batches: {', '.join(f'{k} ({v})' for k, v in sorted(by_batch.items()))}.
 {chr(10).join(f"| {e['date']} | {e['company']} | {e['direction']} {e['type']} | {e['summary']} |" for e in sorted(log, key=lambda e: e['date'], reverse=True)[:25])}
 """
 (HERE / "outreach.md").write_text(md, encoding="utf-8")
-print(f"contacted {len(contacted)}, second email {len(second)}, replied {len(replied)}, opted out {len(optout)}, not yet contacted {len(pending)}")
+print(f"contacted {len(contacted)}, second email {len(second)}, replied {len(replied)}, opted out {len(optout)}, not yet contacted {len(pending)}, drafts ready {len(drafted)}")
