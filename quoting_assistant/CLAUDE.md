@@ -46,6 +46,7 @@ The offer to prospects is a **free trial for a few weeks**: about 1 week of setu
   - Martí Fernández-Real: https://www.linkedin.com/in/martifernandezrealgirona/
   - Álvaro (co-founder): https://www.linkedin.com/in/alvarorgaz/
 - **Whenever we write to someone who hasn't received our LinkedIn links yet, include both**, just above the sign-off: "Si volen saber qui som, aquests són els nostres perfils de LinkedIn:" / "Si quieren saber quiénes somos, estos son nuestros perfiles de LinkedIn:". Check the `linkedin_sent` column in `business/prospects.csv` first, and set it to the send date once Martí confirms the email went out. None of the 23 Nov emails included them.
+- Format the LinkedIn links as hyperlinks whose visible text is the short URL: `linkedin.com/in/martifernandezrealgirona` and `linkedin.com/in/alvarorgaz` (send HTML email; the plain-text part carries the full URLs).
 - Client communication is in Catalan or Spanish, always in the formal plural ("vostès" / "ustedes"), never "tu", "usted" or "vostè".
 - In Catalan, don't write "com treballen avui" when you mean how they work; write "com treballen". The same goes for Spanish ("cómo trabajan", not "cómo trabajan hoy").
 - Martí is fluent in both languages. Write client-facing text carefully and check the spelling.
