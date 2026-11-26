@@ -42,6 +42,10 @@ The offer to prospects is a **free trial for a few weeks**: about 1 week of setu
 ## 2. Who we are and how we talk to clients
 
 - Martí Fernández-Real, +34 650 288 339, martifrg@gmail.com. Based in Barcelona, with a friend as co-founder. We are a young local team, eager to help, and we offer in-person visits.
+- LinkedIn profiles:
+  - Martí Fernández-Real: https://www.linkedin.com/in/martifernandezrealgirona/
+  - Álvaro (co-founder): https://www.linkedin.com/in/alvarorgaz/
+- **Whenever we write to someone who hasn't received our LinkedIn links yet, include both**, just above the sign-off: "Si volen saber qui som, aquests són els nostres perfils de LinkedIn:" / "Si quieren saber quiénes somos, estos son nuestros perfiles de LinkedIn:". Check the `linkedin_sent` column in `business/prospects.csv` first, and set it to the send date once Martí confirms the email went out. None of the 23 Nov emails included them.
 - Client communication is in Catalan or Spanish, always in the formal plural ("vostès" / "ustedes"), never "tu", "usted" or "vostè".
 - In Catalan, don't write "com treballen avui" when you mean how they work; write "com treballen". The same goes for Spanish ("cómo trabajan", not "cómo trabajan hoy").
 - Martí is fluent in both languages. Write client-facing text carefully and check the spelling.

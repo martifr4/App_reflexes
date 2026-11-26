@@ -2,7 +2,7 @@
 
 | File | What it is |
 |---|---|
-| `prospects.csv` | Mirror of the prospect tracker (Claude Sheet: https://claude.ai/artifact/4EHf7bVJvkSKFgK3EJGyb1). Update `status`, `last_contact` and `notes` whenever a prospect replies. |
+| `prospects.csv` | Mirror of the prospect tracker (Claude Sheet: https://claude.ai/artifact/4EHf7bVJvkSKFgK3EJGyb1). Update `status`, `last_contact`, `linkedin_sent` and `notes` whenever we write or a prospect replies. `linkedin_sent`: `no`, or the date our LinkedIn links went out (include them in the next email if `no`). |
 | `pricing.yaml` → `pricing.md` | Our prices and cost assumptions; run `python business/pnl.py` to rebuild the P&L and break-even in `pricing.md`. |
 
 ## Prospect statuses (same as the tracker dropdown)
