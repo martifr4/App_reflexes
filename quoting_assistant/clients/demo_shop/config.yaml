@@ -1,0 +1,96 @@
+# Taller Demo SL: generic laser cutting and bending shop.
+# SAMPLE VALUES: plausible Barcelona-area figures for demos only, not a real firm's rates.
+# A real client's file is built from the onboarding questionnaire (Milestone 2).
+
+client:
+  id: demo_shop
+  name: Taller Demo SL
+  languages: [ca, es, en, fr]
+  default_language: ca
+  sales_email: comercial@tallerdemo.example
+  office_hours: {weekdays: [0, 1, 2, 3, 4], start: "08:00", end: "17:00", timezone: Europe/Madrid}
+  processes_offered: [laser, bending, welding]   # machining is not offered: always "needs review"
+  max_sheet_mm: [3000, 1500]                      # largest part the laser takes
+  sample_values: true
+
+pricing:
+  currency: EUR
+  margin: 0.30                  # on top of cost
+  minimum_order: 60.0           # € per order, before VAT
+  programming_per_part_type: 25.0   # CAD/CAM + machine setup per distinct part
+  material_basis: bbox          # bbox = charge the bounding rectangle; net = only the part area
+  # Price range shown to the customer, as multipliers on the point estimate
+  bands:
+    high: [0.90, 1.15]
+    medium: [0.80, 1.30]
+    low: [0.70, 1.50]
+
+  # Quantity discounts apply to processing (cutting, pierces, bending, welding), not material
+  quantity_discounts:
+    - {from: 1, discount: 0.00}
+    - {from: 10, discount: 0.05}
+    - {from: 50, discount: 0.10}
+    - {from: 200, discount: 0.15}
+    - {from: 1000, discount: 0.20}
+
+  # Rush: deadline in fewer working days than `under_days` adds the surcharge (first match wins)
+  rush:
+    - {under_days: 2, surcharge: 0.50}
+    - {under_days: 5, surcharge: 0.25}
+
+materials:
+  steel:
+    label: {ca: "Acer al carboni (S235/S275)", es: "Acero al carbono (S235/S275)", en: "Mild steel (S235/S275)", fr: "Acier (S235/S275)"}
+    aliases: [s235, s275, s355, dc01, acer, acero, steel, ferro, hierro, "acer al carboni", "acero al carbono", "mild steel", "acer negre", "hierro negro", "acier", "carbon"]
+    density_kg_m3: 7850
+    price_per_kg: 1.05
+    scrap_factor: 1.10
+    cut_per_m:   {1: 0.35, 2: 0.45, 3: 0.60, 4: 0.75, 5: 0.90, 6: 1.10, 8: 1.60, 10: 2.20, 12: 2.90, 15: 4.00, 20: 6.00}
+    pierce_each: {1: 0.02, 3: 0.03, 6: 0.06, 10: 0.12, 15: 0.25, 20: 0.40}
+  galvanised:
+    label: {ca: "Acer galvanitzat (DX51D)", es: "Acero galvanizado (DX51D)", en: "Galvanised steel (DX51D)", fr: "Acier galvanisé (DX51D)"}
+    aliases: [galvanitzat, galvanitzada, galvanizado, galvanizada, galvanised, galvanized, dx51d, zincat, "galvanisé"]
+    density_kg_m3: 7850
+    price_per_kg: 1.30
+    scrap_factor: 1.10
+    cut_per_m:   {0.8: 0.35, 1: 0.35, 1.5: 0.40, 2: 0.45, 3: 0.65}
+    pierce_each: {0.8: 0.02, 3: 0.03}
+  stainless_304:
+    label: {ca: "Inoxidable AISI 304", es: "Inoxidable AISI 304", en: "Stainless steel 304", fr: "Inox 304"}
+    aliases: ["304", "aisi 304", "1.4301", inox, inoxidable, stainless, "acier inoxydable"]
+    density_kg_m3: 7930
+    price_per_kg: 3.40
+    scrap_factor: 1.10
+    cut_per_m:   {1: 0.45, 2: 0.60, 3: 0.85, 4: 1.10, 5: 1.40, 6: 1.80, 8: 2.80, 10: 3.90, 12: 5.20, 15: 7.50}
+    pierce_each: {1: 0.03, 3: 0.05, 6: 0.10, 10: 0.20, 15: 0.40}
+  stainless_316:
+    label: {ca: "Inoxidable AISI 316", es: "Inoxidable AISI 316", en: "Stainless steel 316", fr: "Inox 316"}
+    aliases: ["316", "aisi 316", "316l", "1.4404"]
+    density_kg_m3: 7980
+    price_per_kg: 4.60
+    scrap_factor: 1.10
+    cut_per_m:   {1: 0.50, 2: 0.65, 3: 0.95, 4: 1.20, 5: 1.55, 6: 2.00, 8: 3.10, 10: 4.30, 12: 5.70}
+    pierce_each: {1: 0.03, 3: 0.05, 6: 0.10, 10: 0.20, 12: 0.30}
+  aluminium:
+    label: {ca: "Alumini (5754/5083)", es: "Aluminio (5754/5083)", en: "Aluminium (5754/5083)", fr: "Aluminium (5754/5083)"}
+    aliases: [alumini, aluminio, aluminium, aluminum, "5754", "5083", alu]
+    density_kg_m3: 2660
+    price_per_kg: 4.20
+    scrap_factor: 1.12
+    cut_per_m:   {1: 0.45, 2: 0.60, 3: 0.85, 4: 1.10, 5: 1.40, 6: 1.80, 8: 2.80, 10: 4.00, 12: 5.50}
+    pierce_each: {1: 0.03, 3: 0.05, 6: 0.10, 10: 0.20, 12: 0.30}
+
+bending:
+  setup_per_part_type: 40.0
+  per_bend: {1: 0.45, 2: 0.50, 3: 0.60, 4: 0.70, 6: 1.00, 8: 1.40, 10: 2.00, 12: 2.60}
+  max_thickness_mm: 12
+  max_length_mm: 3000
+
+welding:
+  per_hour: 42.0
+
+finishes:
+  none: {}
+  deburring:     {label: {ca: desbarbat, es: desbarbado, en: deburring, fr: ébavurage}, per_m2: 3.0}
+  galvanising:   {label: {ca: galvanitzat en calent, es: galvanizado en caliente, en: hot-dip galvanising, fr: galvanisation à chaud}, per_kg: 0.55, setup: 80.0}
+  powder_coating: {label: {ca: pintura en pols, es: pintura en polvo, en: powder coating, fr: peinture poudre}, per_m2: 16.0, setup: 60.0, sides: 2}

@@ -1,0 +1,39 @@
+# Our prices and costs. Edit numbers here, then run:  python business/pnl.py
+# All € excluding VAT. "VERIFY" marks figures to check before quoting them to anyone.
+
+tiers:            # monthly fee per client
+  base: {setup: 490, monthly: 190, desc: "Web chat + WhatsApp, 2 languages (CA/ES), 1-2 processes, email to sales"}
+  pro:  {setup: 790, monthly: 290, desc: "4 languages, all processes, lead dashboard, monthly report"}
+  integration: {setup: 1500, monthly: 450, desc: "Pro + ERP/CRM integration (quoted case by case)"}
+ads_addon: {setup: 350, monthly: 290, bonus_per_qualified_lead: 15, desc: "Meta/Google ads on the client's own account; ad spend on the client's card"}
+
+mix:              # share of clients on each tier, and share that take the ads add-on
+  base: 0.5
+  pro: 0.4
+  integration: 0.1
+  ads_share: 0.3
+  qualified_leads_per_ads_client: 10   # per month
+
+variable_cost_per_client:   # per month
+  conversations: 300                  # web + WhatsApp chats per client per month (assumption)
+  llm_usd_per_conversation: 0.05      # ~8 turns: Haiku extraction + Sonnet replies (measure in the trial: llm_usage table)
+  usd_to_eur: 0.92
+  whatsapp_bsp_eur: 15                # business solution provider fee (VERIFY with the chosen BSP)
+  whatsapp_templates_eur: 5           # messages we send first, e.g. follow-ups (VERIFY Meta rates for Spain)
+  our_hours: 3                        # support, tuning, monthly report
+setup_hours_per_client: 12            # questionnaire -> YAML, install, test (one-off)
+
+fixed_monthly:                        # whole business, per month
+  hosting_eu: 40                      # EU VPS + backups + email sending
+  tools_and_domains: 30
+  gestoria: 80                        # accountant (VERIFY)
+  insurance_rc: 40                    # professional liability (VERIFY)
+  # Social security (cuota de autónomos) is not included: depends on our status. Add it here when known.
+
+founders:
+  count: 2
+  autonomo_quota_each: 300            # monthly social security (VERIFY: tarifa plana is lower the first year)
+  target_net_pay_each: 1500           # what each of us wants to take home per month
+
+our_hourly_rate: 30                   # what we value our own time at, € per hour
+months_per_client: 18                 # expected client lifetime, to spread setup fees
