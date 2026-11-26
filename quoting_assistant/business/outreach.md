@@ -10,9 +10,9 @@
 | Second email sent | 19 |
 | Replied | 2 (Mecanitzats Parés, Mafesa (Mafesa Làser)) |
 | Opted out | 1 (Mecanitzats Parés) |
-| Researched, not contacted yet | 0 |
+| Researched, not contacted yet | 55 |
 
-Batches: B1 metal 2026-11-23 (20), Reserve (5).
+Batches: B1 metal 2026-11-23 (20), B2 metal (researched 2026-11-26) (50), Phone-only B2 (5), Reserve (5), Reserve B2 (25).
 
 ## Contacted firms
 

@@ -12,7 +12,7 @@ contacted = [r for r in rows if r["first_email_date"]]
 replied = [r for r in contacted if r["reply_1_date"] or r["reply_2_date"]]
 second = [r for r in contacted if r["second_email_date"]]
 optout = [r for r in rows if r["opt_out_date"]]
-pending = [r for r in rows if not r["first_email_date"] and r["batch"] not in ("Reserve",)]
+pending = [r for r in rows if not r["first_email_date"] and not r["batch"].startswith("Reserve")]
 
 def row(r):
     reply = "; ".join(x for x in (r["reply_1_date"] and f"{r['reply_1_date']}: {r['reply_1_summary']}",
