@@ -56,6 +56,7 @@ The offer to prospects is a **free trial for a few weeks**: about 1 week of setu
 - On 23 Nov 2026 we emailed 20 metal subcontractors around Barcelona (list in section 7). The emails were tailored to each firm, offered the free trial, and asked whether they're interested, with more information by email, phone or in person.
 - The prospect tracker, with columns for phone, quoting gaps, fit and status, is at https://claude.ai/artifact/4EHf7bVJvkSKFgK3EJGyb1 (a Claude Sheet). Mirror it in `business/prospects.csv` and keep the statuses updated when Martí reports replies.
 - Next sectors to prospect: **packaging and printing**, then **freight and logistics**.
+- Outreach tracking: `business/prospects.csv` (one row per firm: first email, replies, second email, opt-out, next step) and `business/outreach_log.csv` (one row per touchpoint). After any email sent or reply received, update both and run `python business/outreach_status.py` to refresh `business/outreach.md`.
 - Benchmark for the pitch: **Laserpenta** (La Llagosta) already offers online quotes through Nexafab and a 24-hour express service. So the pitch can truthfully say "your competitors already quote online".
 
 ## 4. Legal and platform rules (hard constraints)
