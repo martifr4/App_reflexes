@@ -6,11 +6,11 @@
 
 | Stage | Firms |
 |---|---|
-| Contacted (first email) | 20 |
+| Contacted (first email) | 70 |
 | Second email sent | 19 |
-| Replied | 2 (Mecanitzats Parés, Mafesa (Mafesa Làser)) |
+| Replied | 4 (Laser 7, Mecanitzats Parés, TMT Tubulares, Mafesa (Mafesa Làser)) |
 | Opted out | 1 (Mecanitzats Parés) |
-| Researched, not contacted yet | 55 (of which Gmail draft ready: 50) |
+| Researched, not contacted yet | 5 (of which Gmail draft ready: 0) |
 
 Batches: B1 metal 2026-11-23 (20), B2 metal (researched 2026-11-26) (50), Phone-only B2 (5), Reserve (5), Reserve B2 (25).
 
@@ -26,11 +26,11 @@ Batches: B1 metal 2026-11-23 (20), B2 metal (researched 2026-11-26) (50), Phone-
 | Laser Barberà (Ferros Barberà) | Barberà del Vallès | High | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
 | Inoxlaser | Centelles | High | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
 | Egarlaser | Terrassa | Medium-high | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
-| Laser 7 | Santpedor | Medium-high | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
+| Laser 7 | Santpedor | Medium-high | 2026-11-23 | 2026-11-26 | 2026-11-26: Ester Sáez: installing their own web upload + instant price tool; not now | Declined (building own portal) | Check back in ~3 months on whether the portal works; WhatsApp angle |
 | Mecanitzats Parés | Sant Esteve Sesrovires | Medium-high | 2026-11-23 | — | 2026-11-25: 'GRÀCIES... No estem interessats' | Not interested | None: opted out |
 | CMQUEL | Canovelles | Medium | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
 | Ferros Planes | Martorelles | Medium | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
-| TMT Tubulares | Granollers | Medium | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
+| TMT Tubulares | Granollers | Medium | 2026-11-23 | 2026-11-26 | 2026-11-26: "Estos temas ya los tenemos resueltos" (declined, polite) | Declined | None; do not chase. Maybe check back in 6+ months |
 | Recam Làser | Caldes de Montbui | Medium | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
 | Proceinox 90 | Ripollet | Medium | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
 | Mecanizados CMS | Castellar del Vallès | Medium | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
@@ -38,6 +38,56 @@ Batches: B1 metal 2026-11-23 (20), B2 metal (researched 2026-11-26) (50), Phone-
 | Deluq Numèrics | Torrelles de Llobregat | Medium-low | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
 | Mafesa (Mafesa Làser) | Vic | Medium-low | 2026-11-23 | 2026-11-26 | 2026-11-25: Eva Torrents (Innovació Estratègica, innovacio@mafesa.com): asks for info and use cases; not in coming weeks; interested in quote optimisation, mainly voice assistant | Emailed | Wait for Eva; offer 15-min demo when they explore it |
 | Fab Laser | Badalona | Medium-low | 2026-11-23 | 2026-11-26 | — | Emailed | Phone the switchboard if no reply by ~3 Dec |
+| Losma (Talleres Losma SL) | Sant Quirze del Vallès | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Láser Pie (Herramientas Pie SL) | Polinyà | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Benseny SA | Montmeló | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Hidegar Laser SA | Martorell | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Cut & Assemble SL | Sant Boi de Llobregat | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| High 9Metal Works SL | Sant Fruitós de Bages | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Serra Rifà SL | Manlleu | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Metall-Lògic SL | Cassà de la Selva | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Dexlaser Tall SL (DexLaser) | Riudellots de la Selva | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Ma-tall SL | Salt | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Mecanitzats J. Carreras SL | Lliçà de Vall | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Tallers Gil-Bo SA | Mataró | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Mecanitzats J. Sillero SL | Tordera | High | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| COES (Corvats Especials SL) | Terrassa | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Cofinox SL | Rubí | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Planteck Láser SL | Sabadell | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Aplicacions Integrals de Pintura (AIP) | Montcada i Reixac | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Bautista Planxisteria Industrial | Sabadell | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Guirao Curvados y Conformados | Santa Perpètua de Mogoda | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Roig Curvado de Perfiles SA | Mataró | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Aquatall Waterjet Systems SL | El Papiol | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| VidalTech (Planxisteria Industrial M. Vidal SL) | Manresa | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Maquinox SL | Les Masies de Voltregà | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Construccions Metàl·liques Guinox SL (Guinox) | Sils | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Domoli SL | Olot | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Subcontrataciones Industriales SA (SUINSA) | La Llagosta | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| G03 Mecanitzats Malgrat SL | Malgrat de Mar | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Mariano Camps i Fills SL | Sant Celoni | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Tadelmo SL | Badalona | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Metal·lúrgica Terbal SL | Sant Vicenç de Torelló | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Mecanitzats Arso SL | Tona | Medium-high | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Talleres Rodríguez Gil SL (TRG) | Lliçà de Vall | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| CEACSA (Construcción de Elementos Auxiliares de Calderería SL) | Montmeló | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| LlcWaterjet | Badalona | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Tamec (corteporlasertamec.com) | Barcelona | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| FERMSA SA | Igualada | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| ElecLàser SLU | Sant Gregori | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Oxiter Girona SL | Girona (plant also in Figueres) | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Esinsa (Esinsa Gaskets) | Tarragona (Pol. Riu Clar) | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Carpau SL | Terrassa | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Talleres Seime SL | Barberà del Vallès | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Indústries Metadell SL | Terrassa | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Talleres Inteca SL | Castellar del Vallès | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Total Planning SL | Montcada i Reixac | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Industrias Ginox SL | La Llagosta | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Boyfre SL | Esplugues de Llobregat | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Talleres Cidal SA | Molins de Rei | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Devesa Hermanos SA | Cornellà de Llobregat | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Meca-Fontde Service SL (mSQUID) | Esparreguera | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
+| Caldereria Osona SL | Vic | Medium | 2026-11-26 | — | — | Emailed | Wait for reply; follow-up around 2026-12-03 if none |
 
 ## Latest events
 
@@ -62,9 +112,9 @@ Batches: B1 metal 2026-11-23 (20), B2 metal (researched 2026-11-26) (50), Phone-
 | 2026-11-26 | R&G Metal Shaping | out second_email | Short follow-up + LinkedIn links (same thread) |
 | 2026-11-26 | Recam Làser | out second_email | Short follow-up + LinkedIn links (same thread) |
 | 2026-11-26 | TMT Tubulares | out second_email | Short follow-up + LinkedIn links (same thread) |
-| 2026-11-25 | Mafesa (Mafesa Làser) | in reply | Eva Torrents asks for info/use cases; not now; thinking of voice assistant |
-| 2026-11-25 | Mecanitzats Parés | in reply | No estem interessats (opt-out) |
-| 2026-11-25 | Mecanitzats Parés | out thanks | Martí: 'Moltes gràcies!' |
-| 2026-11-23 | CMQUEL | out first_email | Una entrada online 24 h para los clientes de CMQUEL |
-| 2026-11-23 | Curvat | out first_email | Respostes més ràpides als clients de Curvat |
-| 2026-11-23 | Deluq Numèrics | out first_email | Peticions de pressupost completes i ordenades per a Deluq Numèrics |
+| 2026-11-26 | Losma (Talleres Losma SL) | out first_email | Preus orientatius a l'instant per als clients de Losma |
+| 2026-11-26 | Láser Pie (Herramientas Pie SL) | out first_email | Presupuestos de corte láser al momento para Láser Pie |
+| 2026-11-26 | Benseny SA | out first_email | Peticions de pressupost ateses a l'instant per a Benseny |
+| 2026-11-26 | Hidegar Laser SA | out first_email | Un precio orientativo al momento para los clientes de Hidegar |
+| 2026-11-26 | Cut & Assemble SL | out first_email | Respuesta inmediata a las peticiones de presupuesto de Cut & Assemble |
+| 2026-11-26 | High 9Metal Works SL | out first_email | Que ninguna petición de presupuesto de 9Metal espere al día siguiente |
